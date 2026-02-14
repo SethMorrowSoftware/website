@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /database/
+Disallow: /includes/
+
+Sitemap: /sitemap.xml

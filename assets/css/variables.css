@@ -1,0 +1,110 @@
+/* ============================================
+   CSS Custom Properties / Theme Variables
+   Hudson Valley Supply & Recycling LLC
+   ============================================ */
+
+:root {
+    /* Brand Colors */
+    --color-primary: #1B4D3E;
+    --color-primary-dark: #133829;
+    --color-primary-light: #2a7a62;
+    --color-secondary: #D4A843;
+    --color-secondary-dark: #b8902e;
+    --color-secondary-light: #e8c56e;
+
+    /* Neutrals */
+    --color-dark: #1a1a1a;
+    --color-gray-900: #2d2d2d;
+    --color-gray-800: #3d3d3d;
+    --color-gray-700: #555555;
+    --color-gray-600: #666666;
+    --color-gray-500: #888888;
+    --color-gray-400: #aaaaaa;
+    --color-gray-300: #cccccc;
+    --color-gray-200: #e0e0e0;
+    --color-gray-100: #f0f0f0;
+    --color-light: #f5f5f0;
+    --color-white: #ffffff;
+
+    /* Semantic Colors */
+    --color-success: #28a745;
+    --color-warning: #ffc107;
+    --color-error: #dc3545;
+    --color-info: #17a2b8;
+
+    /* Typography */
+    --font-heading: 'Montserrat', sans-serif;
+    --font-body: 'Open Sans', sans-serif;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 3rem;
+    --text-6xl: 3.75rem;
+
+    --font-light: 300;
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --font-extrabold: 800;
+
+    --leading-tight: 1.2;
+    --leading-normal: 1.6;
+    --leading-relaxed: 1.75;
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    --space-4xl: 6rem;
+    --space-5xl: 8rem;
+
+    /* Layout */
+    --container-sm: 640px;
+    --container-md: 768px;
+    --container-lg: 1024px;
+    --container-xl: 1200px;
+    --container-2xl: 1400px;
+
+    /* Borders */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+    --border-color: var(--color-gray-200);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+    --shadow-card: 0 2px 10px rgba(0,0,0,0.08);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+
+    /* Z-index Scale */
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal-backdrop: 400;
+    --z-modal: 500;
+    --z-toast: 600;
+
+    /* Header */
+    --header-height: 80px;
+    --header-height-scrolled: 64px;
+}
