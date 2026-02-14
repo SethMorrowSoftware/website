@@ -116,8 +116,8 @@ $categories = getCategories();
                 <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary">Order Materials</a>
             </div>
             <div class="about-image fade-in">
-                <div style="width:100%; height:400px; background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary)); display: flex; align-items: center; justify-content: center; border-radius: var(--radius-lg);">
-                    <i class="fas fa-truck" style="font-size: 6rem; color: rgba(255,255,255,0.3);"></i>
+                <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));">
+                    <i class="fas fa-truck" style="color: rgba(255,255,255,0.3);"></i>
                 </div>
             </div>
         </div>

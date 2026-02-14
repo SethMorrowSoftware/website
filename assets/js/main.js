@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Close mobile nav on link click
-    document.querySelectorAll('.nav-menu a').forEach(function(link) {
+    // Close mobile nav on any nav link click (menu links + CTA)
+    document.querySelectorAll('.nav-menu a, .nav-cta a').forEach(function(link) {
         link.addEventListener('click', function() {
             if (mainNav.classList.contains('open')) {
                 navToggle.classList.remove('active');

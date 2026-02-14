@@ -55,6 +55,11 @@
     .stats-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+
+    /* Logo text slightly smaller at tablet */
+    .site-logo .logo-text {
+        font-size: var(--text-lg);
+    }
 }
 
 /* ---- Mobile (max-width: 768px) ---- */
@@ -75,7 +80,11 @@
         padding: var(--space-2xl) 0;
     }
 
-    /* Top Bar */
+    /* Top Bar - properly centered on mobile */
+    .top-bar {
+        padding: var(--space-xs) 0;
+    }
+
     .top-bar .container {
         flex-direction: column;
         gap: var(--space-xs);
@@ -84,7 +93,16 @@
 
     .top-bar-left,
     .top-bar-right {
+        justify-content: center;
         gap: var(--space-md);
+    }
+
+    .top-bar-left {
+        flex-wrap: wrap;
+    }
+
+    .top-bar-left a {
+        font-size: var(--text-xs);
     }
 
     /* Header / Nav */
@@ -99,6 +117,7 @@
         width: 80%;
         max-width: 350px;
         height: 100vh;
+        height: 100dvh;
         background: var(--color-white);
         flex-direction: column;
         padding: calc(var(--header-height) + var(--space-xl)) var(--space-xl) var(--space-xl);
@@ -106,6 +125,7 @@
         transition: right var(--transition-base);
         z-index: var(--z-fixed);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .main-nav.open {
@@ -164,12 +184,17 @@
         min-height: 60vh;
     }
 
+    .hero-content {
+        padding: var(--space-2xl) var(--space-md);
+    }
+
     .hero-content h1 {
         font-size: var(--text-3xl);
     }
 
     .hero-content p {
         font-size: var(--text-base);
+        margin-bottom: var(--space-xl);
     }
 
     .hero-video {
@@ -190,6 +215,7 @@
 
     .footer-grid {
         grid-template-columns: 1fr;
+        gap: var(--space-2xl);
     }
 
     .steps {
@@ -212,6 +238,11 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
+    /* Form rows stack on mobile */
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
     /* Buttons */
     .btn-group {
         flex-direction: column;
@@ -222,14 +253,51 @@
         width: 100%;
     }
 
+    .btn-lg {
+        padding: var(--space-md) var(--space-2xl);
+        font-size: var(--text-base);
+    }
+
     /* Step Progress */
+    .step-progress {
+        padding: var(--space-md);
+        gap: var(--space-xs);
+    }
+
     .step-indicator .step-label {
         display: none;
     }
 
+    /* Multi-Step Form - reduce padding on mobile */
+    .form-step {
+        padding: var(--space-lg);
+    }
+
+    .form-nav {
+        padding: var(--space-md) var(--space-lg) var(--space-lg);
+        gap: var(--space-sm);
+    }
+
+    .form-nav .btn {
+        padding: var(--space-sm) var(--space-lg);
+        font-size: var(--text-sm);
+    }
+
     /* CTA Banner */
+    .cta-banner {
+        padding: var(--space-2xl) 0;
+    }
+
+    .cta-banner h2 {
+        font-size: var(--text-2xl);
+    }
+
     .cta-banner .phone-number {
         font-size: var(--text-2xl);
+    }
+
+    .cta-banner p {
+        font-size: var(--text-base);
     }
 
     /* Cards */
@@ -237,8 +305,71 @@
         height: 180px;
     }
 
+    /* Testimonials */
+    .testimonial-card {
+        padding: 0 var(--space-sm);
+    }
+
+    .testimonial-card .quote {
+        padding: var(--space-lg);
+    }
+
+    .testimonial-card .quote p {
+        font-size: var(--text-base);
+    }
+
+    .testimonial-card .quote::before {
+        font-size: 3rem;
+        top: 5px;
+        left: 10px;
+    }
+
     /* Section Headers */
+    .section-header {
+        margin-bottom: var(--space-2xl);
+    }
+
     .section-header p {
+        font-size: var(--text-base);
+    }
+
+    /* Placeholder images - constrain height on mobile */
+    .placeholder-banner {
+        height: 250px !important;
+    }
+
+    .placeholder-banner i {
+        font-size: 4rem !important;
+    }
+
+    .about-image img {
+        height: 250px;
+    }
+
+    /* Footer */
+    .site-footer {
+        padding-top: var(--space-2xl);
+    }
+
+    .footer-about .footer-logo {
+        font-size: var(--text-lg);
+    }
+
+    /* Service cards - remove hover transform on touch */
+    .service-card:hover,
+    .card:hover,
+    .container-card:hover {
+        transform: none;
+    }
+
+    /* Contact info cards */
+    .contact-info-card {
+        padding: var(--space-md);
+    }
+
+    .contact-info-card .icon {
+        width: 40px;
+        height: 40px;
         font-size: var(--text-base);
     }
 }
@@ -250,6 +381,10 @@
 
     .hero-content h1 {
         font-size: var(--text-2xl);
+    }
+
+    .hero-content p {
+        font-size: var(--text-sm);
     }
 
     .features-grid {
@@ -275,6 +410,48 @@
 
     .site-logo .logo-text small {
         display: none;
+    }
+
+    /* Even tighter form padding on small screens */
+    .form-step {
+        padding: var(--space-md);
+    }
+
+    .form-nav {
+        padding: var(--space-sm) var(--space-md) var(--space-md);
+    }
+
+    /* Service options tighter on small screens */
+    .service-option {
+        padding: var(--space-lg);
+    }
+
+    /* Container card image */
+    .container-card .card-image {
+        height: 150px;
+    }
+
+    .container-card .size-badge {
+        font-size: var(--text-4xl);
+    }
+
+    /* Top bar: hide email, show phone only */
+    .top-bar-left a:not(:first-child) {
+        display: none;
+    }
+
+    /* Tighter CTA banner */
+    .cta-banner {
+        padding: var(--space-xl) 0;
+    }
+
+    .cta-banner .phone-number {
+        font-size: var(--text-xl);
+    }
+
+    /* Footer bottom text */
+    .footer-bottom {
+        font-size: var(--text-xs);
     }
 }
 
