@@ -5,4 +5,4 @@ Disallow: /admin/
 Disallow: /database/
 Disallow: /includes/
 
-Sitemap: /sitemap.xml
+Sitemap: /sitemap.php

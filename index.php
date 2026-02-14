@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'order_inquiry' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $validServiceTypes = ['containers', 'materials', 'trucking'];
         $data = [
             'service_type' => trim($_POST['service_type'] ?? ''),
             'product_details' => $_POST['product_details'] ?? [],
@@ -45,12 +46,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'notes' => trim($_POST['notes'] ?? '')
         ];
 
-        if ($data['service_type'] && $data['name'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL) && $data['phone']) {
+        // Validate phone format (digits, spaces, dashes, parens, plus — at least 7 digits)
+        $phoneDigits = preg_replace('/[^0-9]/', '', $data['phone']);
+        // Validate date if provided (must be today or future)
+        $dateValid = empty($data['preferred_date']) || (strtotime($data['preferred_date']) >= strtotime('today'));
+
+        $errors = [];
+        if (!in_array($data['service_type'], $validServiceTypes)) {
+            $errors[] = 'Invalid service type.';
+        }
+        if (!$data['name'] || strlen($data['name']) < 2) {
+            $errors[] = 'Please provide your full name.';
+        }
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Please provide a valid email address.';
+        }
+        if (strlen($phoneDigits) < 7) {
+            $errors[] = 'Please provide a valid phone number (at least 7 digits).';
+        }
+        if (!$dateValid) {
+            $errors[] = 'Preferred date must be today or in the future.';
+        }
+
+        if (empty($errors)) {
+            $data['phone'] = $phoneDigits; // Store normalized
             submitOrderInquiry($data);
             $_SESSION['flash_message'] = 'Your order inquiry has been submitted! We will contact you within 24 hours.';
             $_SESSION['flash_type'] = 'success';
         } else {
-            $_SESSION['flash_message'] = 'Please fill in all required fields.';
+            $_SESSION['flash_message'] = implode(' ', $errors);
             $_SESSION['flash_type'] = 'error';
         }
         redirect('index.php?page=order');

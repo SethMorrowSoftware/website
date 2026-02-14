@@ -22,6 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
+
+$csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $input['csrf_token'] ?? '';
+if (!verifyCSRFToken($csrfToken)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Invalid CSRF token']);
+    exit;
+}
+
 $table = $input['table'] ?? '';
 $items = $input['items'] ?? [];
 

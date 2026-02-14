@@ -12,6 +12,22 @@ requireLogin();
 $db = getDB();
 $csrfToken = generateCSRFToken();
 
+// Handle delete (POST only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_media']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $stmt = $db->prepare('SELECT * FROM media WHERE id = ?');
+    $stmt->execute([(int)$_POST['delete_media']]);
+    $media = $stmt->fetch();
+    if ($media) {
+        $filepath = UPLOADS_PATH . '/' . $media['filename'];
+        if (file_exists($filepath)) {
+            unlink($filepath);
+        }
+        $db->prepare('DELETE FROM media WHERE id = ?')->execute([$media['id']]);
+        $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'File deleted.'];
+    }
+    redirect('admin/media.php');
+}
+
 // Handle upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     if (!empty($_FILES['media_files'])) {
@@ -28,22 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
             if ($result) $uploadCount++;
         }
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => "$uploadCount file(s) uploaded successfully!"];
-    }
-    redirect('admin/media.php');
-}
-
-// Handle delete
-if (isset($_GET['delete']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $stmt = $db->prepare('SELECT * FROM media WHERE id = ?');
-    $stmt->execute([(int)$_GET['delete']]);
-    $media = $stmt->fetch();
-    if ($media) {
-        $filepath = UPLOADS_PATH . '/' . $media['filename'];
-        if (file_exists($filepath)) {
-            unlink($filepath);
-        }
-        $db->prepare('DELETE FROM media WHERE id = ?')->execute([$media['id']]);
-        $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'File deleted.'];
     }
     redirect('admin/media.php');
 }
@@ -65,7 +65,7 @@ require_once __DIR__ . '/header.php';
         <div class="upload-area" id="uploadArea">
             <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--color-gray-400); margin-bottom: 1rem;"></i>
             <p>Drag files here or click to browse</p>
-            <p style="font-size: 0.75rem; color: #888;">Accepted: JPG, PNG, GIF, WebP, SVG, MP4, WebM (max 50MB)</p>
+            <p style="font-size: 0.75rem; color: #888;">Accepted: JPG, PNG, GIF, WebP, MP4, WebM (max 50MB)</p>
             <input type="file" name="media_files[]" id="mediaFiles" multiple accept="image/*,video/mp4,video/webm" style="display:none;">
         </div>
         <button type="submit" class="btn-admin btn-save" style="margin-top: 1rem;"><i class="fas fa-upload"></i> Upload</button>
@@ -99,7 +99,11 @@ require_once __DIR__ . '/header.php';
                     </div>
                     <div class="media-actions">
                         <button class="btn-icon" onclick="copyToClipboard('<?php echo e($filepath); ?>')" title="Copy URL"><i class="fas fa-copy"></i></button>
-                        <a href="<?php echo url('admin/media.php?delete=' . $m['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this file?')"><i class="fas fa-trash"></i></a>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this file?')">
+                            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                            <input type="hidden" name="delete_media" value="<?php echo $m['id']; ?>">
+                            <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>

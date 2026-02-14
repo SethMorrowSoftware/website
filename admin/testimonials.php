@@ -11,8 +11,8 @@ requireLogin();
 
 $db = getDB();
 
-if (isset($_GET['delete']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $db->prepare('DELETE FROM testimonials WHERE id = ?')->execute([(int)$_GET['delete']]);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $db->prepare('DELETE FROM testimonials WHERE id = ?')->execute([(int)$_POST['delete']]);
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Testimonial deleted.'];
     redirect('admin/testimonials.php');
 }
@@ -46,7 +46,11 @@ require_once __DIR__ . '/header.php';
                     <td><?php echo $t['is_visible'] ? '<span class="badge-status badge-active">Yes</span>' : '<span class="badge-status badge-inactive">No</span>'; ?></td>
                     <td class="actions">
                         <a href="<?php echo url('admin/testimonial-edit.php?id=' . $t['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
-                        <a href="<?php echo url('admin/testimonials.php?delete=' . $t['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this testimonial?')"><i class="fas fa-trash"></i></a>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this testimonial?')">
+                            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                            <input type="hidden" name="delete" value="<?php echo $t['id']; ?>">
+                            <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>

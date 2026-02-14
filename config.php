@@ -12,6 +12,10 @@ ini_set('log_errors', 1);
 // Session configuration
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Lax');
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    ini_set('session.cookie_secure', 1);
+}
 
 // Base path configuration
 define('BASE_PATH', __DIR__);
@@ -128,6 +132,20 @@ function verifyCSRFToken(string $token): bool {
  */
 function e(string $str): string {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Sanitize stored HTML — allows safe formatting tags, strips everything else.
+ * Used for admin-authored content (custom pages, footer text, embeds).
+ */
+function sanitizeHtml(string $html): string {
+    $allowed = '<p><br><strong><b><em><i><u><ul><ol><li><h1><h2><h3><h4><h5><h6><a><img><blockquote><hr><span><div><table><thead><tbody><tr><th><td><iframe><figure><figcaption><pre><code>';
+    $clean = strip_tags($html, $allowed);
+    // Strip event handlers (onclick, onerror, onload, etc.) from remaining tags
+    $clean = preg_replace('/\s+on\w+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);
+    // Strip javascript: and data: URIs from href/src/action attributes
+    $clean = preg_replace('/(<[^>]+\s)(href|src|action)\s*=\s*(?:"(?:javascript|data):[^"]*"|\'(?:javascript|data):[^\']*\')/i', '$1$2=""', $clean);
+    return $clean;
 }
 
 /**

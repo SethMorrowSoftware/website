@@ -137,6 +137,14 @@ CREATE TABLE IF NOT EXISTS media (
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Login rate limiting
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT NOT NULL,
+    username TEXT NOT NULL,
+    attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Hero sections
 CREATE TABLE IF NOT EXISTS hero_sections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

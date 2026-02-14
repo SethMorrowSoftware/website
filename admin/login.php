@@ -8,8 +8,8 @@ require_once __DIR__ . '/../includes/auth.php';
 
 ensureSession();
 
-// Handle logout
-if (isset($_POST['logout']) || isset($_GET['logout'])) {
+// Handle logout (POST only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
     logout();
     redirect('admin/login.php');
 }
@@ -21,12 +21,18 @@ if (isLoggedIn()) {
 
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $csrf = $_POST['csrf_token'] ?? '';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
-    if (!verifyCSRFToken($csrf)) {
+    // Check rate limit before processing
+    $lockoutSeconds = checkLoginThrottle($ip);
+    if ($lockoutSeconds > 0) {
+        $minutes = (int)ceil($lockoutSeconds / 60);
+        $error = "Too many login attempts. Please try again in $minutes minute(s).";
+    } elseif (!verifyCSRFToken($csrf)) {
         $error = 'Invalid session. Please try again.';
     } elseif (attemptLogin($username, $password)) {
         redirect('admin/');

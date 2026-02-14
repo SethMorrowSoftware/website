@@ -4,8 +4,12 @@
  */
 
 function seedDatabase(PDO $db): void {
-    // Create admin user (password: HVSupply2024!)
-    $db->exec("INSERT INTO users (username, password_hash) VALUES ('admin', '" . password_hash('HVSupply2024!', PASSWORD_DEFAULT) . "')");
+    // Create admin user with a random password (written to ADMIN_CREDENTIALS.txt on first run)
+    $randomPassword = bin2hex(random_bytes(8));
+    $db->exec("INSERT INTO users (username, password_hash) VALUES ('admin', '" . password_hash($randomPassword, PASSWORD_DEFAULT) . "')");
+    $credFile = dirname(__DIR__) . '/ADMIN_CREDENTIALS.txt';
+    file_put_contents($credFile, "Admin Username: admin\nAdmin Password: $randomPassword\n\nChange this password immediately after first login at: /admin/profile.php\nThen delete this file.\n");
+    @chmod($credFile, 0600);
 
     // Site settings
     $settings = [

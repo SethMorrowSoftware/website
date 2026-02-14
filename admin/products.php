@@ -11,16 +11,16 @@ requireLogin();
 
 $db = getDB();
 
-// Handle delete
-if (isset($_GET['delete']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $db->prepare('DELETE FROM products WHERE id = ?')->execute([(int)$_GET['delete']]);
+// Handle delete (POST only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $db->prepare('DELETE FROM products WHERE id = ?')->execute([(int)$_POST['delete']]);
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product deleted.'];
     redirect('admin/products.php');
 }
 
-// Handle visibility toggle
-if (isset($_GET['toggle']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $db->prepare('UPDATE products SET is_visible = NOT is_visible WHERE id = ?')->execute([(int)$_GET['toggle']]);
+// Handle visibility toggle (POST only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $db->prepare('UPDATE products SET is_visible = NOT is_visible WHERE id = ?')->execute([(int)$_POST['toggle']]);
     redirect('admin/products.php');
 }
 
@@ -61,17 +61,25 @@ require_once __DIR__ . '/header.php';
                     <td><?php echo e($p['category_name']); ?></td>
                     <td><?php echo e($p['price'] ?: 'Call'); ?> <?php echo $p['unit'] ? '/ ' . e($p['unit']) : ''; ?></td>
                     <td>
-                        <a href="<?php echo url('admin/products.php?toggle=' . $p['id'] . '&csrf=' . e($csrfToken)); ?>" title="Toggle visibility">
-                            <?php if ($p['is_visible']): ?>
-                                <span class="badge-status badge-active">Visible</span>
-                            <?php else: ?>
-                                <span class="badge-status badge-inactive">Hidden</span>
-                            <?php endif; ?>
-                        </a>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                            <input type="hidden" name="toggle" value="<?php echo $p['id']; ?>">
+                            <button type="submit" class="btn-link" title="Toggle visibility">
+                                <?php if ($p['is_visible']): ?>
+                                    <span class="badge-status badge-active">Visible</span>
+                                <?php else: ?>
+                                    <span class="badge-status badge-inactive">Hidden</span>
+                                <?php endif; ?>
+                            </button>
+                        </form>
                     </td>
                     <td class="actions">
                         <a href="<?php echo url('admin/product-edit.php?id=' . $p['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
-                        <a href="<?php echo url('admin/products.php?delete=' . $p['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this product?')"><i class="fas fa-trash"></i></a>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this product?')">
+                            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                            <input type="hidden" name="delete" value="<?php echo $p['id']; ?>">
+                            <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>

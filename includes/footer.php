@@ -113,7 +113,7 @@ $twitterUrl = getSetting('twitter_url');
         </div>
 
         <div class="footer-bottom">
-            <p><?php echo $footerText; ?></p>
+            <p><?php echo sanitizeHtml($footerText); ?></p>
         </div>
     </div>
 </footer>

@@ -21,6 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+$csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
+if (!verifyCSRFToken($csrfToken)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Invalid CSRF token']);
+    exit;
+}
+
 if (empty($_FILES['file'])) {
     http_response_code(400);
     echo json_encode(['error' => 'No file provided']);

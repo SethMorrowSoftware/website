@@ -13,27 +13,29 @@ $db = getDB();
 $type = $_GET['type'] ?? 'all';
 $csrfToken = generateCSRFToken();
 
-// Handle mark as read
-if (isset($_GET['read']) && isset($_GET['table']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $table = $_GET['table'] === 'orders' ? 'order_inquiries' : 'contact_submissions';
-    $db->prepare("UPDATE $table SET is_read = 1 WHERE id = ?")->execute([(int)$_GET['read']]);
-    redirect('admin/inquiries.php?type=' . e($type));
-}
+// Handle POST actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $postAction = $_POST['inquiry_action'] ?? '';
 
-// Handle delete
-if (isset($_GET['delete']) && isset($_GET['table']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $table = $_GET['table'] === 'orders' ? 'order_inquiries' : 'contact_submissions';
-    $db->prepare("DELETE FROM $table WHERE id = ?")->execute([(int)$_GET['delete']]);
-    $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Entry deleted.'];
-    redirect('admin/inquiries.php?type=' . e($type));
-}
+    if ($postAction === 'mark_read' && isset($_POST['id']) && isset($_POST['table'])) {
+        $table = $_POST['table'] === 'orders' ? 'order_inquiries' : 'contact_submissions';
+        $db->prepare("UPDATE $table SET is_read = 1 WHERE id = ?")->execute([(int)$_POST['id']]);
+        redirect('admin/inquiries.php?type=' . urlencode($type));
+    }
 
-// Handle mark all as read
-if (isset($_GET['markall']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
-    $db->exec('UPDATE contact_submissions SET is_read = 1 WHERE is_read = 0');
-    $db->exec('UPDATE order_inquiries SET is_read = 1 WHERE is_read = 0');
-    $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'All marked as read.'];
-    redirect('admin/inquiries.php');
+    if ($postAction === 'delete' && isset($_POST['id']) && isset($_POST['table'])) {
+        $table = $_POST['table'] === 'orders' ? 'order_inquiries' : 'contact_submissions';
+        $db->prepare("DELETE FROM $table WHERE id = ?")->execute([(int)$_POST['id']]);
+        $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Entry deleted.'];
+        redirect('admin/inquiries.php?type=' . urlencode($type));
+    }
+
+    if ($postAction === 'mark_all_read') {
+        $db->exec('UPDATE contact_submissions SET is_read = 1 WHERE is_read = 0');
+        $db->exec('UPDATE order_inquiries SET is_read = 1 WHERE is_read = 0');
+        $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'All marked as read.'];
+        redirect('admin/inquiries.php');
+    }
 }
 
 $contacts = $db->query('SELECT * FROM contact_submissions ORDER BY created_at DESC')->fetchAll();
@@ -44,9 +46,11 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-inbox"></i> Inquiries &amp; Messages</h1>
-    <a href="<?php echo url('admin/inquiries.php?markall=1&csrf=' . e($csrfToken)); ?>" class="btn-admin btn-save" onclick="return confirm('Mark all as read?')">
-        <i class="fas fa-check-double"></i> Mark All Read
-    </a>
+    <form method="POST" style="display:inline;" onsubmit="return confirm('Mark all as read?')">
+        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+        <input type="hidden" name="inquiry_action" value="mark_all_read">
+        <button type="submit" class="btn-admin btn-save"><i class="fas fa-check-double"></i> Mark All Read</button>
+    </form>
 </div>
 
 <!-- Tabs -->
@@ -93,9 +97,21 @@ require_once __DIR__ . '/header.php';
                             <td class="actions">
                                 <a href="<?php echo url('admin/inquiry-view.php?type=contact&id=' . $c['id']); ?>" class="btn-icon" title="View"><i class="fas fa-eye"></i></a>
                                 <?php if (!$c['is_read']): ?>
-                                    <a href="<?php echo url('admin/inquiries.php?read=' . $c['id'] . '&table=contacts&csrf=' . e($csrfToken) . '&type=' . e($type)); ?>" class="btn-icon" title="Mark Read"><i class="fas fa-check"></i></a>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                        <input type="hidden" name="inquiry_action" value="mark_read">
+                                        <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
+                                        <input type="hidden" name="table" value="contacts">
+                                        <button type="submit" class="btn-icon" title="Mark Read"><i class="fas fa-check"></i></button>
+                                    </form>
                                 <?php endif; ?>
-                                <a href="<?php echo url('admin/inquiries.php?delete=' . $c['id'] . '&table=contacts&csrf=' . e($csrfToken) . '&type=' . e($type)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete?')"><i class="fas fa-trash"></i></a>
+                                <form method="POST" style="display:inline;" onsubmit="return confirm('Delete?')">
+                                    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                    <input type="hidden" name="inquiry_action" value="delete">
+                                    <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
+                                    <input type="hidden" name="table" value="contacts">
+                                    <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -143,9 +159,21 @@ require_once __DIR__ . '/header.php';
                             <td class="actions">
                                 <a href="<?php echo url('admin/inquiry-view.php?type=order&id=' . $o['id']); ?>" class="btn-icon" title="View"><i class="fas fa-eye"></i></a>
                                 <?php if (!$o['is_read']): ?>
-                                    <a href="<?php echo url('admin/inquiries.php?read=' . $o['id'] . '&table=orders&csrf=' . e($csrfToken) . '&type=' . e($type)); ?>" class="btn-icon" title="Mark Read"><i class="fas fa-check"></i></a>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                        <input type="hidden" name="inquiry_action" value="mark_read">
+                                        <input type="hidden" name="id" value="<?php echo $o['id']; ?>">
+                                        <input type="hidden" name="table" value="orders">
+                                        <button type="submit" class="btn-icon" title="Mark Read"><i class="fas fa-check"></i></button>
+                                    </form>
                                 <?php endif; ?>
-                                <a href="<?php echo url('admin/inquiries.php?delete=' . $o['id'] . '&table=orders&csrf=' . e($csrfToken) . '&type=' . e($type)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete?')"><i class="fas fa-trash"></i></a>
+                                <form method="POST" style="display:inline;" onsubmit="return confirm('Delete?')">
+                                    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                    <input type="hidden" name="inquiry_action" value="delete">
+                                    <input type="hidden" name="id" value="<?php echo $o['id']; ?>">
+                                    <input type="hidden" name="table" value="orders">
+                                    <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
