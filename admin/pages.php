@@ -11,19 +11,17 @@ requireLogin();
 
 $db = getDB();
 
-// Handle delete
-if (isset($_GET['delete']) && isset($_GET['csrf'])) {
-    if (verifyCSRFToken($_GET['csrf'])) {
-        $id = (int)$_GET['delete'];
-        $page = $db->prepare('SELECT * FROM pages WHERE id = ?');
-        $page->execute([$id]);
-        $p = $page->fetch();
-        if ($p && !$p['is_system']) {
-            $db->prepare('DELETE FROM pages WHERE id = ?')->execute([$id]);
-            $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Page deleted.'];
-        } else {
-            $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'System pages cannot be deleted.'];
-        }
+// Handle delete (POST only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $id = (int)$_POST['delete'];
+    $page = $db->prepare('SELECT * FROM pages WHERE id = ?');
+    $page->execute([$id]);
+    $p = $page->fetch();
+    if ($p && !$p['is_system']) {
+        $db->prepare('DELETE FROM pages WHERE id = ?')->execute([$id]);
+        $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Page deleted.'];
+    } else {
+        $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'System pages cannot be deleted.'];
     }
     redirect('admin/pages.php');
 }
@@ -74,7 +72,11 @@ require_once __DIR__ . '/header.php';
                         <a href="<?php echo url('admin/page-edit.php?id=' . $p['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
                         <a href="<?php echo url('index.php?page=' . e($p['slug'])); ?>" target="_blank" class="btn-icon" title="View"><i class="fas fa-eye"></i></a>
                         <?php if (!$p['is_system']): ?>
-                            <a href="<?php echo url('admin/pages.php?delete=' . $p['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this page?')"><i class="fas fa-trash"></i></a>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this page?')">
+                                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                <input type="hidden" name="delete" value="<?php echo $p['id']; ?>">
+                                <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
                         <?php endif; ?>
                     </td>
                 </tr>

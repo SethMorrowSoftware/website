@@ -49,6 +49,6 @@ $hero = getHero($pageSlug);
 <!-- Page Content -->
 <section class="page-content">
     <div class="container" style="max-width: var(--container-lg);">
-        <?php echo $customPage['content']; // Admin-controlled HTML content ?>
+        <?php echo sanitizeHtml($customPage['content']); ?>
     </div>
 </section>

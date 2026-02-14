@@ -33,6 +33,11 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="<?php echo e($companyName); ?>">
 
+    <!-- Favicon -->
+    <?php $faviconUrl = getSetting('favicon'); if ($faviconUrl): ?>
+        <link rel="icon" href="<?php echo e($faviconUrl); ?>">
+    <?php endif; ?>
+
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

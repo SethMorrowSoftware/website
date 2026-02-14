@@ -64,7 +64,7 @@ $companyPhone = getSetting('company_phone');
 
                 <?php if ($swipesimpleEmbed): ?>
                     <div class="payment-embed">
-                        <?php echo $swipesimpleEmbed; // Admin-controlled HTML embed ?>
+                        <?php echo sanitizeHtml($swipesimpleEmbed); ?>
                     </div>
                 <?php elseif ($swipesimpleLink): ?>
                     <div class="payment-embed">

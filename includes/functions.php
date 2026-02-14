@@ -122,7 +122,7 @@ function submitContact(string $name, string $email, string $phone, string $messa
         $body .= "Email: $email\n";
         $body .= "Phone: $phone\n";
         $body .= "Message:\n$message\n";
-        @mail($notifyEmail, $subject, $body, "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+        sendNotificationEmail($notifyEmail, $subject, $body);
     }
 
     return $result;
@@ -157,10 +157,22 @@ function submitOrderInquiry(array $data): bool {
         $body .= "Delivery Address: " . ($data['delivery_address'] ?? 'N/A') . "\n";
         $body .= "Preferred Date: " . ($data['preferred_date'] ?? 'N/A') . "\n";
         $body .= "Notes: " . ($data['notes'] ?? 'N/A') . "\n";
-        @mail($notifyEmail, $subject, $body, "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+        sendNotificationEmail($notifyEmail, $subject, $body);
     }
 
     return $result;
+}
+
+/**
+ * Send email with logging (replaces raw @mail)
+ */
+function sendNotificationEmail(string $to, string $subject, string $body): bool {
+    $headers = "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $sent = mail($to, $subject, $body, $headers);
+    if (!$sent) {
+        error_log("[MAIL FAILURE] To: $to | Subject: $subject | " . date('Y-m-d H:i:s'));
+    }
+    return $sent;
 }
 
 /**
@@ -177,9 +189,14 @@ function createSlug(string $text): string {
  * Handle file upload
  */
 function handleUpload(array $file, string $subdir = 'images'): ?string {
-    $allowedTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-        'video/mp4', 'video/webm'
+    // MIME-to-extension map (SVG removed — can carry active content)
+    $mimeExtMap = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
+        'image/webp' => 'webp',
+        'video/mp4'  => 'mp4',
+        'video/webm' => 'webm',
     ];
 
     if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -190,7 +207,7 @@ function handleUpload(array $file, string $subdir = 'images'): ?string {
     $mimeType = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    if (!in_array($mimeType, $allowedTypes)) {
+    if (!isset($mimeExtMap[$mimeType])) {
         return null;
     }
 
@@ -208,7 +225,8 @@ function handleUpload(array $file, string $subdir = 'images'): ?string {
         mkdir($uploadDir, 0755, true);
     }
 
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    // Derive extension from MIME type, not user filename
+    $ext = $mimeExtMap[$mimeType];
     $filename = uniqid() . '_' . time() . '.' . $ext;
     $filepath = $uploadDir . '/' . $filename;
 

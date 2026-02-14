@@ -41,6 +41,52 @@ function requireLogin(): void {
 }
 
 /**
+ * Check if login is rate-limited for this IP.
+ * Returns remaining seconds if locked out, or 0 if OK.
+ */
+function checkLoginThrottle(string $ip): int {
+    $db = getDB();
+    // Ensure table exists (for existing DBs before migration)
+    $db->exec('CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, ip_address TEXT NOT NULL, username TEXT NOT NULL, attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+
+    $window = 15 * 60; // 15 minute window
+    $maxAttempts = 5;
+    $cutoff = date('Y-m-d H:i:s', time() - $window);
+
+    $stmt = $db->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND attempted_at > ?');
+    $stmt->execute([$ip, $cutoff]);
+    $count = (int)$stmt->fetchColumn();
+
+    if ($count >= $maxAttempts) {
+        // Find when the oldest relevant attempt expires
+        $stmt = $db->prepare('SELECT attempted_at FROM login_attempts WHERE ip_address = ? AND attempted_at > ? ORDER BY attempted_at ASC LIMIT 1');
+        $stmt->execute([$ip, $cutoff]);
+        $oldest = $stmt->fetchColumn();
+        return max(1, $window - (time() - strtotime($oldest)));
+    }
+    return 0;
+}
+
+/**
+ * Record a failed login attempt
+ */
+function recordLoginAttempt(string $ip, string $username): void {
+    $db = getDB();
+    $stmt = $db->prepare('INSERT INTO login_attempts (ip_address, username) VALUES (?, ?)');
+    $stmt->execute([$ip, $username]);
+    // Cleanup old entries (older than 1 hour)
+    $db->exec("DELETE FROM login_attempts WHERE attempted_at < datetime('now', '-1 hour')");
+}
+
+/**
+ * Clear login attempts for an IP after successful login
+ */
+function clearLoginAttempts(string $ip): void {
+    $db = getDB();
+    $db->prepare('DELETE FROM login_attempts WHERE ip_address = ?')->execute([$ip]);
+}
+
+/**
  * Attempt login
  */
 function attemptLogin(string $username, string $password): bool {
@@ -50,6 +96,7 @@ function attemptLogin(string $username, string $password): bool {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password_hash'])) {
+        clearLoginAttempts($_SERVER['REMOTE_ADDR'] ?? '');
         ensureSession();
         session_regenerate_id(true);
         $_SESSION['admin_logged_in'] = true;
@@ -58,6 +105,7 @@ function attemptLogin(string $username, string $password): bool {
         $_SESSION['last_activity'] = time();
         return true;
     }
+    recordLoginAttempt($_SERVER['REMOTE_ADDR'] ?? '', $username);
     return false;
 }
 

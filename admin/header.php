@@ -20,6 +20,7 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="base-url" content="<?php echo e(BASE_URL); ?>">
+    <meta name="csrf-token" content="<?php echo e(generateCSRFToken()); ?>">
     <title>Admin — <?php echo e(ucfirst($adminPage)); ?> | <?php echo e(getSetting('company_name', SITE_NAME)); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -89,7 +90,7 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
 
     <div class="sidebar-footer">
         <a href="<?php echo url('/'); ?>" target="_blank"><i class="fas fa-external-link-alt"></i> View Site</a>
-        <a href="<?php echo url('admin/login.php?logout=1'); ?>" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
+        <a href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
             <i class="fas fa-sign-out-alt"></i> Logout
         </a>
         <form id="logoutForm" method="POST" action="<?php echo url('admin/login.php'); ?>" style="display:none;">

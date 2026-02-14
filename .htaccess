@@ -27,7 +27,7 @@ RewriteRule ^(home|about|containers|materials|trucking|contact|order|payment)/?$
 Options -Indexes
 
 # Protect sensitive files
-<FilesMatch "\.(sqlite|sql|md|log)$">
+<FilesMatch "\.(sqlite|sql|md|log|txt)$">
     Order Allow,Deny
     Deny from all
 </FilesMatch>
@@ -36,8 +36,10 @@ Options -Indexes
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; frame-src 'self' https://www.google.com https://*.swipesimple.com; connect-src 'self'"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
 # Cache static assets
