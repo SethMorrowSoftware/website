@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $error = 'New passwords do not match.';
     } elseif (changePassword(getCurrentUserId(), $current, $new)) {
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Password changed successfully!'];
-        redirect('/admin/profile.php');
+        redirect('admin/profile.php');
     } else {
         $error = 'Current password is incorrect.';
     }

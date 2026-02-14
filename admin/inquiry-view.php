@@ -36,7 +36,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-envelope-open-text"></i> <?php echo $type === 'order' ? 'Order Inquiry' : 'Contact Message'; ?></h1>
-    <a href="/admin/inquiries.php" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Inquiries</a>
+    <a href="<?php echo url('admin/inquiries.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Inquiries</a>
 </div>
 
 <?php if (!$item): ?>

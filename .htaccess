@@ -8,10 +8,10 @@ RewriteEngine On
 # RewriteCond %{HTTPS} !=on
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Clean URLs: /about -> /index.php?page=about
+# Clean URLs: /about -> index.php?page=about
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(home|about|containers|materials|trucking|contact|order|payment)/?$ /index.php?page=$1 [L,QSA]
+RewriteRule ^(home|about|containers|materials|trucking|contact|order|payment)/?$ index.php?page=$1 [L,QSA]
 
 # Protect database directory
 <IfModule mod_rewrite.c>

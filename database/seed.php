@@ -53,15 +53,16 @@ function seedDatabase(PDO $db): void {
         $stmt->execute($page);
     }
 
-    // Navigation
+    // Navigation — use url() helper so paths work in any subdirectory
+    $base = defined('BASE_URL') ? BASE_URL : '';
     $navItems = [
-        ['Home', '/', 0],
-        ['About Us', '/index.php?page=about', 1],
-        ['Containers', '/index.php?page=containers', 2],
-        ['Materials', '/index.php?page=materials', 3],
-        ['Trucking', '/index.php?page=trucking', 4],
-        ['Contact', '/index.php?page=contact', 5],
-        ['Order Inquiry', '/index.php?page=order', 6],
+        ['Home', $base . '/', 0],
+        ['About Us', $base . '/index.php?page=about', 1],
+        ['Containers', $base . '/index.php?page=containers', 2],
+        ['Materials', $base . '/index.php?page=materials', 3],
+        ['Trucking', $base . '/index.php?page=trucking', 4],
+        ['Contact', $base . '/index.php?page=contact', 5],
+        ['Order Inquiry', $base . '/index.php?page=order', 6],
     ];
 
     $stmt = $db->prepare('INSERT INTO navigation (label, url, sort_order, is_visible) VALUES (?, ?, ?, 1)');
@@ -69,12 +70,12 @@ function seedDatabase(PDO $db): void {
         $stmt->execute($nav);
     }
 
-    // Hero sections
+    // Hero sections — use $base so CTA links work in any subdirectory
     $heroes = [
-        ['home', 'Hudson Valley Supply & Recycling', 'Your Trusted Source for Containers, Materials & Hauling Services', 'Get a Free Quote', '/index.php?page=order', '', '', 0.5],
-        ['containers', 'Roll Off Containers', 'Available in 10, 15, 20, 30 & 40 Yard Sizes', 'Request a Container', '/index.php?page=order', '', '', 0.5],
-        ['materials', 'Materials & Products', 'Premium Mulch, Stone, Topsoil, Sand & Bulk Salt', 'Order Materials', '/index.php?page=order', '', '', 0.5],
-        ['trucking', 'Trucking Services', 'Reliable Delivery & Hauling Throughout the Hudson Valley', 'Get a Quote', '/index.php?page=order', '', '', 0.5],
+        ['home', 'Hudson Valley Supply & Recycling', 'Your Trusted Source for Containers, Materials & Hauling Services', 'Get a Free Quote', $base . '/index.php?page=order', '', '', 0.5],
+        ['containers', 'Roll Off Containers', 'Available in 10, 15, 20, 30 & 40 Yard Sizes', 'Request a Container', $base . '/index.php?page=order', '', '', 0.5],
+        ['materials', 'Materials & Products', 'Premium Mulch, Stone, Topsoil, Sand & Bulk Salt', 'Order Materials', $base . '/index.php?page=order', '', '', 0.5],
+        ['trucking', 'Trucking Services', 'Reliable Delivery & Hauling Throughout the Hudson Valley', 'Get a Quote', $base . '/index.php?page=order', '', '', 0.5],
         ['contact', 'Contact Us', 'We\'re Here to Help — Reach Out Today', '', '', '', '', 0.5],
         ['order', 'Order Inquiry', 'Tell Us What You Need — We\'ll Get Back to You Fast', '', '', '', '', 0.5],
         ['about', 'About Us', 'Locally Owned & Operated — Serving the Hudson Valley', '', '', '', '', 0.5],

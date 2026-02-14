@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_message'] = 'Please fill in all required fields with valid information.';
             $_SESSION['flash_type'] = 'error';
         }
-        redirect('/index.php?page=contact');
+        redirect('index.php?page=contact');
     }
 
     if ($action === 'order_inquiry' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_message'] = 'Please fill in all required fields.';
             $_SESSION['flash_type'] = 'error';
         }
-        redirect('/index.php?page=order');
+        redirect('index.php?page=order');
     }
 }
 

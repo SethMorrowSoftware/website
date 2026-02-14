@@ -30,7 +30,9 @@ function insertLink() {
 
 function insertImage() {
     if (sourceMode) return;
-    var url = prompt('Enter image URL:', '/uploads/images/');
+    var baseUrl = document.querySelector('meta[name="base-url"]');
+    var defaultPath = (baseUrl ? baseUrl.content : '') + '/uploads/images/';
+    var url = prompt('Enter image URL:', defaultPath);
     if (url) {
         document.execCommand('insertImage', false, url);
         syncContent();

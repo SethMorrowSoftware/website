@@ -17,7 +17,19 @@ ini_set('session.use_strict_mode', 1);
 define('BASE_PATH', __DIR__);
 define('DB_PATH', BASE_PATH . '/database/database.sqlite');
 define('UPLOADS_PATH', BASE_PATH . '/uploads');
-define('UPLOADS_URL', '/uploads');
+
+// Base URL — auto-detect the subdirectory this site lives in.
+// Override manually if auto-detection doesn't work for your setup:
+//   define('BASE_URL', '/my-subdirectory');
+if (!defined('BASE_URL')) {
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+    // If we're in /admin or /admin/api, walk up to the project root
+    $scriptDir = preg_replace('#/admin(/api)?$#', '', $scriptDir);
+    // If we're loading index.php at the root level, dirname gives us the subdir
+    define('BASE_URL', rtrim($scriptDir, '/'));
+}
+
+define('UPLOADS_URL', BASE_URL . '/uploads');
 
 // Site defaults
 define('SITE_NAME', 'Hudson Valley Supply & Recycling LLC');
@@ -119,9 +131,27 @@ function e(string $str): string {
 }
 
 /**
- * Redirect helper
+ * Generate a URL relative to the site's base path.
+ * e.g. url('/admin/settings.php') => '/subdir/admin/settings.php'
  */
-function redirect(string $url): void {
-    header('Location: ' . $url);
+function url(string $path = '/'): string {
+    if ($path === '/') {
+        return BASE_URL . '/';
+    }
+    return BASE_URL . '/' . ltrim($path, '/');
+}
+
+/**
+ * Generate an asset URL (shorthand for css/js/images)
+ */
+function asset(string $path): string {
+    return url('assets/' . ltrim($path, '/'));
+}
+
+/**
+ * Redirect helper — automatically prepends BASE_URL
+ */
+function redirect(string $path): void {
+    header('Location: ' . url($path));
     exit;
 }

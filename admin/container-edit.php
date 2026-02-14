@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Container created!'];
         }
-        redirect('/admin/container-edit.php?id=' . $id);
+        redirect('admin/container-edit.php?id=' . $id);
     }
 }
 
@@ -58,7 +58,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-dumpster"></i> <?php echo $container ? 'Edit Container' : 'Add Container'; ?></h1>
-    <a href="/admin/containers.php" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Containers</a>
+    <a href="<?php echo url('admin/containers.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Containers</a>
 </div>
 
 <form method="POST" enctype="multipart/form-data" class="admin-form" style="max-width: 800px;">

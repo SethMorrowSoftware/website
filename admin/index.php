@@ -12,7 +12,7 @@ requireLogin();
 // Handle logout
 if (isset($_POST['logout']) || isset($_GET['logout'])) {
     logout();
-    redirect('/admin/login.php');
+    redirect('admin/login.php');
 }
 
 $db = getDB();
@@ -70,12 +70,12 @@ require_once __DIR__ . '/header.php';
 <div class="admin-section">
     <h2>Quick Actions</h2>
     <div class="quick-actions">
-        <a href="/admin/product-edit.php" class="quick-action"><i class="fas fa-plus"></i> Add Product</a>
-        <a href="/admin/container-edit.php" class="quick-action"><i class="fas fa-plus"></i> Add Container</a>
-        <a href="/admin/page-edit.php" class="quick-action"><i class="fas fa-plus"></i> Add Page</a>
-        <a href="/admin/testimonial-edit.php" class="quick-action"><i class="fas fa-plus"></i> Add Testimonial</a>
-        <a href="/admin/settings.php" class="quick-action"><i class="fas fa-cog"></i> Site Settings</a>
-        <a href="/" target="_blank" class="quick-action"><i class="fas fa-eye"></i> View Website</a>
+        <a href="<?php echo url('admin/product-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Product</a>
+        <a href="<?php echo url('admin/container-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Container</a>
+        <a href="<?php echo url('admin/page-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Page</a>
+        <a href="<?php echo url('admin/testimonial-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Testimonial</a>
+        <a href="<?php echo url('admin/settings.php'); ?>" class="quick-action"><i class="fas fa-cog"></i> Site Settings</a>
+        <a href="<?php echo url('/'); ?>" target="_blank" class="quick-action"><i class="fas fa-eye"></i> View Website</a>
     </div>
 </div>
 
@@ -84,7 +84,7 @@ require_once __DIR__ . '/header.php';
     <div class="admin-section">
         <div class="section-head">
             <h2>Recent Contact Messages</h2>
-            <a href="/admin/inquiries.php?type=contacts" class="btn-link">View All</a>
+            <a href="<?php echo url('admin/inquiries.php?type=contacts'); ?>" class="btn-link">View All</a>
         </div>
         <?php if (empty($recentContacts)): ?>
             <p class="empty-state">No contact submissions yet.</p>
@@ -123,7 +123,7 @@ require_once __DIR__ . '/header.php';
     <div class="admin-section">
         <div class="section-head">
             <h2>Recent Order Inquiries</h2>
-            <a href="/admin/inquiries.php?type=orders" class="btn-link">View All</a>
+            <a href="<?php echo url('admin/inquiries.php?type=orders'); ?>" class="btn-link">View All</a>
         </div>
         <?php if (empty($recentOrders)): ?>
             <p class="empty-state">No order inquiries yet.</p>

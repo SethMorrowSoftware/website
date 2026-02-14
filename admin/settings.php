@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Settings saved successfully!'];
-    redirect('/admin/settings.php');
+    redirect('admin/settings.php');
 }
 
 $csrfToken = generateCSRFToken();

@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         }
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => "$uploadCount file(s) uploaded successfully!"];
     }
-    redirect('/admin/media.php');
+    redirect('admin/media.php');
 }
 
 // Handle delete
@@ -45,7 +45,7 @@ if (isset($_GET['delete']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csr
         $db->prepare('DELETE FROM media WHERE id = ?')->execute([$media['id']]);
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'File deleted.'];
     }
-    redirect('/admin/media.php');
+    redirect('admin/media.php');
 }
 
 $allMedia = $db->query('SELECT * FROM media ORDER BY uploaded_at DESC')->fetchAll();
@@ -99,7 +99,7 @@ require_once __DIR__ . '/header.php';
                     </div>
                     <div class="media-actions">
                         <button class="btn-icon" onclick="copyToClipboard('<?php echo e($filepath); ?>')" title="Copy URL"><i class="fas fa-copy"></i></button>
-                        <a href="/admin/media.php?delete=<?php echo $m['id']; ?>&csrf=<?php echo e($csrfToken); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this file?')"><i class="fas fa-trash"></i></a>
+                        <a href="<?php echo url('admin/media.php?delete=' . $m['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this file?')"><i class="fas fa-trash"></i></a>
                     </div>
                 </div>
             <?php endforeach; ?>

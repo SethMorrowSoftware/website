@@ -25,7 +25,7 @@ $containers = getContainers();
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current">Roll Off Containers</span>
     </div>
@@ -71,7 +71,7 @@ $containers = getContainers();
                                 <br><span class="card-unit"><?php echo e($container['price_note']); ?></span>
                             <?php endif; ?>
                         </div>
-                        <a href="/index.php?page=order" class="btn btn-sm btn-primary">Order Now</a>
+                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order Now</a>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -126,7 +126,7 @@ $containers = getContainers();
                 <p>Standard rental periods are available with flexible terms. Extended rental periods can be arranged. Contact us for details and pricing for your specific project timeline.</p>
 
                 <div class="text-center mt-3">
-                    <a href="/index.php?page=order" class="btn btn-primary btn-lg">Request a Container</a>
+                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Request a Container</a>
                 </div>
             </div>
         </div>

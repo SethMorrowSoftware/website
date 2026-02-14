@@ -39,9 +39,9 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/assets/css/variables.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <link rel="stylesheet" href="/assets/css/responsive.css">
+    <link rel="stylesheet" href="<?php echo asset('css/variables.css'); ?>">
+    <link rel="stylesheet" href="<?php echo asset('css/style.css'); ?>">
+    <link rel="stylesheet" href="<?php echo asset('css/responsive.css'); ?>">
 
     <?php
     // Dynamic theme colors from admin settings
@@ -116,7 +116,7 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
 <header class="site-header" id="siteHeader">
     <div class="container">
         <div class="header-inner">
-            <a href="/" class="site-logo">
+            <a href="<?php echo url('/'); ?>" class="site-logo">
                 <?php if ($logoUrl): ?>
                     <img src="<?php echo e($logoUrl); ?>" alt="<?php echo e($companyName); ?>">
                 <?php else: ?>

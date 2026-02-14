@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Page created!'];
         }
-        redirect('/admin/page-edit.php?id=' . $id);
+        redirect('admin/page-edit.php?id=' . $id);
     }
 }
 
@@ -51,7 +51,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-file-alt"></i> <?php echo $page ? 'Edit Page' : 'Add New Page'; ?></h1>
-    <a href="/admin/pages.php" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Pages</a>
+    <a href="<?php echo url('admin/pages.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Pages</a>
 </div>
 
 <form method="POST" class="admin-form">
@@ -139,6 +139,6 @@ require_once __DIR__ . '/header.php';
     </div>
 </form>
 
-<script src="/assets/js/editor.js"></script>
+<script src="<?php echo asset('js/editor.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

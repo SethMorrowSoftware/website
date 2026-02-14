@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product created!'];
         }
-        redirect('/admin/product-edit.php?id=' . $id);
+        redirect('admin/product-edit.php?id=' . $id);
     }
 }
 
@@ -59,7 +59,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-box"></i> <?php echo $product ? 'Edit Product' : 'Add New Product'; ?></h1>
-    <a href="/admin/products.php" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Products</a>
+    <a href="<?php echo url('admin/products.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Products</a>
 </div>
 
 <form method="POST" enctype="multipart/form-data" class="admin-form">

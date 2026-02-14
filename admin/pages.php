@@ -25,7 +25,7 @@ if (isset($_GET['delete']) && isset($_GET['csrf'])) {
             $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'System pages cannot be deleted.'];
         }
     }
-    redirect('/admin/pages.php');
+    redirect('admin/pages.php');
 }
 
 $pages = $db->query('SELECT * FROM pages ORDER BY sort_order ASC')->fetchAll();
@@ -36,7 +36,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-file-alt"></i> Pages</h1>
-    <a href="/admin/page-edit.php" class="btn-admin btn-add"><i class="fas fa-plus"></i> Add New Page</a>
+    <a href="<?php echo url('admin/page-edit.php'); ?>" class="btn-admin btn-add"><i class="fas fa-plus"></i> Add New Page</a>
 </div>
 
 <div class="admin-table-wrap">
@@ -71,10 +71,10 @@ require_once __DIR__ . '/header.php';
                     </td>
                     <td><?php echo $p['show_in_nav'] ? '<i class="fas fa-check text-success"></i>' : '<i class="fas fa-times text-muted"></i>'; ?></td>
                     <td class="actions">
-                        <a href="/admin/page-edit.php?id=<?php echo $p['id']; ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
-                        <a href="/index.php?page=<?php echo e($p['slug']); ?>" target="_blank" class="btn-icon" title="View"><i class="fas fa-eye"></i></a>
+                        <a href="<?php echo url('admin/page-edit.php?id=' . $p['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
+                        <a href="<?php echo url('index.php?page=' . e($p['slug'])); ?>" target="_blank" class="btn-icon" title="View"><i class="fas fa-eye"></i></a>
                         <?php if (!$p['is_system']): ?>
-                            <a href="/admin/pages.php?delete=<?php echo $p['id']; ?>&csrf=<?php echo e($csrfToken); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this page?')"><i class="fas fa-trash"></i></a>
+                            <a href="<?php echo url('admin/pages.php?delete=' . $p['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this page?')"><i class="fas fa-trash"></i></a>
                         <?php endif; ?>
                     </td>
                 </tr>

@@ -25,13 +25,13 @@ $containers = getContainers();
         <p><?php echo e($hero['subtitle'] ?? 'Your Trusted Source for Containers, Materials & Hauling Services'); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text']): ?>
-                <a href="<?php echo e($hero['cta_link'] ?? '/index.php?page=order'); ?>" class="btn btn-primary btn-lg">
+                <a href="<?php echo e($hero['cta_link'] ?? url('index.php?page=order')); ?>" class="btn btn-primary btn-lg">
                     <?php echo e($hero['cta_text']); ?>
                 </a>
             <?php else: ?>
-                <a href="/index.php?page=order" class="btn btn-primary btn-lg">Get a Free Quote</a>
+                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Get a Free Quote</a>
             <?php endif; ?>
-            <a href="/index.php?page=contact" class="btn btn-outline btn-lg">Contact Us</a>
+            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
         </div>
     </div>
 </section>
@@ -45,7 +45,7 @@ $containers = getContainers();
         </div>
 
         <div class="services-grid">
-            <a href="/index.php?page=containers" class="service-card fade-in" style="text-decoration:none; color:inherit;">
+            <a href="<?php echo url('index.php?page=containers'); ?>" class="service-card fade-in" style="text-decoration:none; color:inherit;">
                 <div class="icon">
                     <i class="fas fa-dumpster"></i>
                 </div>
@@ -54,7 +54,7 @@ $containers = getContainers();
                 <span class="btn btn-sm btn-outline-dark">Learn More</span>
             </a>
 
-            <a href="/index.php?page=materials" class="service-card fade-in" style="text-decoration:none; color:inherit;">
+            <a href="<?php echo url('index.php?page=materials'); ?>" class="service-card fade-in" style="text-decoration:none; color:inherit;">
                 <div class="icon">
                     <i class="fas fa-leaf"></i>
                 </div>
@@ -63,7 +63,7 @@ $containers = getContainers();
                 <span class="btn btn-sm btn-outline-dark">View Products</span>
             </a>
 
-            <a href="/index.php?page=trucking" class="service-card fade-in" style="text-decoration:none; color:inherit;">
+            <a href="<?php echo url('index.php?page=trucking'); ?>" class="service-card fade-in" style="text-decoration:none; color:inherit;">
                 <div class="icon">
                     <i class="fas fa-truck"></i>
                 </div>
@@ -105,14 +105,14 @@ $containers = getContainers();
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo e($container['price'] ?: 'Call for Pricing'); ?></span>
-                        <a href="/index.php?page=order" class="btn btn-sm btn-primary">Order Now</a>
+                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order Now</a>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
 
         <div class="text-center mt-3">
-            <a href="/index.php?page=containers" class="btn btn-outline-dark btn-lg">View All Container Sizes</a>
+            <a href="<?php echo url('index.php?page=containers'); ?>" class="btn btn-outline-dark btn-lg">View All Container Sizes</a>
         </div>
     </div>
 </section>
@@ -150,7 +150,7 @@ $containers = getContainers();
                     <div class="card-body">
                         <h3><?php echo e($cat['name']); ?></h3>
                         <p><?php echo e($cat['description']); ?></p>
-                        <a href="/index.php?page=materials#<?php echo e($cat['slug']); ?>" class="btn btn-sm btn-outline-dark">
+                        <a href="<?php echo url('index.php?page=materials'); ?>#<?php echo e($cat['slug']); ?>" class="btn btn-sm btn-outline-dark">
                             View Products <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>

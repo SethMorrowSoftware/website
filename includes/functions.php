@@ -252,11 +252,14 @@ function isCurrentPage(string $slug): bool {
 /**
  * Get image URL with fallback placeholder
  */
-function getImageUrl(?string $path, string $placeholder = '/assets/images/placeholders/default.jpg'): string {
+function getImageUrl(?string $path, ?string $placeholder = null): string {
+    if ($placeholder === null) {
+        $placeholder = asset('images/placeholders/default.jpg');
+    }
     if ($path && file_exists(BASE_PATH . $path)) {
         return $path;
     }
-    if ($path && str_starts_with($path, '/uploads/')) {
+    if ($path && (str_contains($path, '/uploads/') || str_starts_with($path, 'uploads/'))) {
         return $path;
     }
     return $placeholder;

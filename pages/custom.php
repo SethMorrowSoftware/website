@@ -7,7 +7,7 @@ $pageSlug = $_GET['page'] ?? '';
 $customPage = $customPage ?? getPage($pageSlug);
 
 if (!$customPage) {
-    echo '<section class="section"><div class="container"><h2>Page Not Found</h2><p>The page you are looking for does not exist.</p><a href="/" class="btn btn-primary">Go Home</a></div></section>';
+    echo '<section class="section"><div class="container"><h2>Page Not Found</h2><p>The page you are looking for does not exist.</p><a href="' . url('/') . '" class="btn btn-primary">Go Home</a></div></section>';
     return;
 }
 
@@ -40,7 +40,7 @@ $hero = getHero($pageSlug);
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current"><?php echo e($customPage['title']); ?></span>
     </div>

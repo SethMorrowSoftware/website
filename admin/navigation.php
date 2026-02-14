@@ -37,14 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         }
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Navigation updated!'];
     }
-    redirect('/admin/navigation.php');
+    redirect('admin/navigation.php');
 }
 
 // Handle delete
 if (isset($_GET['delete']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
     $db->prepare('DELETE FROM navigation WHERE id = ?')->execute([(int)$_GET['delete']]);
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Nav item deleted.'];
-    redirect('/admin/navigation.php');
+    redirect('admin/navigation.php');
 }
 
 $navItems = $db->query('SELECT * FROM navigation ORDER BY sort_order ASC')->fetchAll();
@@ -91,7 +91,7 @@ require_once __DIR__ . '/header.php';
                                 <input type="checkbox" name="items[<?php echo $item['id']; ?>][is_visible]" value="1" <?php echo $item['is_visible'] ? 'checked' : ''; ?>>
                             </td>
                             <td style="width: 60px;">
-                                <a href="/admin/navigation.php?delete=<?php echo $item['id']; ?>&csrf=<?php echo e($csrfToken); ?>" class="btn-icon btn-danger" onclick="return confirm('Remove this nav item?')"><i class="fas fa-trash"></i></a>
+                                <a href="<?php echo url('admin/navigation.php?delete=' . $item['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" onclick="return confirm('Remove this nav item?')"><i class="fas fa-trash"></i></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

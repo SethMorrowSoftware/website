@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $stmt->execute([$title, $subtitle, $cta_text, $cta_link, $background_image, $background_video, $overlay_opacity, $heroId]);
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Hero section updated!'];
     }
-    redirect('/admin/hero.php');
+    redirect('admin/hero.php');
 }
 
 $heroes = $db->query('SELECT * FROM hero_sections ORDER BY id')->fetchAll();

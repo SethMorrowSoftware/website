@@ -23,7 +23,7 @@ $serviceArea = getSetting('service_area');
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current">About Us</span>
     </div>
@@ -111,6 +111,6 @@ $serviceArea = getSetting('service_area');
         <p style="font-size: var(--text-lg); margin: var(--space-lg) auto; max-width: 700px; opacity: 0.9;" class="fade-in">
             <?php echo e($serviceArea); ?>
         </p>
-        <a href="/index.php?page=contact" class="btn btn-primary btn-lg fade-in">Get in Touch</a>
+        <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-primary btn-lg fade-in">Get in Touch</a>
     </div>
 </section>

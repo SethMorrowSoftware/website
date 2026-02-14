@@ -27,8 +27,8 @@ $twitterUrl = getSetting('twitter_url');
             </a>
         </span>
         <div class="btn-group">
-            <a href="/index.php?page=order" class="btn btn-primary btn-lg">Request a Quote</a>
-            <a href="/index.php?page=contact" class="btn btn-outline btn-lg">Contact Us</a>
+            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Request a Quote</a>
+            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
         </div>
     </div>
 </section>
@@ -64,22 +64,22 @@ $twitterUrl = getSetting('twitter_url');
             <div class="footer-col">
                 <h4>Quick Links</h4>
                 <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/index.php?page=about">About Us</a></li>
-                    <li><a href="/index.php?page=containers">Containers</a></li>
-                    <li><a href="/index.php?page=materials">Materials</a></li>
-                    <li><a href="/index.php?page=trucking">Trucking</a></li>
+                    <li><a href="<?php echo url('/'); ?>">Home</a></li>
+                    <li><a href="<?php echo url('index.php?page=about'); ?>">About Us</a></li>
+                    <li><a href="<?php echo url('index.php?page=containers'); ?>">Containers</a></li>
+                    <li><a href="<?php echo url('index.php?page=materials'); ?>">Materials</a></li>
+                    <li><a href="<?php echo url('index.php?page=trucking'); ?>">Trucking</a></li>
                 </ul>
             </div>
 
             <div class="footer-col">
                 <h4>Services</h4>
                 <ul>
-                    <li><a href="/index.php?page=containers">Roll Off Containers</a></li>
-                    <li><a href="/index.php?page=materials">Mulch &amp; Stone</a></li>
-                    <li><a href="/index.php?page=materials">Topsoil &amp; Sand</a></li>
-                    <li><a href="/index.php?page=trucking">Trucking Services</a></li>
-                    <li><a href="/index.php?page=order">Order Inquiry</a></li>
+                    <li><a href="<?php echo url('index.php?page=containers'); ?>">Roll Off Containers</a></li>
+                    <li><a href="<?php echo url('index.php?page=materials'); ?>">Mulch &amp; Stone</a></li>
+                    <li><a href="<?php echo url('index.php?page=materials'); ?>">Topsoil &amp; Sand</a></li>
+                    <li><a href="<?php echo url('index.php?page=trucking'); ?>">Trucking Services</a></li>
+                    <li><a href="<?php echo url('index.php?page=order'); ?>">Order Inquiry</a></li>
                 </ul>
             </div>
 
@@ -118,8 +118,8 @@ $twitterUrl = getSetting('twitter_url');
     </div>
 </footer>
 
-<script src="/assets/js/main.js"></script>
-<script src="/assets/js/forms.js"></script>
+<script src="<?php echo asset('js/main.js'); ?>"></script>
+<script src="<?php echo asset('js/forms.js'); ?>"></script>
 
 </body>
 </html>

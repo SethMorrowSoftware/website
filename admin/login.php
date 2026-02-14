@@ -11,12 +11,12 @@ ensureSession();
 // Handle logout
 if (isset($_POST['logout']) || isset($_GET['logout'])) {
     logout();
-    redirect('/admin/login.php');
+    redirect('admin/login.php');
 }
 
 // Already logged in?
 if (isLoggedIn()) {
-    redirect('/admin/');
+    redirect('admin/');
 }
 
 $error = '';
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($csrf)) {
         $error = 'Invalid session. Please try again.';
     } elseif (attemptLogin($username, $password)) {
-        redirect('/admin/');
+        redirect('admin/');
     } else {
         $error = 'Invalid username or password.';
     }
@@ -178,7 +178,7 @@ $csrfToken = generateCSRFToken();
             </button>
         </form>
 
-        <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Website</a>
+        <a href="<?php echo url('/'); ?>" class="back-link"><i class="fas fa-arrow-left"></i> Back to Website</a>
     </div>
 </body>
 </html>

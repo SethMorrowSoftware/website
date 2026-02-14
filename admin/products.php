@@ -15,13 +15,13 @@ $db = getDB();
 if (isset($_GET['delete']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
     $db->prepare('DELETE FROM products WHERE id = ?')->execute([(int)$_GET['delete']]);
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product deleted.'];
-    redirect('/admin/products.php');
+    redirect('admin/products.php');
 }
 
 // Handle visibility toggle
 if (isset($_GET['toggle']) && isset($_GET['csrf']) && verifyCSRFToken($_GET['csrf'])) {
     $db->prepare('UPDATE products SET is_visible = NOT is_visible WHERE id = ?')->execute([(int)$_GET['toggle']]);
-    redirect('/admin/products.php');
+    redirect('admin/products.php');
 }
 
 $products = $db->query('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id ORDER BY pc.sort_order, p.sort_order')->fetchAll();
@@ -32,7 +32,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-box"></i> Products</h1>
-    <a href="/admin/product-edit.php" class="btn-admin btn-add"><i class="fas fa-plus"></i> Add Product</a>
+    <a href="<?php echo url('admin/product-edit.php'); ?>" class="btn-admin btn-add"><i class="fas fa-plus"></i> Add Product</a>
 </div>
 
 <div class="admin-table-wrap">
@@ -61,7 +61,7 @@ require_once __DIR__ . '/header.php';
                     <td><?php echo e($p['category_name']); ?></td>
                     <td><?php echo e($p['price'] ?: 'Call'); ?> <?php echo $p['unit'] ? '/ ' . e($p['unit']) : ''; ?></td>
                     <td>
-                        <a href="/admin/products.php?toggle=<?php echo $p['id']; ?>&csrf=<?php echo e($csrfToken); ?>" title="Toggle visibility">
+                        <a href="<?php echo url('admin/products.php?toggle=' . $p['id'] . '&csrf=' . e($csrfToken)); ?>" title="Toggle visibility">
                             <?php if ($p['is_visible']): ?>
                                 <span class="badge-status badge-active">Visible</span>
                             <?php else: ?>
@@ -70,8 +70,8 @@ require_once __DIR__ . '/header.php';
                         </a>
                     </td>
                     <td class="actions">
-                        <a href="/admin/product-edit.php?id=<?php echo $p['id']; ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
-                        <a href="/admin/products.php?delete=<?php echo $p['id']; ?>&csrf=<?php echo e($csrfToken); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this product?')"><i class="fas fa-trash"></i></a>
+                        <a href="<?php echo url('admin/product-edit.php?id=' . $p['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
+                        <a href="<?php echo url('admin/products.php?delete=' . $p['id'] . '&csrf=' . e($csrfToken)); ?>" class="btn-icon btn-danger" title="Delete" onclick="return confirm('Delete this product?')"><i class="fas fa-trash"></i></a>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -80,7 +80,7 @@ require_once __DIR__ . '/header.php';
 </div>
 
 <?php if (empty($products)): ?>
-    <div class="empty-state"><p>No products yet. <a href="/admin/product-edit.php">Add your first product</a>.</p></div>
+    <div class="empty-state"><p>No products yet. <a href="<?php echo url('admin/product-edit.php'); ?>">Add your first product</a>.</p></div>
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

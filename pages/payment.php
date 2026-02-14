@@ -24,7 +24,7 @@ $companyPhone = getSetting('company_phone');
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current">Payment</span>
     </div>
@@ -100,7 +100,7 @@ $companyPhone = getSetting('company_phone');
             <h4 style="margin-bottom: var(--space-md);">Payment Questions?</h4>
             <p style="color: var(--color-gray-600); font-size: var(--text-sm);">
                 If you have questions about your invoice or payment, please don't hesitate to
-                <a href="/index.php?page=contact">contact us</a> or call
+                <a href="<?php echo url('index.php?page=contact'); ?>">contact us</a> or call
                 <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>"><?php echo e($companyPhone); ?></a>.
             </p>
         </div>

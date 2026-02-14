@@ -24,7 +24,7 @@ $hero = getHero('trucking');
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current">Trucking Services</span>
     </div>
@@ -136,8 +136,8 @@ $hero = getHero('trucking');
             Contact us today for a free quote on material delivery or trucking services.
         </p>
         <div class="btn-group fade-in">
-            <a href="/index.php?page=order" class="btn btn-primary btn-lg">Request a Quote</a>
-            <a href="/index.php?page=contact" class="btn btn-outline btn-lg">Contact Us</a>
+            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Request a Quote</a>
+            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
         </div>
     </div>
 </section>

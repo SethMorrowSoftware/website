@@ -25,7 +25,7 @@ $categories = getCategories();
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current">Materials &amp; Products</span>
     </div>
@@ -88,7 +88,7 @@ $categories = getCategories();
                                         <span class="card-unit"> / <?php echo e($product['unit']); ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <a href="/index.php?page=order" class="btn btn-sm btn-primary">Order</a>
+                                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order</a>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -113,7 +113,7 @@ $categories = getCategories();
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Bulk discounts for large orders</li>
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving all of Orange, Dutchess, Ulster &amp; Rockland Counties</li>
                 </ul>
-                <a href="/index.php?page=order" class="btn btn-primary">Order Materials</a>
+                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary">Order Materials</a>
             </div>
             <div class="about-image fade-in">
                 <div style="width:100%; height:400px; background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary)); display: flex; align-items: center; justify-content: center; border-radius: var(--radius-lg);">

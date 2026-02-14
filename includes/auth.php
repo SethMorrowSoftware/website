@@ -36,7 +36,7 @@ function isLoggedIn(): bool {
  */
 function requireLogin(): void {
     if (!isLoggedIn()) {
-        redirect('/admin/login.php');
+        redirect('admin/login.php');
     }
 }
 

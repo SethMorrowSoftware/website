@@ -25,7 +25,7 @@ $csrfToken = generateCSRFToken();
 <!-- Breadcrumb -->
 <div class="container">
     <div class="breadcrumb">
-        <a href="/">Home</a>
+        <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
         <span class="current">Order Inquiry</span>
     </div>
@@ -59,7 +59,7 @@ $csrfToken = generateCSRFToken();
                 </div>
             </div>
 
-            <form method="POST" action="/index.php" id="orderInquiryForm">
+            <form method="POST" action="<?php echo url('index.php'); ?>" id="orderInquiryForm">
                 <input type="hidden" name="action" value="order_inquiry">
                 <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
 
