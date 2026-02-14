@@ -17,7 +17,7 @@ $containers = getContainers();
         <h1><?php echo e($hero['title'] ?? 'Roll Off Containers'); ?></h1>
         <p><?php echo e($hero['subtitle'] ?? 'Available in 10, 15, 20, 30 & 40 Yard Sizes'); ?></p>
         <?php if ($hero && $hero['cta_text']): ?>
-            <a href="<?php echo e($hero['cta_link']); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
+            <a href="<?php echo e(url($hero['cta_link'])); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
         <?php endif; ?>
     </div>
 </section>

@@ -82,7 +82,7 @@ require_once __DIR__ . '/header.php';
             </div>
             <div class="form-group">
                 <label>CTA Button Link</label>
-                <input type="text" name="cta_link" class="form-control" value="<?php echo e($hero['cta_link']); ?>" placeholder="/index.php?page=order">
+                <input type="text" name="cta_link" class="form-control" value="<?php echo e($hero['cta_link']); ?>" placeholder="index.php?page=order">
             </div>
         </div>
 

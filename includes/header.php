@@ -139,12 +139,16 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                     <?php foreach ($navigation as $item): ?>
                         <?php
                         $isActive = false;
-                        $url = $item['url'] ?? '#';
-                        if ($url === '/' && $currentPage === 'home') $isActive = true;
-                        if (strpos($url, 'page=' . $currentPage) !== false) $isActive = true;
+                        $rawUrl = $item['url'] ?? '#';
+                        if ($rawUrl === '/' && $currentPage === 'home') $isActive = true;
+                        if (strpos($rawUrl, 'page=' . $currentPage) !== false) $isActive = true;
+                        // Apply url() to relative paths; leave external URLs as-is
+                        $href = (str_starts_with($rawUrl, 'http') || str_starts_with($rawUrl, '#') || str_starts_with($rawUrl, 'mailto:') || str_starts_with($rawUrl, 'tel:'))
+                            ? $rawUrl
+                            : url($rawUrl);
                         ?>
                         <li>
-                            <a href="<?php echo e($url); ?>" class="<?php echo $isActive ? 'active' : ''; ?>">
+                            <a href="<?php echo e($href); ?>" class="<?php echo $isActive ? 'active' : ''; ?>">
                                 <?php echo e($item['label']); ?>
                             </a>
                         </li>

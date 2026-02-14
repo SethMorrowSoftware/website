@@ -25,7 +25,7 @@ $containers = getContainers();
         <p><?php echo e($hero['subtitle'] ?? 'Your Trusted Source for Containers, Materials & Hauling Services'); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text']): ?>
-                <a href="<?php echo e($hero['cta_link'] ?? url('index.php?page=order')); ?>" class="btn btn-primary btn-lg">
+                <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
                     <?php echo e($hero['cta_text']); ?>
                 </a>
             <?php else: ?>

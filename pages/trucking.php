@@ -16,7 +16,7 @@ $hero = getHero('trucking');
         <h1><?php echo e($hero['title'] ?? 'Trucking Services'); ?></h1>
         <p><?php echo e($hero['subtitle'] ?? 'Reliable Delivery & Hauling Throughout the Hudson Valley'); ?></p>
         <?php if ($hero && $hero['cta_text']): ?>
-            <a href="<?php echo e($hero['cta_link']); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
+            <a href="<?php echo e(url($hero['cta_link'])); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
         <?php endif; ?>
     </div>
 </section>
