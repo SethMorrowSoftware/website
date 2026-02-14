@@ -71,21 +71,21 @@ $csrfToken = generateCSRFToken();
                             <input type="radio" name="service_type" value="container" required>
                             <div class="icon"><i class="fas fa-dumpster"></i></div>
                             <h4>Roll Off Container</h4>
-                            <p style="font-size: var(--text-sm); color: var(--color-gray-500);">Rent a container for your project</p>
+                            <p>Rent a container for your project</p>
                         </label>
 
                         <label class="service-option" data-value="material">
                             <input type="radio" name="service_type" value="material">
                             <div class="icon"><i class="fas fa-mountain"></i></div>
                             <h4>Material Delivery</h4>
-                            <p style="font-size: var(--text-sm); color: var(--color-gray-500);">Mulch, stone, sand, topsoil, salt</p>
+                            <p>Mulch, stone, sand, topsoil, salt</p>
                         </label>
 
                         <label class="service-option" data-value="trucking">
                             <input type="radio" name="service_type" value="trucking">
                             <div class="icon"><i class="fas fa-truck"></i></div>
                             <h4>Trucking Service</h4>
-                            <p style="font-size: var(--text-sm); color: var(--color-gray-500);">Hauling and delivery services</p>
+                            <p>Hauling and delivery services</p>
                         </label>
                     </div>
                 </div>
@@ -158,7 +158,7 @@ $csrfToken = generateCSRFToken();
                         <label for="delivery_address">Delivery Address <span class="required">*</span></label>
                         <input type="text" id="delivery_address" name="delivery_address" class="form-control" required placeholder="Full street address">
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="preferred_date">Preferred Date</label>
                             <input type="date" id="preferred_date" name="preferred_date" class="form-control">
@@ -185,7 +185,7 @@ $csrfToken = generateCSRFToken();
                         <label for="order_name">Full Name <span class="required">*</span></label>
                         <input type="text" id="order_name" name="name" class="form-control" required placeholder="Your full name">
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="order_email">Email Address <span class="required">*</span></label>
                             <input type="email" id="order_email" name="email" class="form-control" required placeholder="your@email.com">

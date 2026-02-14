@@ -34,8 +34,8 @@ $serviceArea = getSetting('service_area');
     <div class="container">
         <div class="about-content">
             <div class="about-image fade-in">
-                <div style="width:100%; height:400px; background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-recycle" style="font-size: 6rem; color: rgba(255,255,255,0.2);"></i>
+                <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));">
+                    <i class="fas fa-recycle"></i>
                 </div>
             </div>
             <div class="about-text fade-in">
