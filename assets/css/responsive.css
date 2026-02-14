@@ -132,9 +132,12 @@
     }
 
     .nav-cta a {
+        display: flex;
+        justify-content: center;
         width: 100%;
-        text-align: center;
-        border-radius: var(--radius-md) !important;
+        border-radius: var(--radius-md);
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-base);
     }
 
     .mobile-overlay {

@@ -42,19 +42,19 @@ $twitterUrl = getSetting('twitter_url');
                     <i class="fas fa-recycle"></i> Hudson Valley Supply &amp; Recycling
                 </div>
                 <p><?php echo e(getSetting('tagline')); ?></p>
-                <div style="margin-top: var(--space-lg); display: flex; gap: var(--space-md);">
+                <div class="footer-social-links">
                     <?php if ($facebookUrl): ?>
-                        <a href="<?php echo e($facebookUrl); ?>" target="_blank" rel="noopener" style="color: var(--color-gray-400); font-size: 1.25rem;">
+                        <a href="<?php echo e($facebookUrl); ?>" target="_blank" rel="noopener" aria-label="Facebook">
                             <i class="fab fa-facebook-f"></i>
                         </a>
                     <?php endif; ?>
                     <?php if ($instagramUrl): ?>
-                        <a href="<?php echo e($instagramUrl); ?>" target="_blank" rel="noopener" style="color: var(--color-gray-400); font-size: 1.25rem;">
+                        <a href="<?php echo e($instagramUrl); ?>" target="_blank" rel="noopener" aria-label="Instagram">
                             <i class="fab fa-instagram"></i>
                         </a>
                     <?php endif; ?>
                     <?php if ($twitterUrl): ?>
-                        <a href="<?php echo e($twitterUrl); ?>" target="_blank" rel="noopener" style="color: var(--color-gray-400); font-size: 1.25rem;">
+                        <a href="<?php echo e($twitterUrl); ?>" target="_blank" rel="noopener" aria-label="Twitter">
                             <i class="fab fa-twitter"></i>
                         </a>
                     <?php endif; ?>
@@ -88,13 +88,13 @@ $twitterUrl = getSetting('twitter_url');
                 <?php if ($companyPhone): ?>
                     <div class="footer-contact-item">
                         <i class="fas fa-phone"></i>
-                        <div><a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>" style="color: var(--color-gray-400);"><?php echo e($companyPhone); ?></a></div>
+                        <div><a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>"><?php echo e($companyPhone); ?></a></div>
                     </div>
                 <?php endif; ?>
                 <?php if ($companyEmail): ?>
                     <div class="footer-contact-item">
                         <i class="fas fa-envelope"></i>
-                        <div><a href="mailto:<?php echo e($companyEmail); ?>" style="color: var(--color-gray-400);"><?php echo e($companyEmail); ?></a></div>
+                        <div><a href="mailto:<?php echo e($companyEmail); ?>"><?php echo e($companyEmail); ?></a></div>
                     </div>
                 <?php endif; ?>
                 <?php if ($companyAddress): ?>

@@ -45,7 +45,7 @@ $containers = getContainers();
         </div>
 
         <div class="services-grid">
-            <a href="<?php echo url('index.php?page=containers'); ?>" class="service-card fade-in" style="text-decoration:none; color:inherit;">
+            <a href="<?php echo url('index.php?page=containers'); ?>" class="service-card fade-in">
                 <div class="icon">
                     <i class="fas fa-dumpster"></i>
                 </div>
@@ -54,7 +54,7 @@ $containers = getContainers();
                 <span class="btn btn-sm btn-outline-dark">Learn More</span>
             </a>
 
-            <a href="<?php echo url('index.php?page=materials'); ?>" class="service-card fade-in" style="text-decoration:none; color:inherit;">
+            <a href="<?php echo url('index.php?page=materials'); ?>" class="service-card fade-in">
                 <div class="icon">
                     <i class="fas fa-leaf"></i>
                 </div>
@@ -63,7 +63,7 @@ $containers = getContainers();
                 <span class="btn btn-sm btn-outline-dark">View Products</span>
             </a>
 
-            <a href="<?php echo url('index.php?page=trucking'); ?>" class="service-card fade-in" style="text-decoration:none; color:inherit;">
+            <a href="<?php echo url('index.php?page=trucking'); ?>" class="service-card fade-in">
                 <div class="icon">
                     <i class="fas fa-truck"></i>
                 </div>

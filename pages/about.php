@@ -79,26 +79,26 @@ $serviceArea = getSetting('service_area');
             </p>
         </div>
 
-        <div class="features-grid mt-3" style="color: var(--color-dark);">
+        <div class="features-grid features-grid-light mt-3">
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-leaf"></i></div>
-                <h4 style="color: var(--color-dark);">Eco-Friendly</h4>
-                <p style="color: var(--color-gray-600);">Committed to sustainable practices and responsible recycling.</p>
+                <h4>Eco-Friendly</h4>
+                <p>Committed to sustainable practices and responsible recycling.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-shield-alt"></i></div>
-                <h4 style="color: var(--color-dark);">Licensed & Insured</h4>
-                <p style="color: var(--color-gray-600);">Fully licensed and insured for your peace of mind.</p>
+                <h4>Licensed & Insured</h4>
+                <p>Fully licensed and insured for your peace of mind.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-users"></i></div>
-                <h4 style="color: var(--color-dark);">Community First</h4>
-                <p style="color: var(--color-gray-600);">Proud to serve our neighbors throughout the Hudson Valley.</p>
+                <h4>Community First</h4>
+                <p>Proud to serve our neighbors throughout the Hudson Valley.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-truck"></i></div>
-                <h4 style="color: var(--color-dark);">Reliable Service</h4>
-                <p style="color: var(--color-gray-600);">On-time delivery and pickup you can always depend on.</p>
+                <h4>Reliable Service</h4>
+                <p>On-time delivery and pickup you can always depend on.</p>
             </div>
         </div>
     </div>
