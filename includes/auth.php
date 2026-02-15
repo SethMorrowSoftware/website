@@ -103,6 +103,13 @@ function attemptLogin(string $username, string $password): bool {
         $_SESSION['admin_user_id'] = $user['id'];
         $_SESSION['admin_username'] = $user['username'];
         $_SESSION['last_activity'] = time();
+
+        // Auto-delete bootstrap credential file after first successful login
+        $credFile = BASE_PATH . '/ADMIN_CREDENTIALS.txt';
+        if (file_exists($credFile)) {
+            @unlink($credFile);
+        }
+
         return true;
     }
     recordLoginAttempt($_SERVER['REMOTE_ADDR'] ?? '', $username);
