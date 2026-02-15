@@ -75,15 +75,6 @@ function getProductsByCategory(int $categoryId): array {
 }
 
 /**
- * Get all visible containers
- */
-function getContainers(): array {
-    $db = getDB();
-    $stmt = $db->query('SELECT * FROM containers WHERE is_visible = 1 ORDER BY sort_order ASC');
-    return $stmt->fetchAll();
-}
-
-/**
  * Get all visible testimonials
  */
 function getTestimonials(): array {
@@ -93,15 +84,30 @@ function getTestimonials(): array {
 }
 
 /**
- * Get all products (for order form)
+ * Get all products (for order form and catalog)
  */
 function getAllProducts(): array {
     $db = getDB();
-    $stmt = $db->query('SELECT p.*, pc.name as category_name
+    $stmt = $db->query('SELECT p.*, pc.name as category_name, pc.slug as category_slug
                         FROM products p
                         JOIN product_categories pc ON p.category_id = pc.id
                         WHERE p.is_visible = 1 AND p.is_available = 1
                         ORDER BY pc.sort_order, p.sort_order');
+    return $stmt->fetchAll();
+}
+
+/**
+ * Get featured products (limited set for homepage)
+ */
+function getFeaturedProducts(int $limit = 6): array {
+    $db = getDB();
+    $stmt = $db->prepare('SELECT p.*, pc.name as category_name, pc.icon as category_icon
+                          FROM products p
+                          JOIN product_categories pc ON p.category_id = pc.id
+                          WHERE p.is_visible = 1
+                          ORDER BY pc.sort_order, p.sort_order
+                          LIMIT ?');
+    $stmt->execute([$limit]);
     return $stmt->fetchAll();
 }
 
@@ -150,7 +156,7 @@ function submitOrderInquiry(array $data): bool {
     if ($notifyEmail && $result) {
         $subject = 'New Order Inquiry - ' . SITE_NAME;
         $body = "New order inquiry received:\n\n";
-        $body .= "Service Type: {$data['service_type']}\n";
+        $body .= "Category: {$data['service_type']}\n";
         $body .= "Name: {$data['name']}\n";
         $body .= "Email: {$data['email']}\n";
         $body .= "Phone: {$data['phone']}\n";

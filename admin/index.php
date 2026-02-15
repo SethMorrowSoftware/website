@@ -20,7 +20,7 @@ $unread = getUnreadCount();
 
 // Stats
 $totalProducts = $db->query('SELECT COUNT(*) FROM products')->fetchColumn();
-$totalContainers = $db->query('SELECT COUNT(*) FROM containers')->fetchColumn();
+$totalCategories = $db->query('SELECT COUNT(*) FROM product_categories')->fetchColumn();
 $totalPages = $db->query('SELECT COUNT(*) FROM pages')->fetchColumn();
 $totalMedia = $db->query('SELECT COUNT(*) FROM media')->fetchColumn();
 $recentContacts = $db->query('SELECT * FROM contact_submissions ORDER BY created_at DESC LIMIT 5')->fetchAll();
@@ -58,10 +58,10 @@ require_once __DIR__ . '/header.php';
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon bg-info"><i class="fas fa-dumpster"></i></div>
+        <div class="stat-icon bg-info"><i class="fas fa-tags"></i></div>
         <div class="stat-info">
-            <div class="stat-number"><?php echo $totalContainers; ?></div>
-            <div class="stat-label">Containers</div>
+            <div class="stat-number"><?php echo $totalCategories; ?></div>
+            <div class="stat-label">Categories</div>
         </div>
     </div>
 </div>
@@ -71,7 +71,7 @@ require_once __DIR__ . '/header.php';
     <h2>Quick Actions</h2>
     <div class="quick-actions">
         <a href="<?php echo url('admin/product-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Product</a>
-        <a href="<?php echo url('admin/container-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Container</a>
+        <a href="<?php echo url('admin/category-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Category</a>
         <a href="<?php echo url('admin/page-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Page</a>
         <a href="<?php echo url('admin/testimonial-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Testimonial</a>
         <a href="<?php echo url('admin/settings.php'); ?>" class="quick-action"><i class="fas fa-cog"></i> Site Settings</a>

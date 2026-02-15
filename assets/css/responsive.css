@@ -44,10 +44,6 @@
         grid-template-columns: 1fr;
     }
 
-    .trucking-features {
-        grid-template-columns: 1fr;
-    }
-
     .payment-methods {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -357,8 +353,7 @@
 
     /* Service cards - remove hover transform on touch */
     .service-card:hover,
-    .card:hover,
-    .container-card:hover {
+    .card:hover {
         transform: none;
     }
 
@@ -424,15 +419,6 @@
     /* Service options tighter on small screens */
     .service-option {
         padding: var(--space-lg);
-    }
-
-    /* Container card image */
-    .container-card .card-image {
-        height: 150px;
-    }
-
-    .container-card .size-badge {
-        font-size: var(--text-4xl);
     }
 
     /* Top bar: hide email, show phone only */

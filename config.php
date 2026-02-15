@@ -54,6 +54,8 @@ function getDB(): PDO {
 
         if (!$dbExists) {
             initializeDatabase($db);
+        } else {
+            migrateDatabase($db);
         }
     }
     return $db;
@@ -69,6 +71,74 @@ function initializeDatabase(PDO $db): void {
     // Run seeder
     require_once BASE_PATH . '/database/seed.php';
     seedDatabase($db);
+}
+
+/**
+ * Run database migrations for existing installations.
+ * Called on every connection to bring older schemas up to date.
+ */
+function migrateDatabase(PDO $db): void {
+    // Check if products table has the new columns
+    $cols = $db->query("PRAGMA table_info(products)")->fetchAll();
+    $colNames = array_column($cols, 'name');
+
+    if (!in_array('specifications', $colNames)) {
+        $db->exec('ALTER TABLE products ADD COLUMN specifications TEXT');
+    }
+    if (!in_array('features', $colNames)) {
+        $db->exec('ALTER TABLE products ADD COLUMN features TEXT');
+    }
+    if (!in_array('price_note', $colNames)) {
+        $db->exec('ALTER TABLE products ADD COLUMN price_note TEXT');
+    }
+
+    // Check if product_categories has icon column
+    $catCols = $db->query("PRAGMA table_info(product_categories)")->fetchAll();
+    $catColNames = array_column($catCols, 'name');
+
+    if (!in_array('icon', $catColNames)) {
+        $db->exec("ALTER TABLE product_categories ADD COLUMN icon TEXT DEFAULT 'fa-tag'");
+    }
+
+    // Migrate containers into products if containers table still exists
+    $tables = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='containers'")->fetchColumn();
+    if ($tables) {
+        // Ensure a "Containers" category exists
+        $catStmt = $db->prepare('SELECT id FROM product_categories WHERE slug = ?');
+        $catStmt->execute(['containers']);
+        $catId = $catStmt->fetchColumn();
+
+        if (!$catId) {
+            $db->exec("INSERT INTO product_categories (name, slug, description, icon, sort_order) VALUES ('Containers', 'containers', 'Container rentals and equipment', 'fa-boxes-stacked', 0)");
+            $catId = $db->lastInsertId();
+        }
+
+        // Migrate each container as a product
+        $containers = $db->query('SELECT * FROM containers')->fetchAll();
+        $insertStmt = $db->prepare('INSERT OR IGNORE INTO products (category_id, name, slug, description, image, price, unit, specifications, features, price_note, is_visible, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
+        foreach ($containers as $c) {
+            $slug = strtolower(trim(preg_replace('/[^a-z0-9-]/', '-', preg_replace('/-+/', '-', strtolower($c['name'])))));
+            $specs = $c['dimensions'] ?? '';
+            $features = $c['use_cases'] ?? '';
+            $insertStmt->execute([
+                $catId,
+                $c['name'],
+                $slug,
+                $c['description'] ?? '',
+                $c['image'] ?? '',
+                $c['price'] ?? '',
+                $c['unit'] ?? '',
+                $specs,
+                $features,
+                $c['price_note'] ?? '',
+                $c['is_visible'] ?? 1,
+                $c['sort_order'] ?? 0,
+            ]);
+        }
+
+        // Drop old containers table
+        $db->exec('DROP TABLE IF EXISTS containers');
+    }
 }
 
 /**

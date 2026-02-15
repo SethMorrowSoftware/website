@@ -6,7 +6,7 @@
 $hero = getHero('home');
 $categories = getCategories();
 $testimonials = getTestimonials();
-$containers = getContainers();
+$featuredProducts = getFeaturedProducts(6);
 ?>
 
 <!-- Hero Section -->
@@ -21,8 +21,8 @@ $containers = getContainers();
     <?php endif; ?>
     <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'Your Business Name'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Your Trusted Source for Containers, Materials & Hauling Services'); ?></p>
+        <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'Your Business Name')); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Quality Products & Services You Can Count On')); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text']): ?>
                 <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
@@ -36,75 +36,58 @@ $containers = getContainers();
     </div>
 </section>
 
-<!-- Services Overview -->
+<!-- Categories Overview -->
+<?php if (!empty($categories)): ?>
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Our Services</h2>
-            <p>From roll-off containers to premium landscaping materials, we've got you covered.</p>
+            <h2>What We Offer</h2>
+            <p>Explore our products and services</p>
         </div>
 
         <div class="services-grid">
-            <a href="<?php echo url('index.php?page=containers'); ?>" class="service-card fade-in">
-                <div class="icon">
-                    <i class="fas fa-dumpster"></i>
-                </div>
-                <h3>Roll Off Containers</h3>
-                <p>Available in 10, 15, 20, 30, and 40 yard sizes for residential and commercial projects. Flexible rental terms.</p>
-                <span class="btn btn-sm btn-outline-dark">Learn More</span>
-            </a>
-
-            <a href="<?php echo url('index.php?page=materials'); ?>" class="service-card fade-in">
-                <div class="icon">
-                    <i class="fas fa-leaf"></i>
-                </div>
-                <h3>Materials &amp; Products</h3>
-                <p>Premium mulch, stone, topsoil, sand, and bulk salt. Available for pickup or delivery throughout our service area.</p>
-                <span class="btn btn-sm btn-outline-dark">View Products</span>
-            </a>
-
-            <a href="<?php echo url('index.php?page=trucking'); ?>" class="service-card fade-in">
-                <div class="icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <h3>Trucking Services</h3>
-                <p>Professional hauling and delivery services for mulch, stone, and more. Reliable, on-time service you can count on.</p>
-                <span class="btn btn-sm btn-outline-dark">Learn More</span>
-            </a>
+            <?php foreach ($categories as $cat): ?>
+                <a href="<?php echo url('index.php?page=catalog'); ?>#<?php echo e($cat['slug']); ?>" class="service-card fade-in">
+                    <div class="icon">
+                        <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>"></i>
+                    </div>
+                    <h3><?php echo e($cat['name']); ?></h3>
+                    <p><?php echo e($cat['description']); ?></p>
+                    <span class="btn btn-sm btn-outline-dark">Learn More</span>
+                </a>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
+<?php endif; ?>
 
-<!-- Container Sizes Preview -->
+<!-- Featured Products -->
+<?php if (!empty($featuredProducts)): ?>
 <section class="section section-light">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Roll Off Container Sizes</h2>
-            <p>Choose the right size container for your project</p>
+            <h2>Featured Products &amp; Services</h2>
+            <p>A selection of what we have to offer</p>
         </div>
 
         <div class="grid grid-3">
-            <?php
-            $displayContainers = array_slice($containers, 0, 3);
-            foreach ($displayContainers as $container):
-            ?>
-                <div class="container-card fade-in">
+            <?php foreach ($featuredProducts as $product): ?>
+                <div class="card fade-in">
                     <div class="card-image">
-                        <?php if ($container['image']): ?>
-                            <img src="<?php echo e($container['image']); ?>" alt="<?php echo e($container['name']); ?>">
+                        <?php if ($product['image']): ?>
+                            <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>">
                         <?php else: ?>
-                            <div class="size-badge"><?php echo e($container['size']); ?> <span>YD</span></div>
+                            <div class="placeholder-icon">
+                                <i class="fas <?php echo e($product['category_icon'] ?? 'fa-tag'); ?>"></i>
+                            </div>
                         <?php endif; ?>
                     </div>
                     <div class="card-body">
-                        <h3><?php echo e($container['name']); ?></h3>
-                        <?php if ($container['dimensions']): ?>
-                            <span class="dimensions"><i class="fas fa-ruler-combined"></i> <?php echo e($container['dimensions']); ?></span>
-                        <?php endif; ?>
-                        <p><?php echo e($container['description']); ?></p>
+                        <h3><?php echo e($product['name']); ?></h3>
+                        <p><?php echo e($product['description']); ?></p>
                     </div>
                     <div class="card-footer">
-                        <span class="card-price"><?php echo e($container['price'] ?: 'Call for Pricing'); ?></span>
+                        <span class="card-price"><?php echo e($product['price'] ?: 'Call for Pricing'); ?></span>
                         <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order Now</a>
                     </div>
                 </div>
@@ -112,53 +95,11 @@ $containers = getContainers();
         </div>
 
         <div class="text-center mt-3">
-            <a href="<?php echo url('index.php?page=containers'); ?>" class="btn btn-outline-dark btn-lg">View All Container Sizes</a>
+            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View Full Catalog</a>
         </div>
     </div>
 </section>
-
-<!-- Product Categories -->
-<section class="section">
-    <div class="container">
-        <div class="section-header fade-in">
-            <h2>Materials &amp; Products</h2>
-            <p>Quality materials for every landscaping and construction need</p>
-        </div>
-
-        <div class="grid grid-3">
-            <?php foreach ($categories as $cat): ?>
-                <div class="card fade-in">
-                    <div class="card-image">
-                        <?php if ($cat['image']): ?>
-                            <img src="<?php echo e($cat['image']); ?>" alt="<?php echo e($cat['name']); ?>">
-                        <?php else: ?>
-                            <div class="placeholder-icon">
-                                <?php
-                                $icons = [
-                                    'mulch' => 'fa-leaf',
-                                    'stone' => 'fa-mountain',
-                                    'topsoil' => 'fa-seedling',
-                                    'sand' => 'fa-umbrella-beach',
-                                    'bulk-salt' => 'fa-snowflake',
-                                ];
-                                $icon = $icons[$cat['slug']] ?? 'fa-box';
-                                ?>
-                                <i class="fas <?php echo $icon; ?>"></i>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="card-body">
-                        <h3><?php echo e($cat['name']); ?></h3>
-                        <p><?php echo e($cat['description']); ?></p>
-                        <a href="<?php echo url('index.php?page=materials'); ?>#<?php echo e($cat['slug']); ?>" class="btn btn-sm btn-outline-dark">
-                            View Products <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
+<?php endif; ?>
 
 <!-- Why Choose Us -->
 <section class="section section-dark">
@@ -175,8 +116,8 @@ $containers = getContainers();
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-clock"></i></div>
-                <h4>Fast Delivery</h4>
-                <p>Same-day and next-day delivery available on most products.</p>
+                <h4>Fast Service</h4>
+                <p>Quick turnaround and reliable service you can count on.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-dollar-sign"></i></div>
@@ -186,7 +127,7 @@ $containers = getContainers();
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-star"></i></div>
                 <h4>Quality Guaranteed</h4>
-                <p>Premium materials and dependable service, every single time.</p>
+                <p>Premium products and dependable service, every single time.</p>
             </div>
         </div>
     </div>

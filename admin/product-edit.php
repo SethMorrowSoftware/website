@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     $description = trim($_POST['description'] ?? '');
     $price = trim($_POST['price'] ?? '');
     $unit = trim($_POST['unit'] ?? '');
+    $specifications = trim($_POST['specifications'] ?? '');
+    $features = trim($_POST['features'] ?? '');
+    $price_note = trim($_POST['price_note'] ?? '');
     $is_visible = isset($_POST['is_visible']) ? 1 : 0;
     $is_available = isset($_POST['is_available']) ? 1 : 0;
     $sort_order = (int)($_POST['sort_order'] ?? 0);
@@ -40,12 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if ($name && $category_id) {
         if ($id && $product) {
-            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, is_visible=?, is_available=?, sort_order=? WHERE id=?');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $is_visible, $is_available, $sort_order, $id]);
+            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, is_visible=?, is_available=?, sort_order=? WHERE id=?');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $is_visible, $is_available, $sort_order, $id]);
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product updated!'];
         } else {
-            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, is_visible, is_available, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $is_visible, $is_available, $sort_order]);
+            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, is_visible, is_available, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $is_visible, $is_available, $sort_order]);
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product created!'];
         }
@@ -98,9 +101,31 @@ require_once __DIR__ . '/header.php';
                     </div>
                     <div class="form-group">
                         <label>Unit</label>
-                        <input type="text" name="unit" class="form-control" value="<?php echo e($product['unit'] ?? ''); ?>" placeholder="e.g., per yard, per ton">
+                        <input type="text" name="unit" class="form-control" value="<?php echo e($product['unit'] ?? ''); ?>" placeholder="e.g., per unit, per hour, each">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>Price Note</label>
+                    <input type="text" name="price_note" class="form-control" value="<?php echo e($product['price_note'] ?? ''); ?>" placeholder="e.g., Pricing varies by location">
+                    <small class="form-help">Optional note shown below the price (e.g., disclaimers, conditions).</small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-info-circle"></i> Additional Details</h3>
+                <div class="form-group">
+                    <label>Specifications</label>
+                    <input type="text" name="specifications" class="form-control" value="<?php echo e($product['specifications'] ?? ''); ?>" placeholder="e.g., 22' x 8' x 4.5', 500ml, 10lbs">
+                    <small class="form-help">Dimensions, weight, size, or other technical specs.</small>
+                </div>
+                <div class="form-group">
+                    <label>Features / Use Cases</label>
+                    <textarea name="features" class="form-control" rows="3" placeholder="Comma-separated features, e.g.: Fast delivery, Premium quality, Satisfaction guaranteed"><?php echo e($product['features'] ?? ''); ?></textarea>
+                    <small class="form-help">Comma-separated list of features or use cases displayed as bullet points.</small>
+                </div>
+            </div>
+
+            <div class="form-section">
                 <div class="form-group">
                     <label>Product Image</label>
                     <?php if (!empty($product['image'])): ?>
