@@ -191,14 +191,14 @@
      * Update the cart badge count in the header.
      */
     function updateCartBadge(count) {
-        var cartLink = document.querySelector('.cart-link');
+        var cartLink = document.querySelector('.nav-icon-link[title="Shopping Cart"]');
         if (!cartLink) return;
 
-        var badge = cartLink.querySelector('.cart-badge');
+        var badge = cartLink.querySelector('.nav-badge');
         if (count > 0) {
             if (!badge) {
                 badge = document.createElement('span');
-                badge.className = 'cart-badge';
+                badge.className = 'nav-badge';
                 cartLink.appendChild(badge);
             }
             badge.textContent = count;

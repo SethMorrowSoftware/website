@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Close mobile nav on nav link click or Escape key
-    document.querySelectorAll('.nav-menu a, .nav-cta a').forEach(function(link) {
+    document.querySelectorAll('.nav-menu a, .nav-icons a, .nav-cta-btn').forEach(function(link) {
         link.addEventListener('click', function() {
             if (mainNav && mainNav.classList.contains('open')) {
                 closeNav();
