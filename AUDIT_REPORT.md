@@ -1,170 +1,148 @@
-# Full Platform Audit Report
+# E-Commerce Platform Audit Report
 
-Date: 2026-02-14
-Project: Business Website CMS (`/workspace/website`)
+Date: 2026-02-15  
+Repository: `/workspace/website`
 
-## Scope & Method
+## Scope
 
-This audit reviewed the full PHP application codebase, including:
-- Public site routing and page templates
-- Admin authentication, CMS flows, and AJAX endpoints
-- Database schema and seeding behavior
-- Upload handling and file/path controls
-- Security-related server configuration (`.htaccess`, sessions, CSRF)
-- Baseline operational checks (PHP syntax linting)
+This audit covered the whole codebase with emphasis on production-readiness for a modern e-commerce website:
+
+- Public storefront routing and page templates
+- Checkout/account/order flows
+- Admin area and APIs
+- Migration and database bootstrap logic
+- Security baseline controls (CSRF, sessions, headers)
+- Runtime behavior checks using a local PHP server and endpoint crawl
+
+## What Was Tested
+
+1. PHP syntax lint across all PHP files
+2. Local runtime crawl of all public routes plus key admin and SEO endpoints
+3. Manual review of core files involved in routing, redirects, migrations, and admin security controls
 
 ## Executive Summary
 
-The platform has a good foundation (prepared SQL statements, escaped output in many places, CSRF support in standard forms), but it is **not yet "rock solid" for a non-technical business owner in production**.
+The project has a solid base (broad CSRF coverage, secure session defaults, CSP, and many feature-complete flows), but there are **several high-impact reliability issues** that will break expected e-commerce behavior under normal use.
 
-Primary concerns are:
-1. **Critical security risks** around default credentials and admin-stored raw HTML execution.
-2. **High-risk hardening gaps** in CSRF coverage for admin APIs and destructive GET actions.
-3. **Operational resilience gaps** (no rate limiting, no strong security headers/CSP, no reliable email queueing/logging).
-4. **Business-owner usability gaps** (missing favicon rendering, broken sitemap reference, insufficient server-side validation depth).
+The most urgent issue is architectural: the layout header is rendered before page templates, while multiple templates attempt redirects / status changes. This causes `headers already sent` warnings and failed redirects for common scenarios like empty checkout carts and unauthenticated account access.
 
-## Findings (Prioritized)
+## Priority Findings
 
 ## Critical
 
-### 1) Default seeded admin credentials are predictable
-- Evidence: Seeder previously created `admin` user with a known password (now fixed — password is randomly generated).
-- Risk: If database is ever initialized in a reachable environment, account takeover is immediate.
-- Suggested fix:
-  - Remove hardcoded default password from seed routine.
-  - Require first-run bootstrap flow to set admin credentials.
-  - Optionally block startup if `users` table empty and setup not complete.
+### 1) Redirects and HTTP status changes fail on page templates (headers already sent)
 
-### 2) Stored HTML is rendered without sanitization in multiple user-facing contexts
-- Evidence:
-  - Custom page content renders raw (`$customPage['content']`).
-  - Payment embed renders raw (`$swipesimpleEmbed`).
-  - Footer text allows HTML and is output directly.
-- Risk: Stored XSS is possible if admin account/session is compromised or content is imported unsafely.
-- Suggested fix:
-  - Sanitize allowed HTML via a whitelist sanitizer (e.g., HTML Purifier).
-  - For embed snippets, restrict to validated `<iframe>` with allowlisted domains.
-  - Treat risky settings as privileged and audit-log edits.
+**Evidence**
+- `index.php` renders `includes/header.php` before page templates.  
+- Multiple templates call `redirect(...)` after execution starts (`checkout`, `account`, `product`, `paypal-checkout`).  
+- Runtime crawl produced warnings: `Cannot modify header information` and `http_response_code(): Cannot set response code - headers already sent`.
+
+**Impact**
+- Users can be shown the wrong page instead of being redirected correctly.
+- Error handling paths (e.g., invalid product slug) degrade into 200 responses with partially rendered pages.
+
+**Recommendation**
+- Move all guard/redirect logic into a pre-render phase in `index.php` before including layout files, OR
+- Use output buffering plus strict controller-style routing where templates never call `redirect()`.
 
 ## High
 
-### 3) Admin AJAX endpoints do not enforce CSRF token validation
-- Evidence: `admin/api/upload.php`, `admin/api/delete.php`, `admin/api/reorder.php` verify auth and method but not CSRF.
-- Risk: Cross-site requests from attacker-controlled pages can trigger admin-side changes while logged in.
-- Suggested fix:
-  - Require CSRF token in custom header (e.g., `X-CSRF-Token`) and validate server-side.
-  - Rotate CSRF token on login/session refresh.
+### 2) Migration runner marks failed migrations as executed
 
-### 4) Destructive/admin state-changing actions performed via GET query links
-- Evidence: delete/toggle/mark-read actions in admin pages use GET params + CSRF token in URL.
-- Risk:
-  - URL token leakage (logs, referrers, browser history).
-  - GET semantics not safe for state-changing operations.
-- Suggested fix:
-  - Convert to POST-only forms/actions.
-  - Keep CSRF token in POST body, not query string.
+**Evidence**
+- `includes/migrations.php` catches migration exceptions and then inserts the failed filename into `migrations` via `INSERT OR IGNORE`.
 
-### 5) Login endpoint lacks brute-force/rate limiting protections
-- Evidence: Login attempts only check credentials and CSRF; no lockout/backoff/captcha.
-- Risk: Credential stuffing and password guessing.
-- Suggested fix:
-  - Add per-IP and per-username throttling.
-  - Exponential backoff and temporary lockouts.
-  - Optional captcha after failed-attempt threshold.
+**Impact**
+- Broken schema changes are silently “accepted,” leaving databases in inconsistent states that are hard to detect and repair.
+- Fresh deployments may appear healthy while missing required columns/tables.
 
-### 6) Session cookie hardening is incomplete for production security
-- Evidence: `httponly` and strict mode are set; no explicit `session.cookie_secure` or `session.cookie_samesite`.
-- Risk: Weaker browser/session protection, especially on mixed deployments.
-- Suggested fix:
-  - Set `session.cookie_secure=1` under HTTPS.
-  - Set `session.cookie_samesite=Lax` (or Strict for admin if compatible).
-  - Ensure consistent secure session params before `session_start()`.
+**Recommendation**
+- Do not mark failed migrations as executed.
+- Fail fast and block startup (or at least surface hard admin-visible error) until migration issues are resolved.
+
+### 3) SQL migration parser drops valid statements when preceded by SQL comments
+
+**Evidence**
+- SQL files are split by `;` and any resulting chunk starting with `--` is skipped.
+- In mixed comment+statement chunks, the statement is skipped as well.
+- Runtime logs show shipping migration failure (`NOT NULL constraint failed: shipping_methods.zone_id`), consistent with skipping the zone insert while still running dependent inserts.
+
+**Impact**
+- Partial migration execution and nondeterministic schema/data setup.
+- High risk of environment-specific failures on first boot.
+
+**Recommendation**
+- Replace the naive `explode(';', ...)` parser with a safer SQL execution strategy (execute whole SQL file where possible, or robust parser).
+- Add integration test for full migration bootstrap on a fresh DB.
+
+### 4) Duplicate/overlapping migration tracks create conflicting schema operations
+
+**Evidence**
+- Both `.php` and `.sql` migrations exist for related features (inventory, coupons, etc.).
+- Runtime logs show duplicate column errors such as `duplicate column name: stock_quantity` and `duplicate column name: coupon_code`.
+
+**Impact**
+- Startup logs contain recurring migration errors.
+- Fresh installs are at risk of subtle schema drift depending on execution order.
+
+**Recommendation**
+- Consolidate each migration into a single authoritative file.
+- Introduce strict naming/versioning policy and migration CI check to prevent overlap.
 
 ## Medium
 
-### 7) Upload pipeline trusts extension from original filename and allows SVG
-- Evidence: MIME checked via finfo (good), but output extension comes from user filename and SVG is allowed.
-- Risk:
-  - SVG can carry active content depending on browser/CSP context.
-  - Extension mismatch can complicate downstream policies.
-- Suggested fix:
-  - Derive extension from server-side MIME map, not original filename.
-  - Consider disallowing SVG for non-admin previews, or sanitize SVG.
-  - Serve uploads from separate domain or strict CSP sandbox.
+### 5) Mixed logout behavior in admin surface
 
-### 8) Security headers are incomplete/outdated; CSP missing
-- Evidence: `.htaccess` sets some headers, includes deprecated `X-XSS-Protection`, no CSP/HSTS.
-- Risk: Reduced defense-in-depth against XSS/data injection and protocol downgrade.
-- Suggested fix:
-  - Add `Content-Security-Policy` (start report-only, then enforce).
-  - Add `Strict-Transport-Security` in HTTPS production.
-  - Add `Permissions-Policy` and modernize header set.
+**Evidence**
+- `admin/login.php` uses POST logout.
+- `admin/index.php` still accepts GET logout (`isset($_GET['logout'])`).
 
-### 9) Mail send uses suppressed errors and no delivery observability
-- Evidence: `@mail(...)` used for contact and order notifications.
-- Risk: Silent message failures; owner may miss leads.
-- Suggested fix:
-  - Replace with transactional provider (SMTP/API).
-  - Log delivery attempts/failures and alert on repeated failure.
-  - Queue mail async if traffic grows.
+**Impact**
+- Inconsistent semantics and potential forced-logout nuisance via GET links.
 
-### 10) Logout can be triggered via GET
-- Evidence: `admin/login.php` handles `?logout=1` and POST logout.
-- Risk: CSRF-ish nuisance / forced logout (availability/usability impact).
-- Suggested fix:
-  - Remove GET logout support.
-  - Use POST + CSRF token only.
+**Recommendation**
+- Remove GET-based logout from admin dashboard; keep POST + CSRF only.
 
-## Low / Business UX & Maintainability
+### 6) Route health appears “200 OK” even when logic attempted redirects/errors
 
-### 11) Favicon setting exists but is not injected into public `<head>`
-- Evidence: admin supports favicon upload, but header doesn't output favicon link tag.
-- Risk: incomplete branding polish and confusion for owner.
-- Suggested fix:
-  - Render `<link rel="icon" ...>` using stored setting (fallback default file).
+**Evidence**
+- Crawl returns 200 for pages that should redirect (`checkout`, `account`, invalid product) due to header-send ordering bug.
 
-### 12) `robots.txt` references `/sitemap.xml`, but sitemap file is absent
-- Evidence: `Sitemap: /sitemap.xml` present; no sitemap in repo root.
-- Risk: SEO crawl inefficiency and quality signal reduction.
-- Suggested fix:
-  - Add generated sitemap endpoint/file and include canonical URLs.
+**Impact**
+- Monitoring can miss broken flows because HTTP status does not reflect application intent.
 
-### 13) Limited server-side validation for order payload depth
-- Evidence: backend checks only top-level required fields; service-specific requirements rely mainly on frontend flow.
-- Risk: malformed/low-quality leads, support overhead.
-- Suggested fix:
-  - Add server-side service-type-specific validation rules.
-  - Normalize and validate phone/date/address formats.
+**Recommendation**
+- Fix render pipeline, then add route smoke tests asserting expected status codes and redirect targets.
 
-## Positive Observations
+## Positive Findings
 
-- Prepared statements are used broadly, reducing SQL injection risk.
-- Output escaping (`e()`) is used consistently in most display paths.
-- CSRF token mechanism exists and is used for many forms.
-- Session ID regeneration occurs on successful login.
-- `.htaccess` blocks direct access to `database/` and `includes/`.
+- CSRF validation is enforced in admin API endpoints (`upload`, `delete`, `reorder`).
+- Session cookie hardening is present (`httponly`, `strict_mode`, `samesite`, conditional `secure`).
+- Security headers include CSP, HSTS (under HTTPS env), X-Frame-Options, and Referrer-Policy.
+- `robots.txt` correctly points to an existing sitemap endpoint (`/sitemap.php`).
 
-## Recommended Remediation Roadmap
+## Remediation Plan
 
-### Phase 1 (Immediate: 1–3 days)
-- Remove seeded default credentials and enforce first-run admin setup.
-- Add CSRF validation to all admin API endpoints.
-- Convert destructive GET operations to POST-only.
-- Remove GET logout; require POST+CSRF.
+### Phase 1 (Immediate, 1-2 days)
+1. Refactor request lifecycle so redirects/status are resolved before any HTML output.
+2. Make migration failures blocking and visible.
+3. Fix SQL migration execution strategy and re-verify fresh bootstrap.
 
-### Phase 2 (Hardening: 3–7 days)
-- Add login throttling/lockout.
-- Implement CSP (report-only first), then enforce.
-- Set secure + samesite session cookie policies.
-- Restrict/sanitize stored HTML and embeds.
+### Phase 2 (Short term, 3-5 days)
+1. Consolidate duplicate migration tracks and regenerate a clean baseline.
+2. Remove admin GET logout path.
+3. Add automated smoke tests for key customer journeys:
+   - empty cart -> checkout redirect
+   - unauthenticated -> account redirect
+   - invalid product -> correct 404/redirect behavior
 
-### Phase 3 (Reliability & polish: 1–2 weeks)
-- Replace `mail()` with transactional mail provider + logging.
-- Implement sitemap generation and wire into robots.
-- Add favicon output in global header.
-- Expand server-side validation + admin input guardrails.
+### Phase 3 (Stabilization, 1 week)
+1. Add CI job for fresh DB boot + migration verification.
+2. Add runtime health checks asserting no PHP warnings in logs during route crawl.
 
-## Checks Run
+## Commands Run During Audit
 
-- PHP syntax linting across all PHP files: passed.
-- Manual code review of routing, auth, admin CRUD, API endpoints, uploads, and templates.
+- `find . -name '*.php' -print0 | xargs -0 -n1 php -l`
+- Local server crawl via `php -S 127.0.0.1:8090 -t .` and `curl` across all public pages/admin entry points
+- Targeted code inspection with `sed`, `nl`, and `rg`
+
