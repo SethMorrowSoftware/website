@@ -27,18 +27,21 @@ require_once __DIR__ . '/shipping.php';
 function isFeatureEnabled(string $feature): bool {
     // Map short names to setting keys
     $map = [
-        'catalog'        => 'enable_catalog',
-        'cart'           => 'enable_cart',
-        'order_inquiry'  => 'enable_order_inquiry',
-        'contact_form'   => 'enable_contact_form',
-        'testimonials'   => 'enable_testimonials',
-        'about_page'     => 'enable_about_page',
-        'phone_header'   => 'show_phone_header',
-        'email_header'   => 'show_email_header',
-        'address'        => 'show_address',
-        'business_hours' => 'show_business_hours',
-        'map'            => 'show_map',
-        'reviews'        => 'enable_reviews',
+        'catalog'           => 'enable_catalog',
+        'cart'              => 'enable_cart',
+        'order_inquiry'     => 'enable_order_inquiry',
+        'contact_form'      => 'enable_contact_form',
+        'testimonials'      => 'enable_testimonials',
+        'about_page'        => 'enable_about_page',
+        'phone_header'      => 'show_phone_header',
+        'email_header'      => 'show_email_header',
+        'address'           => 'show_address',
+        'business_hours'    => 'show_business_hours',
+        'map'               => 'show_map',
+        'reviews'           => 'enable_reviews',
+        'customer_accounts' => 'enable_customer_accounts',
+        'search'            => 'enable_search',
+        'wishlists'         => 'enable_wishlists',
     ];
 
     $key = $map[$feature] ?? $feature;
@@ -1365,8 +1368,9 @@ function verifyBTCPayInvoice(string $invoiceId): ?array {
 function verifyBTCPayWebhookSignature(string $payload, string $signature): bool {
     $secret = getSetting('btcpay_webhook_secret');
     if (!$secret) {
-        // If no webhook secret is configured, skip verification (less secure)
-        return true;
+        // Fail closed: reject webhooks when no secret is configured
+        error_log('[BTCPAY WEBHOOK] Rejected: no webhook secret configured');
+        return false;
     }
 
     // BTCPay sends signature as "sha256=HEXDIGEST"

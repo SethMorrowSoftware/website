@@ -67,7 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     // Handle checkbox toggles separately (unchecked = not sent)
     $checkboxes = [
         'enable_catalog', 'enable_cart', 'enable_order_inquiry', 'enable_contact_form',
-        'enable_testimonials', 'enable_about_page',
+        'enable_testimonials', 'enable_about_page', 'enable_customer_accounts', 'enable_search',
+        'enable_wishlists', 'enable_reviews',
         'show_phone_header', 'show_email_header', 'show_address', 'show_business_hours', 'show_map',
         'stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled',
         'enable_maintenance', 'maintenance_mode',
@@ -183,6 +184,38 @@ require_once __DIR__ . '/header.php';
                     Enable About Page
                 </label>
                 <small class="form-help">Show the About Us page and link.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_customer_accounts" value="1" <?php echo getSetting('enable_customer_accounts', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Customer Accounts
+                </label>
+                <small class="form-help">Allow customers to register, sign in, and track orders.</small>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_search" value="1" <?php echo getSetting('enable_search', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Search
+                </label>
+                <small class="form-help">Show the product search bar.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_wishlists" value="1" <?php echo getSetting('enable_wishlists', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Wishlists
+                </label>
+                <small class="form-help">Allow customers to save products to a wishlist.</small>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_reviews" value="1" <?php echo getSetting('enable_reviews', '0') === '1' ? 'checked' : ''; ?>>
+                    Enable Product Reviews
+                </label>
+                <small class="form-help">Allow customers to leave product reviews (moderated).</small>
             </div>
         </div>
 
