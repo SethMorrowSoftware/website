@@ -9,6 +9,25 @@ require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
 
+// Handle test email
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['test_email']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    $testTo = trim($_POST['test_email_to'] ?? '');
+    if (filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
+        if (sendTestEmail($testTo)) {
+            $_SESSION['flash_message'] = 'Test email sent successfully!';
+            $_SESSION['flash_type'] = 'success';
+        } else {
+            $_SESSION['flash_message'] = 'Failed to send test email. Check your SMTP settings.';
+            $_SESSION['flash_type'] = 'error';
+        }
+    } else {
+        $_SESSION['flash_message'] = 'Please enter a valid email address.';
+        $_SESSION['flash_type'] = 'error';
+    }
+    header('Location: ' . url('admin/settings.php') . '#email');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     $fields = [
         'company_name', 'company_phone', 'company_email', 'company_address',
@@ -33,6 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'square_application_id', 'square_access_token', 'square_location_id',
         // BTCPay Server
         'btcpay_url', 'btcpay_api_key', 'btcpay_store_id', 'btcpay_webhook_secret',
+        // SMTP
+        'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_encryption', 'smtp_from_email', 'smtp_from_name',
+        // Maintenance
+        'maintenance_message',
     ];
 
     foreach ($fields as $field) {
@@ -47,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'enable_testimonials', 'enable_about_page',
         'show_phone_header', 'show_email_header', 'show_address', 'show_business_hours', 'show_map',
         'stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled',
+        'enable_maintenance', 'maintenance_mode',
     ];
     foreach ($checkboxes as $cb) {
         updateSetting($cb, isset($_POST[$cb]) ? '1' : '0');
@@ -63,6 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $faviconPath = handleUpload($_FILES['favicon']);
         if ($faviconPath) updateSetting('favicon', $faviconPath, 'image');
     }
+
+    logAudit('settings_updated', 'settings');
 
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Settings saved successfully!'];
     redirect('admin/settings.php');
@@ -517,6 +543,81 @@ require_once __DIR__ . '/header.php';
             <label>SwipeSimple Embed Code (HTML)</label>
             <textarea name="swipesimple_embed" class="form-control" rows="4" placeholder="Paste embed code here..."><?php echo e(getSetting('swipesimple_embed')); ?></textarea>
             <small class="form-help">If SwipeSimple provides an embed/iframe code, paste it here instead of the link above.</small>
+        </div>
+    </div>
+
+    <!-- Email Configuration -->
+    <div class="admin-section" id="email">
+        <h2><i class="fas fa-envelope"></i> Email Configuration</h2>
+        <p class="section-desc">Configure SMTP for reliable email delivery. Leave blank to use PHP's built-in mail().</p>
+        <div class="admin-card">
+            <div class="form-group">
+                <label for="smtp_host">SMTP Host</label>
+                <input type="text" id="smtp_host" name="smtp_host" class="form-control" value="<?php echo e(getSetting('smtp_host')); ?>" placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="smtp_port">SMTP Port</label>
+                    <input type="number" id="smtp_port" name="smtp_port" class="form-control" value="<?php echo e(getSetting('smtp_port', '587')); ?>" placeholder="587">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_encryption">Encryption</label>
+                    <select id="smtp_encryption" name="smtp_encryption" class="form-control">
+                        <option value="tls" <?php echo getSetting('smtp_encryption', 'tls') === 'tls' ? 'selected' : ''; ?>>TLS (Recommended)</option>
+                        <option value="ssl" <?php echo getSetting('smtp_encryption') === 'ssl' ? 'selected' : ''; ?>>SSL</option>
+                        <option value="none" <?php echo getSetting('smtp_encryption') === 'none' ? 'selected' : ''; ?>>None</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="smtp_username">SMTP Username</label>
+                <input type="text" id="smtp_username" name="smtp_username" class="form-control" value="<?php echo e(getSetting('smtp_username')); ?>" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="smtp_password">SMTP Password</label>
+                <input type="password" id="smtp_password" name="smtp_password" class="form-control" value="<?php echo e(getSetting('smtp_password')); ?>" placeholder="App password or SMTP password">
+            </div>
+            <div class="form-group">
+                <label for="smtp_from_email">From Email</label>
+                <input type="email" id="smtp_from_email" name="smtp_from_email" class="form-control" value="<?php echo e(getSetting('smtp_from_email')); ?>" placeholder="noreply@yourdomain.com">
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Email -->
+    <div class="admin-section">
+        <h2><i class="fas fa-paper-plane"></i> Test Email</h2>
+        <div class="admin-card">
+            <form method="POST" style="display:flex;gap:var(--space-md);align-items:flex-end;">
+                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                <input type="hidden" name="test_email" value="1">
+                <div class="form-group" style="flex:1;margin:0;">
+                    <label for="test_email_to">Send test email to</label>
+                    <input type="email" id="test_email_to" name="test_email_to" class="form-control" placeholder="test@example.com" required>
+                </div>
+                <button type="submit" class="btn-admin btn-primary"><i class="fas fa-paper-plane"></i> Send Test</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Maintenance Mode -->
+    <div class="admin-section">
+        <h2><i class="fas fa-tools"></i> Maintenance Mode</h2>
+        <div class="admin-card">
+            <div class="toggle-group">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="maintenance_mode" value="1" <?php echo getSetting('maintenance_mode') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Enable Maintenance Mode</strong>
+                    <small>Public site will show a maintenance page. Admin panel remains accessible.</small>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: var(--space-md);">
+                <label for="maintenance_message">Maintenance Message</label>
+                <textarea id="maintenance_message" name="maintenance_message" class="form-control" rows="3" placeholder="We are currently performing scheduled maintenance..."><?php echo e(getSetting('maintenance_message', 'We are currently performing scheduled maintenance. We will be back online shortly.')); ?></textarea>
+            </div>
         </div>
     </div>
 

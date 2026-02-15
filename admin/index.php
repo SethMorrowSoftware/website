@@ -46,6 +46,28 @@ $storeTypeLabels = [
 $storeType = getStoreType();
 $storeTypeLabel = $storeTypeLabels[$storeType] ?? ucfirst($storeType);
 
+// Sales Analytics
+$today = date('Y-m-d');
+$thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));
+$sevenDaysAgo = date('Y-m-d', strtotime('-7 days'));
+
+// Revenue stats
+$todayRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid' AND date(created_at) = '$today'")->fetchColumn();
+$weekRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid' AND date(created_at) >= '$sevenDaysAgo'")->fetchColumn();
+$monthRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid' AND date(created_at) >= '$thirtyDaysAgo'")->fetchColumn();
+$totalRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid'")->fetchColumn();
+$avgOrderValue = $db->query("SELECT COALESCE(AVG(total), 0) FROM orders WHERE payment_status = 'paid'")->fetchColumn();
+
+// Daily revenue for chart (last 30 days)
+$dailyRevenue = $db->query("SELECT date(created_at) as day, COALESCE(SUM(total), 0) as revenue, COUNT(*) as orders FROM orders WHERE payment_status = 'paid' AND date(created_at) >= '$thirtyDaysAgo' GROUP BY date(created_at) ORDER BY day")->fetchAll();
+
+// Top selling products
+$topProducts = $db->query("SELECT oi.product_name, SUM(oi.quantity) as total_qty, SUM(oi.total_price) as total_revenue FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE o.payment_status = 'paid' GROUP BY oi.product_name ORDER BY total_revenue DESC LIMIT 5")->fetchAll();
+
+// Total customers
+$totalCustomers = $db->query('SELECT COUNT(*) FROM customers')->fetchColumn();
+$newCustomersMonth = $db->query("SELECT COUNT(*) FROM customers WHERE date(created_at) >= '$thirtyDaysAgo'")->fetchColumn();
+
 require_once __DIR__ . '/header.php';
 ?>
 
@@ -131,6 +153,76 @@ require_once __DIR__ . '/header.php';
                     <td><span style="color: <?php echo $lsp['stock_quantity'] == 0 ? '#ef4444' : '#f59e0b'; ?>; font-weight: bold;"><?php echo $lsp['stock_quantity']; ?></span></td>
                     <td><?php echo $lsp['low_stock_threshold']; ?></td>
                     <td><a href="<?php echo url('admin/product-edit.php?id=' . $lsp['id']); ?>" class="btn-admin btn-sm btn-edit"><i class="fas fa-edit"></i> Restock</a></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Revenue Stats -->
+<?php if ($_cartEnabled): ?>
+<div class="revenue-stats">
+    <div class="revenue-stat-card">
+        <div class="stat-value"><?php echo formatCurrency($todayRevenue); ?></div>
+        <div class="stat-label">Today's Revenue</div>
+    </div>
+    <div class="revenue-stat-card">
+        <div class="stat-value"><?php echo formatCurrency($weekRevenue); ?></div>
+        <div class="stat-label">This Week</div>
+    </div>
+    <div class="revenue-stat-card">
+        <div class="stat-value"><?php echo formatCurrency($monthRevenue); ?></div>
+        <div class="stat-label">This Month</div>
+    </div>
+    <div class="revenue-stat-card">
+        <div class="stat-value"><?php echo formatCurrency($totalRevenue); ?></div>
+        <div class="stat-label">All Time</div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Revenue Chart (Last 30 Days) -->
+<?php if ($_cartEnabled && !empty($dailyRevenue)): ?>
+<div class="admin-section" style="margin-bottom: var(--space-xl);">
+    <h2><i class="fas fa-chart-bar"></i> Revenue — Last 30 Days</h2>
+    <div class="admin-card" style="margin-top: var(--space-md); overflow-x: auto;">
+        <div class="revenue-chart">
+            <?php
+            $maxRevenue = max(array_column($dailyRevenue, 'revenue'));
+            if ($maxRevenue == 0) $maxRevenue = 1;
+            foreach ($dailyRevenue as $day):
+                $pct = ($day['revenue'] / $maxRevenue) * 100;
+            ?>
+                <div class="chart-bar-container" title="<?php echo e($day['day'] . ': ' . formatCurrency($day['revenue']) . ' (' . $day['orders'] . ' orders)'); ?>">
+                    <div class="chart-bar" style="height: <?php echo max(2, $pct); ?>%;"></div>
+                    <span class="chart-label"><?php echo date('j', strtotime($day['day'])); ?></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <div style="text-align: center; margin-top: var(--space-sm); color: var(--color-gray-500); font-size: var(--text-sm);">
+            Average Order Value: <strong><?php echo formatCurrency($avgOrderValue); ?></strong> &middot;
+            Total Customers: <strong><?php echo $totalCustomers; ?></strong>
+            <?php if ($newCustomersMonth > 0): ?> (<?php echo $newCustomersMonth; ?> new this month)<?php endif; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Top Selling Products -->
+<?php if (!empty($topProducts)): ?>
+<div class="admin-section" style="margin-bottom: var(--space-xl);">
+    <h2><i class="fas fa-trophy"></i> Top Selling Products</h2>
+    <div class="admin-card" style="margin-top: var(--space-md);">
+        <table class="admin-table">
+            <thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+            <tbody>
+                <?php foreach ($topProducts as $tp): ?>
+                <tr>
+                    <td><strong><?php echo e($tp['product_name']); ?></strong></td>
+                    <td><?php echo $tp['total_qty']; ?></td>
+                    <td><?php echo formatCurrency($tp['total_revenue']); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

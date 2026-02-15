@@ -251,6 +251,338 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
 </section>
 <?php endif; ?>
 
+<!-- Reviews Section -->
+<?php if (isFeatureEnabled('reviews')): ?>
+<?php
+    $ratingInfo = getProductRating($product['id']);
+    $ratingBreakdown = getRatingBreakdown($product['id']);
+    $reviews = getProductReviews($product['id']);
+    $_canReview = canReview($product['id']);
+    $totalReviews = $ratingInfo['count'];
+?>
+<section class="section" id="reviews">
+    <div class="container">
+        <div class="section-header">
+            <h2>Customer Reviews</h2>
+            <?php if ($totalReviews > 0): ?>
+                <p><?php echo $totalReviews; ?> review<?php echo $totalReviews !== 1 ? 's' : ''; ?></p>
+            <?php endif; ?>
+        </div>
+
+        <?php if ($totalReviews > 0): ?>
+        <div class="reviews-summary">
+            <div class="reviews-average">
+                <div class="reviews-average-number"><?php echo $ratingInfo['average']; ?></div>
+                <?php echo renderStars($ratingInfo['average']); ?>
+                <div class="reviews-average-count"><?php echo $totalReviews; ?> review<?php echo $totalReviews !== 1 ? 's' : ''; ?></div>
+            </div>
+            <div class="reviews-breakdown">
+                <?php foreach ($ratingBreakdown as $stars => $count): ?>
+                    <?php $pct = $totalReviews > 0 ? round(($count / $totalReviews) * 100) : 0; ?>
+                    <div class="rating-bar-row">
+                        <span class="rating-bar-label"><?php echo $stars; ?> <i class="fas fa-star"></i></span>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: <?php echo $pct; ?>%;"></div>
+                        </div>
+                        <span class="rating-bar-count"><?php echo $count; ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Review List -->
+        <?php if (!empty($reviews)): ?>
+        <div class="reviews-list">
+            <?php foreach ($reviews as $review): ?>
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-meta">
+                        <strong class="review-author"><?php echo e($review['customer_name']); ?></strong>
+                        <?php if ($review['is_verified_purchase']): ?>
+                            <span class="review-verified"><i class="fas fa-check-circle"></i> Verified Purchase</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="review-rating">
+                        <?php echo renderStars((float)$review['rating']); ?>
+                        <span class="review-date"><?php echo date('M j, Y', strtotime($review['created_at'])); ?></span>
+                    </div>
+                </div>
+                <?php if ($review['title']): ?>
+                    <h4 class="review-title"><?php echo e($review['title']); ?></h4>
+                <?php endif; ?>
+                <p class="review-body"><?php echo nl2br(e($review['body'])); ?></p>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php elseif ($totalReviews === 0): ?>
+            <p class="reviews-empty">No reviews yet. Be the first to review this product!</p>
+        <?php endif; ?>
+
+        <!-- Review Form -->
+        <?php if ($_canReview): ?>
+        <div class="review-form-wrap">
+            <h3>Write a Review</h3>
+            <form method="POST" action="<?php echo url('index.php'); ?>" class="review-form">
+                <input type="hidden" name="action" value="submit_review">
+                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                <input type="hidden" name="product_slug" value="<?php echo e($product['slug']); ?>">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reviewer_name">Your Name <span class="required">*</span></label>
+                        <input type="text" id="reviewer_name" name="reviewer_name" required class="form-control"
+                            <?php if (isCustomerLoggedIn()): ?>value="<?php echo e($_SESSION['customer_name'] ?? ''); ?>"<?php endif; ?>>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewer_email">Your Email <span class="required">*</span></label>
+                        <input type="email" id="reviewer_email" name="reviewer_email" required class="form-control"
+                            <?php if (isCustomerLoggedIn()): ?>value="<?php echo e($_SESSION['customer_email'] ?? ''); ?>"<?php endif; ?>>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rating <span class="required">*</span></label>
+                    <div class="star-rating-input" id="starRatingInput">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <label class="star-label" data-rating="<?php echo $i; ?>">
+                                <input type="radio" name="rating" value="<?php echo $i; ?>" required style="display:none;">
+                                <i class="far fa-star"></i>
+                            </label>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="review_title">Review Title</label>
+                    <input type="text" id="review_title" name="review_title" class="form-control" placeholder="Summarize your experience">
+                </div>
+
+                <div class="form-group">
+                    <label for="review_body">Your Review <span class="required">*</span></label>
+                    <textarea id="review_body" name="review_body" required class="form-control" rows="5" minlength="10" placeholder="Share your experience with this product..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Submit Review
+                </button>
+            </form>
+        </div>
+        <?php else: ?>
+            <p class="reviews-already-reviewed"><i class="fas fa-info-circle"></i> You have already reviewed this product.</p>
+        <?php endif; ?>
+    </div>
+</section>
+
+<style>
+/* Reviews Section Styles */
+.reviews-summary {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-light, #f8f9fa);
+    border-radius: 8px;
+}
+.reviews-average {
+    text-align: center;
+    min-width: 140px;
+}
+.reviews-average-number {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--primary, #333);
+}
+.reviews-average .star-rating {
+    justify-content: center;
+    margin: 0.5rem 0;
+}
+.reviews-average-count {
+    color: #666;
+    font-size: 0.9rem;
+}
+.reviews-breakdown {
+    flex: 1;
+    max-width: 400px;
+}
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+.rating-bar-label {
+    font-size: 0.85rem;
+    min-width: 40px;
+    text-align: right;
+    white-space: nowrap;
+    color: #555;
+}
+.rating-bar-label .fa-star { font-size: 0.7rem; color: #f5a623; }
+.rating-bar {
+    flex: 1;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.rating-bar-fill {
+    height: 100%;
+    background: #f5a623;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+.rating-bar-count {
+    font-size: 0.85rem;
+    min-width: 24px;
+    color: #666;
+}
+
+/* Star Rating Display */
+.star-rating {
+    display: inline-flex;
+    gap: 2px;
+    color: #f5a623;
+    font-size: 1rem;
+}
+.star-rating .far { color: #ccc; }
+
+/* Review Cards */
+.reviews-list {
+    margin-bottom: 2rem;
+}
+.review-card {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #eee;
+}
+.review-card:last-child { border-bottom: none; }
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.review-author { font-size: 1rem; }
+.review-verified {
+    color: #28a745;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+.review-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.review-date { color: #999; font-size: 0.85rem; }
+.review-title {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 1.05rem;
+}
+.review-body {
+    color: #444;
+    line-height: 1.6;
+    margin: 0;
+}
+.reviews-empty {
+    text-align: center;
+    color: #888;
+    padding: 2rem 0;
+}
+.reviews-already-reviewed {
+    text-align: center;
+    color: #666;
+    padding: 1rem 0;
+}
+
+/* Review Form */
+.review-form-wrap {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #eee;
+}
+.review-form-wrap h3 {
+    margin-bottom: 1rem;
+}
+.review-form .form-row {
+    display: flex;
+    gap: 1rem;
+}
+.review-form .form-row .form-group { flex: 1; }
+.review-form .form-group {
+    margin-bottom: 1rem;
+}
+.review-form label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.review-form .required { color: #e74c3c; }
+
+/* Star Rating Input */
+.star-rating-input {
+    display: inline-flex;
+    gap: 4px;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+.star-rating-input .star-label {
+    cursor: pointer;
+    color: #ccc;
+    transition: color 0.15s;
+}
+.star-rating-input .star-label.active i,
+.star-rating-input .star-label.hover i {
+    color: #f5a623;
+}
+.star-rating-input .star-label.active i:before,
+.star-rating-input .star-label.hover i:before {
+    content: "\f005";
+    font-weight: 900;
+}
+
+@media (max-width: 600px) {
+    .reviews-summary { flex-direction: column; align-items: center; }
+    .reviews-breakdown { width: 100%; }
+    .review-form .form-row { flex-direction: column; gap: 0; }
+    .review-header { flex-direction: column; }
+}
+</style>
+
+<script>
+// Interactive star rating
+(function() {
+    var container = document.getElementById('starRatingInput');
+    if (!container) return;
+    var labels = container.querySelectorAll('.star-label');
+    var currentRating = 0;
+
+    labels.forEach(function(label) {
+        label.addEventListener('mouseenter', function() {
+            var rating = parseInt(this.dataset.rating);
+            labels.forEach(function(l) {
+                l.classList.toggle('hover', parseInt(l.dataset.rating) <= rating);
+            });
+        });
+        label.addEventListener('mouseleave', function() {
+            labels.forEach(function(l) { l.classList.remove('hover'); });
+        });
+        label.addEventListener('click', function() {
+            currentRating = parseInt(this.dataset.rating);
+            labels.forEach(function(l) {
+                l.classList.toggle('active', parseInt(l.dataset.rating) <= currentRating);
+            });
+        });
+    });
+})();
+</script>
+<?php endif; ?>
+
 <script>
 // Collect variant info into hidden field before submit
 document.querySelectorAll('.product-add-form').forEach(function(form) {

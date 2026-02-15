@@ -313,6 +313,36 @@ CREATE TABLE IF NOT EXISTS password_resets (
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
 
+-- Shipping zones
+CREATE TABLE IF NOT EXISTS shipping_zones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    countries TEXT DEFAULT '',
+    states TEXT DEFAULT '',
+    is_default INTEGER DEFAULT 0,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Shipping methods
+CREATE TABLE IF NOT EXISTS shipping_methods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    zone_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'flat_rate',
+    cost REAL DEFAULT 0,
+    free_threshold REAL DEFAULT 0,
+    min_weight REAL DEFAULT 0,
+    max_weight REAL DEFAULT 0,
+    min_price REAL DEFAULT 0,
+    max_price REAL DEFAULT 0,
+    estimated_days TEXT DEFAULT '',
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    FOREIGN KEY (zone_id) REFERENCES shipping_zones(id) ON DELETE CASCADE
+);
+
 -- Database migrations tracker
 CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
