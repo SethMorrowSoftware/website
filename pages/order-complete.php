@@ -138,6 +138,7 @@ if ($orderNumber) {
                 <div class="order-details-grid">
                     <div class="order-detail-section">
                         <h4>Order Details</h4>
+                        <div class="order-detail-table-wrap">
                         <table class="order-detail-table">
                             <thead>
                                 <tr>
@@ -174,6 +175,7 @@ if ($orderNumber) {
                                 </tr>
                             </tfoot>
                         </table>
+                        </div>
                     </div>
 
                     <div class="order-detail-section">
@@ -213,9 +215,9 @@ if ($orderNumber) {
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-top: var(--space-2xl);">
+                <div class="text-center cta-buttons-inline" style="margin-top: var(--space-2xl); justify-content: center;">
                     <a href="<?php echo url('/'); ?>" class="btn btn-primary">Return Home</a>
-                    <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark" style="margin-left: var(--space-md);">Continue Shopping</a>
+                    <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark">Continue Shopping</a>
                 </div>
             </div>
         <?php endif; ?>

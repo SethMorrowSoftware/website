@@ -10,34 +10,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainNav = document.getElementById('mainNav');
     const mobileOverlay = document.getElementById('mobileOverlay');
 
+    function closeNav() {
+        if (navToggle) {
+            navToggle.classList.remove('active');
+            navToggle.setAttribute('aria-expanded', 'false');
+        }
+        if (mainNav) mainNav.classList.remove('open');
+        if (mobileOverlay) mobileOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
     if (navToggle) {
         navToggle.addEventListener('click', function() {
             this.classList.toggle('active');
             mainNav.classList.toggle('open');
             mobileOverlay.classList.toggle('active');
-            document.body.style.overflow = mainNav.classList.contains('open') ? 'hidden' : '';
+            var isOpen = mainNav.classList.contains('open');
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+            this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        // Keyboard support for nav toggle
+        navToggle.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
+            }
         });
     }
 
     if (mobileOverlay) {
-        mobileOverlay.addEventListener('click', function() {
-            navToggle.classList.remove('active');
-            mainNav.classList.remove('open');
-            mobileOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        });
+        mobileOverlay.addEventListener('click', closeNav);
     }
 
-    // Close mobile nav on any nav link click (menu links + CTA)
+    // Close mobile nav on nav link click or Escape key
     document.querySelectorAll('.nav-menu a, .nav-cta a').forEach(function(link) {
         link.addEventListener('click', function() {
-            if (mainNav.classList.contains('open')) {
-                navToggle.classList.remove('active');
-                mainNav.classList.remove('open');
-                mobileOverlay.classList.remove('active');
-                document.body.style.overflow = '';
+            if (mainNav && mainNav.classList.contains('open')) {
+                closeNav();
             }
         });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && mainNav && mainNav.classList.contains('open')) {
+            closeNav();
+            if (navToggle) navToggle.focus();
+        }
     });
 
     // ---- Sticky Header ----
@@ -49,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 header.classList.remove('scrolled');
             }
-        });
+        }, { passive: true });
     }
 
     // ---- Scroll Animations (Fade In) ----
@@ -78,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const slides = testimonialTrack.querySelectorAll('.testimonial-card');
         const dots = testimonialDots.querySelectorAll('.dot');
         const totalSlides = slides.length;
+        let autoplayTimer = null;
 
         function goToSlide(index) {
             if (index < 0) index = totalSlides - 1;
@@ -89,19 +109,70 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        function startAutoplay() {
+            stopAutoplay();
+            autoplayTimer = setInterval(function() {
+                goToSlide(currentSlide + 1);
+            }, 5000);
+        }
+
+        function stopAutoplay() {
+            if (autoplayTimer) {
+                clearInterval(autoplayTimer);
+                autoplayTimer = null;
+            }
+        }
+
         dots.forEach(function(dot) {
             dot.addEventListener('click', function() {
                 goToSlide(parseInt(this.dataset.index));
+                startAutoplay(); // Reset timer on manual interaction
             });
         });
 
-        // Auto-advance
-        setInterval(function() {
-            goToSlide(currentSlide + 1);
-        }, 5000);
+        // Touch/swipe support for mobile
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var touchDiffX = 0;
+        var isSwiping = false;
+
+        testimonialTrack.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isSwiping = false;
+            stopAutoplay();
+        }, { passive: true });
+
+        testimonialTrack.addEventListener('touchmove', function(e) {
+            if (!touchStartX) return;
+            touchDiffX = e.touches[0].clientX - touchStartX;
+            var touchDiffY = e.touches[0].clientY - touchStartY;
+
+            // Only swipe horizontally if the gesture is more horizontal than vertical
+            if (Math.abs(touchDiffX) > Math.abs(touchDiffY) && Math.abs(touchDiffX) > 10) {
+                isSwiping = true;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        testimonialTrack.addEventListener('touchend', function() {
+            if (isSwiping && Math.abs(touchDiffX) > 50) {
+                if (touchDiffX < 0) {
+                    goToSlide(currentSlide + 1); // Swipe left = next
+                } else {
+                    goToSlide(currentSlide - 1); // Swipe right = prev
+                }
+            }
+            touchStartX = 0;
+            touchDiffX = 0;
+            isSwiping = false;
+            startAutoplay();
+        }, { passive: true });
+
+        startAutoplay();
     }
 
-    // ---- Category Tabs (Materials Page) ----
+    // ---- Category Tabs (Catalog Page) ----
     const categoryTabs = document.querySelectorAll('.category-tab');
     const categorySections = document.querySelectorAll('.product-category-section');
 
@@ -120,6 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         section.style.display = 'none';
                     }
                 });
+
+                // Scroll active tab into view within scrollable container
+                if (this.parentNode.classList.contains('category-tabs')) {
+                    this.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
             });
         });
 
@@ -141,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
         anchor.addEventListener('click', function(e) {
             var targetId = this.getAttribute('href').substring(1);
+            if (!targetId) return; // Skip empty # links
             var target = document.getElementById(targetId);
             if (target) {
                 e.preventDefault();
@@ -149,14 +226,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ---- Flash message auto-dismiss ----
+    // ---- Flash message dismiss ----
     var flashMessages = document.querySelectorAll('.flash-message');
     flashMessages.forEach(function(msg) {
-        setTimeout(function() {
-            msg.style.transition = 'opacity 0.5s ease';
+        // Add close button
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'flash-close';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.setAttribute('aria-label', 'Dismiss message');
+        closeBtn.addEventListener('click', function() {
+            msg.style.transition = 'opacity 0.3s ease';
             msg.style.opacity = '0';
-            setTimeout(function() { msg.remove(); }, 500);
-        }, 6000);
+            setTimeout(function() { msg.remove(); }, 300);
+        });
+        msg.appendChild(closeBtn);
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(function() {
+            if (msg.parentNode) {
+                msg.style.transition = 'opacity 0.5s ease';
+                msg.style.opacity = '0';
+                setTimeout(function() { if (msg.parentNode) msg.remove(); }, 500);
+            }
+        }, 8000);
     });
 
 });

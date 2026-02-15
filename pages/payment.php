@@ -96,12 +96,14 @@ $swipesimpleEmbed = getSetting('swipesimple_embed');
                 <p style="color: var(--color-gray-600); margin-bottom: var(--space-lg);">
                     Add items to your cart and proceed to checkout to pay with any of our online payment options.
                 </p>
-                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">
-                    <i class="fas fa-store"></i> Browse Catalog
-                </a>
-                <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-outline-dark btn-lg" style="margin-left: var(--space-sm);">
-                    <i class="fas fa-shopping-cart"></i> View Cart
-                </a>
+                <div class="cta-buttons-inline" style="display: inline-flex; gap: var(--space-sm);">
+                    <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">
+                        <i class="fas fa-store"></i> Browse Catalog
+                    </a>
+                    <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-outline-dark btn-lg">
+                        <i class="fas fa-shopping-cart"></i> View Cart
+                    </a>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -109,7 +111,7 @@ $swipesimpleEmbed = getSetting('swipesimple_embed');
         <?php if ($swipesimpleEmbed): ?>
             <div class="payment-embed fade-in">
                 <h3 style="margin-bottom: var(--space-lg);">Pay Online</h3>
-                <?php echo $swipesimpleEmbed; ?>
+                <?php echo sanitizeHtml($swipesimpleEmbed); ?>
             </div>
         <?php elseif ($swipesimpleLink): ?>
             <div class="payment-embed fade-in">

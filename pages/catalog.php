@@ -152,8 +152,10 @@ $csrfToken = generateCSRFToken();
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Digital downloads delivered instantly</li>
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community</li>
                 </ul>
-                <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-primary"><i class="fas fa-shopping-cart"></i> View Cart</a>
-                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark" style="margin-left: var(--space-sm);">Submit an Inquiry</a>
+                <div class="cta-buttons-inline">
+                    <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-primary"><i class="fas fa-shopping-cart"></i> View Cart</a>
+                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark">Submit an Inquiry</a>
+                </div>
             </div>
             <div class="about-image fade-in">
                 <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));">
