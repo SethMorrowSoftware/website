@@ -6,6 +6,8 @@
 $hero = getHero('about');
 $aboutText = getSetting('about_text');
 $serviceArea = getSetting('service_area');
+$categories = getCategories();
+$totalProducts = getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1')->fetchColumn();
 ?>
 
 <!-- Hero -->
@@ -41,7 +43,7 @@ $serviceArea = getSetting('service_area');
             <div class="about-text fade-in">
                 <h2>Our Story</h2>
                 <p><?php echo nl2br(e($aboutText)); ?></p>
-                <p>We take pride in offering top-quality products at competitive prices, backed by the kind of personal service that only a local business can provide. Whether you need a roll-off container for a weekend cleanout, bulk mulch for a landscaping project, or stone delivered to a commercial job site, we're here to help.</p>
+                <p>We take pride in offering top-quality products and services at competitive prices, backed by the kind of personal attention that only a local business can provide.</p>
             </div>
         </div>
     </div>
@@ -52,12 +54,12 @@ $serviceArea = getSetting('service_area');
     <div class="container">
         <div class="stats-grid fade-in">
             <div class="stat-item">
-                <div class="number">5+</div>
-                <div class="label">Container Sizes</div>
+                <div class="number"><?php echo count($categories); ?>+</div>
+                <div class="label">Categories</div>
             </div>
             <div class="stat-item">
-                <div class="number">20+</div>
-                <div class="label">Products Available</div>
+                <div class="number"><?php echo $totalProducts; ?>+</div>
+                <div class="label">Products &amp; Services</div>
             </div>
             <div class="stat-item">
                 <div class="number">100%</div>
@@ -75,7 +77,7 @@ $serviceArea = getSetting('service_area');
         </div>
         <div style="max-width: 800px; margin: 0 auto; text-align: center;" class="fade-in">
             <p style="font-size: var(--text-lg); color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                To provide our community with reliable, high-quality supply and services at fair prices. We are committed to exceptional customer service and supporting local growth through dependable partnerships.
+                To provide our community with reliable, high-quality products and services at fair prices. We are committed to exceptional customer service and supporting local growth through dependable partnerships.
             </p>
         </div>
 
@@ -83,11 +85,11 @@ $serviceArea = getSetting('service_area');
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-leaf"></i></div>
                 <h4>Eco-Friendly</h4>
-                <p>Committed to sustainable practices and responsible recycling.</p>
+                <p>Committed to sustainable practices and responsible operations.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-shield-alt"></i></div>
-                <h4>Licensed & Insured</h4>
+                <h4>Licensed &amp; Insured</h4>
                 <p>Fully licensed and insured for your peace of mind.</p>
             </div>
             <div class="feature-item fade-in">
@@ -96,9 +98,9 @@ $serviceArea = getSetting('service_area');
                 <p>Proud to serve our neighbors throughout the community.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-truck"></i></div>
+                <div class="icon"><i class="fas fa-thumbs-up"></i></div>
                 <h4>Reliable Service</h4>
-                <p>On-time delivery and pickup you can always depend on.</p>
+                <p>Dependable quality and service you can always count on.</p>
             </div>
         </div>
     </div>

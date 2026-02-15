@@ -1,9 +1,9 @@
 <?php
 /**
- * Materials & Products Page
+ * Catalog Page — Dynamic product/service listing by category
  */
 
-$hero = getHero('materials');
+$hero = getHero('catalog');
 $categories = getCategories();
 ?>
 
@@ -14,8 +14,8 @@ $categories = getCategories();
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'Materials & Products'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Premium Mulch, Stone, Topsoil, Sand & Bulk Salt'); ?></p>
+        <h1><?php echo e($hero['title'] ?? 'Our Catalog'); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? 'Browse Our Full Selection of Products & Services'); ?></p>
         <?php if ($hero && $hero['cta_text']): ?>
             <a href="<?php echo e(url($hero['cta_link'])); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
         <?php endif; ?>
@@ -27,40 +27,33 @@ $categories = getCategories();
     <div class="breadcrumb">
         <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
-        <span class="current">Materials &amp; Products</span>
+        <span class="current">Catalog</span>
     </div>
 </div>
 
-<!-- Category Tabs -->
+<!-- Category Tabs & Products -->
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Our Products</h2>
-            <p>Browse our full selection of premium landscaping and construction materials</p>
+            <h2>Browse Our Offerings</h2>
+            <p>Select a category below or browse everything we have available</p>
         </div>
 
+        <?php if (count($categories) > 1): ?>
         <div class="category-tabs fade-in" id="categoryTabs">
-            <button class="category-tab active" data-category="all">All Products</button>
+            <button class="category-tab active" data-category="all">All</button>
             <?php foreach ($categories as $cat): ?>
                 <button class="category-tab" data-category="<?php echo e($cat['slug']); ?>"><?php echo e($cat['name']); ?></button>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
 
         <?php foreach ($categories as $cat): ?>
             <?php $products = getProductsByCategory($cat['id']); ?>
+            <?php if (empty($products)) continue; ?>
             <div class="product-category-section" id="<?php echo e($cat['slug']); ?>" data-category="<?php echo e($cat['slug']); ?>">
                 <h3 style="margin-bottom: var(--space-sm); padding-top: var(--space-xl);">
-                    <?php
-                    $catIcons = [
-                        'mulch' => 'fa-leaf',
-                        'stone' => 'fa-mountain',
-                        'topsoil' => 'fa-seedling',
-                        'sand' => 'fa-umbrella-beach',
-                        'bulk-salt' => 'fa-snowflake',
-                    ];
-                    $catIcon = $catIcons[$cat['slug']] ?? 'fa-box';
-                    ?>
-                    <i class="fas <?php echo $catIcon; ?>" style="color: var(--color-secondary);"></i>
+                    <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>" style="color: var(--color-secondary);"></i>
                     <?php echo e($cat['name']); ?>
                 </h3>
                 <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);"><?php echo e($cat['description']); ?></p>
@@ -73,19 +66,34 @@ $categories = getCategories();
                                     <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>">
                                 <?php else: ?>
                                     <div class="placeholder-icon">
-                                        <i class="fas <?php echo $catIcon; ?>"></i>
+                                        <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>"></i>
                                     </div>
                                 <?php endif; ?>
                             </div>
                             <div class="card-body">
                                 <h4><?php echo e($product['name']); ?></h4>
                                 <p><?php echo e($product['description']); ?></p>
+                                <?php if ($product['specifications']): ?>
+                                    <span class="dimensions"><i class="fas fa-ruler-combined"></i> <?php echo e($product['specifications']); ?></span>
+                                <?php endif; ?>
+                                <?php if ($product['features']): ?>
+                                    <div style="margin-top: var(--space-sm);">
+                                        <ul class="use-cases">
+                                            <?php foreach (explode(',', $product['features']) as $feature): ?>
+                                                <li><?php echo e(trim($feature)); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div class="card-footer">
                                 <div>
                                     <span class="card-price"><?php echo e($product['price'] ?: 'Call for Pricing'); ?></span>
                                     <?php if ($product['unit']): ?>
                                         <span class="card-unit"> / <?php echo e($product['unit']); ?></span>
+                                    <?php endif; ?>
+                                    <?php if ($product['price_note']): ?>
+                                        <br><span class="card-unit"><?php echo e($product['price_note']); ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order</a>
@@ -98,26 +106,25 @@ $categories = getCategories();
     </div>
 </section>
 
-<!-- Delivery Info -->
+<!-- CTA -->
 <section class="section section-light">
     <div class="container">
         <div class="about-content">
             <div class="fade-in">
-                <h2>Delivery Available</h2>
+                <h2>Ready to Order?</h2>
                 <p style="color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                    All of our materials are available for delivery throughout our service area. We offer prompt, reliable delivery service with our fleet of trucks. Whether you need a single yard of mulch or a full truckload of stone, we'll get it to you on time.
+                    Browse our catalog above and submit an order inquiry when you're ready. We offer competitive pricing and reliable service. Contact us for bulk orders, custom requests, or any questions.
                 </p>
                 <ul style="list-style: none; margin: var(--space-xl) 0;">
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Same-day delivery available (call early!)</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Accurate, on-time scheduling</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Bulk discounts for large orders</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community and surrounding areas</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Competitive pricing</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Fast, reliable service</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community</li>
                 </ul>
-                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary">Order Materials</a>
+                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary">Submit an Inquiry</a>
             </div>
             <div class="about-image fade-in">
                 <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));">
-                    <i class="fas fa-truck" style="color: rgba(255,255,255,0.3);"></i>
+                    <i class="fas fa-store" style="color: rgba(255,255,255,0.3);"></i>
                 </div>
             </div>
         </div>

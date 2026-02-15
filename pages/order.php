@@ -6,7 +6,6 @@
 $hero = getHero('order');
 $categories = getCategories();
 $allProducts = getAllProducts();
-$containers = getContainers();
 $csrfToken = generateCSRFToken();
 ?>
 
@@ -39,7 +38,7 @@ $csrfToken = generateCSRFToken();
             <div class="step-progress">
                 <div class="step-indicator active" data-step="1">
                     <span class="step-num">1</span>
-                    <span class="step-label">Service Type</span>
+                    <span class="step-label">Category</span>
                 </div>
                 <div class="step-indicator" data-step="2">
                     <span class="step-num">2</span>
@@ -63,30 +62,18 @@ $csrfToken = generateCSRFToken();
                 <input type="hidden" name="action" value="order_inquiry">
                 <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
 
-                <!-- Step 1: Service Type -->
+                <!-- Step 1: Category Selection -->
                 <div class="form-step active" data-step="1">
-                    <h3>What service do you need?</h3>
+                    <h3>What are you looking for?</h3>
                     <div class="service-options">
-                        <label class="service-option" data-value="container">
-                            <input type="radio" name="service_type" value="container" required>
-                            <div class="icon"><i class="fas fa-dumpster"></i></div>
-                            <h4>Roll Off Container</h4>
-                            <p>Rent a container for your project</p>
-                        </label>
-
-                        <label class="service-option" data-value="material">
-                            <input type="radio" name="service_type" value="material">
-                            <div class="icon"><i class="fas fa-mountain"></i></div>
-                            <h4>Material Delivery</h4>
-                            <p>Mulch, stone, sand, topsoil, salt</p>
-                        </label>
-
-                        <label class="service-option" data-value="trucking">
-                            <input type="radio" name="service_type" value="trucking">
-                            <div class="icon"><i class="fas fa-truck"></i></div>
-                            <h4>Trucking Service</h4>
-                            <p>Hauling and delivery services</p>
-                        </label>
+                        <?php foreach ($categories as $cat): ?>
+                            <label class="service-option" data-value="<?php echo e($cat['slug']); ?>">
+                                <input type="radio" name="service_type" value="<?php echo e($cat['slug']); ?>" required>
+                                <div class="icon"><i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>"></i></div>
+                                <h4><?php echo e($cat['name']); ?></h4>
+                                <p><?php echo e($cat['description']); ?></p>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
                 </div>
 
@@ -94,55 +81,35 @@ $csrfToken = generateCSRFToken();
                 <div class="form-step" data-step="2">
                     <h3>Tell us the details</h3>
 
-                    <!-- Container options -->
-                    <div id="containerOptions" class="hidden">
-                        <div class="form-group">
-                            <label>Select Container Size <span class="required">*</span></label>
-                            <select name="product_details[container_size]" class="form-control">
-                                <option value="">-- Choose a size --</option>
-                                <?php foreach ($containers as $c): ?>
-                                    <option value="<?php echo e($c['name']); ?>"><?php echo e($c['name']); ?> (<?php echo e($c['dimensions']); ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                    <!-- Dynamic product options per category -->
+                    <?php foreach ($categories as $cat): ?>
+                        <?php
+                        $catProducts = array_filter($allProducts, function($p) use ($cat) {
+                            return $p['category_slug'] === $cat['slug'];
+                        });
+                        ?>
+                        <div id="categoryOptions_<?php echo e($cat['slug']); ?>" class="category-options hidden" data-category="<?php echo e($cat['slug']); ?>">
+                            <?php if (!empty($catProducts)): ?>
+                            <div class="form-group">
+                                <label>Select <?php echo e($cat['name']); ?> <span class="required">*</span></label>
+                                <select name="product_details[product]" class="form-control category-product-select" data-category="<?php echo e($cat['slug']); ?>">
+                                    <option value="">-- Choose an option --</option>
+                                    <?php foreach ($catProducts as $p): ?>
+                                        <option value="<?php echo e($p['name']); ?>"><?php echo e($p['name']); ?> (<?php echo e($p['price'] ?: 'Call for pricing'); ?>)</option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <?php endif; ?>
+                            <div class="form-group">
+                                <label>Quantity / Details</label>
+                                <input type="text" name="product_details[quantity]" class="form-control category-quantity-input" data-category="<?php echo e($cat['slug']); ?>" placeholder="e.g., quantity, size, specifications...">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>What will you be putting in the container?</label>
-                            <textarea name="product_details[container_contents]" class="form-control" placeholder="e.g., Construction debris, household junk, yard waste..." rows="3"></textarea>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
 
-                    <!-- Material options -->
-                    <div id="materialOptions" class="hidden">
-                        <div class="form-group">
-                            <label>Select Product <span class="required">*</span></label>
-                            <select name="product_details[product]" class="form-control">
-                                <option value="">-- Choose a product --</option>
-                                <?php
-                                $currentCat = '';
-                                foreach ($allProducts as $p):
-                                    if ($p['category_name'] !== $currentCat):
-                                        if ($currentCat !== '') echo '</optgroup>';
-                                        $currentCat = $p['category_name'];
-                                        echo '<optgroup label="' . e($currentCat) . '">';
-                                    endif;
-                                ?>
-                                    <option value="<?php echo e($p['name']); ?>"><?php echo e($p['name']); ?> (<?php echo e($p['price'] ?: 'Call for pricing'); ?>)</option>
-                                <?php endforeach; ?>
-                                <?php if ($currentCat !== '') echo '</optgroup>'; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Quantity</label>
-                            <input type="text" name="product_details[quantity]" class="form-control" placeholder="e.g., 5 yards, 3 tons, etc.">
-                        </div>
-                    </div>
-
-                    <!-- Trucking options -->
-                    <div id="truckingOptions" class="hidden">
-                        <div class="form-group">
-                            <label>Describe what you need hauled or delivered <span class="required">*</span></label>
-                            <textarea name="product_details[trucking_details]" class="form-control" placeholder="Please describe your trucking needs..." rows="4"></textarea>
-                        </div>
+                    <div class="form-group">
+                        <label>Describe your needs</label>
+                        <textarea name="product_details[description]" class="form-control" placeholder="Tell us more about what you need..." rows="3"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -173,8 +140,8 @@ $csrfToken = generateCSRFToken();
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Access Notes</label>
-                        <textarea name="product_details[access_notes]" class="form-control" placeholder="Any special instructions for delivery access? (gate codes, narrow roads, etc.)" rows="3"></textarea>
+                        <label>Special Instructions</label>
+                        <textarea name="product_details[access_notes]" class="form-control" placeholder="Any special instructions for delivery or service? (gate codes, parking, etc.)" rows="3"></textarea>
                     </div>
                 </div>
 

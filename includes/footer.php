@@ -12,6 +12,7 @@ $footerText = getSetting('footer_text', '&copy; ' . date('Y') . ' ' . $companyNa
 $facebookUrl = getSetting('facebook_url');
 $instagramUrl = getSetting('instagram_url');
 $twitterUrl = getSetting('twitter_url');
+$footerCategories = getCategories();
 ?>
 
 </main>
@@ -66,20 +67,19 @@ $twitterUrl = getSetting('twitter_url');
                 <ul>
                     <li><a href="<?php echo url('/'); ?>">Home</a></li>
                     <li><a href="<?php echo url('index.php?page=about'); ?>">About Us</a></li>
-                    <li><a href="<?php echo url('index.php?page=containers'); ?>">Containers</a></li>
-                    <li><a href="<?php echo url('index.php?page=materials'); ?>">Materials</a></li>
-                    <li><a href="<?php echo url('index.php?page=trucking'); ?>">Trucking</a></li>
+                    <li><a href="<?php echo url('index.php?page=catalog'); ?>">Catalog</a></li>
+                    <li><a href="<?php echo url('index.php?page=contact'); ?>">Contact</a></li>
+                    <li><a href="<?php echo url('index.php?page=order'); ?>">Order Inquiry</a></li>
                 </ul>
             </div>
 
             <div class="footer-col">
-                <h4>Services</h4>
+                <h4>Our Catalog</h4>
                 <ul>
-                    <li><a href="<?php echo url('index.php?page=containers'); ?>">Roll Off Containers</a></li>
-                    <li><a href="<?php echo url('index.php?page=materials'); ?>">Mulch &amp; Stone</a></li>
-                    <li><a href="<?php echo url('index.php?page=materials'); ?>">Topsoil &amp; Sand</a></li>
-                    <li><a href="<?php echo url('index.php?page=trucking'); ?>">Trucking Services</a></li>
-                    <li><a href="<?php echo url('index.php?page=order'); ?>">Order Inquiry</a></li>
+                    <?php foreach ($footerCategories as $fCat): ?>
+                        <li><a href="<?php echo url('index.php?page=catalog'); ?>#<?php echo e($fCat['slug']); ?>"><?php echo e($fCat['name']); ?></a></li>
+                    <?php endforeach; ?>
+                    <li><a href="<?php echo url('index.php?page=order'); ?>">Request a Quote</a></li>
                 </ul>
             </div>
 

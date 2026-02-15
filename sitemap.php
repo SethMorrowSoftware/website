@@ -14,7 +14,7 @@ $baseUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https'
 $db = getDB();
 
 // System pages
-$systemPages = ['home', 'about', 'containers', 'materials', 'trucking', 'contact', 'order', 'payment'];
+$systemPages = ['home', 'about', 'catalog', 'contact', 'order', 'payment'];
 
 // Custom published pages
 $customPages = $db->query("SELECT slug, updated_at FROM pages WHERE is_published = 1 AND is_system = 0")->fetchAll();

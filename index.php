@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'order_inquiry' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $validServiceTypes = ['containers', 'materials', 'trucking'];
+        // Validate service_type against actual category slugs
+        $validCategories = array_column(getCategories(), 'slug');
         $data = [
             'service_type' => trim($_POST['service_type'] ?? ''),
             'product_details' => $_POST['product_details'] ?? [],
@@ -52,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dateValid = empty($data['preferred_date']) || (strtotime($data['preferred_date']) >= strtotime('today'));
 
         $errors = [];
-        if (!in_array($data['service_type'], $validServiceTypes)) {
-            $errors[] = 'Invalid service type.';
+        if (!in_array($data['service_type'], $validCategories)) {
+            $errors[] = 'Invalid category selected.';
         }
         if (!$data['name'] || strlen($data['name']) < 2) {
             $errors[] = 'Please provide your full name.';
@@ -83,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Route to correct page
 $page = $_GET['page'] ?? 'home';
-$allowedPages = ['home', 'about', 'containers', 'materials', 'trucking', 'contact', 'order', 'payment'];
+$allowedPages = ['home', 'about', 'catalog', 'contact', 'order', 'payment'];
 
 // Check if it's a system page or a custom page
 if (in_array($page, $allowedPages)) {

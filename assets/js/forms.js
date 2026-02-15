@@ -17,32 +17,32 @@ document.addEventListener('DOMContentLoaded', function() {
     var nextBtn = document.getElementById('nextStep');
     var submitBtn = document.getElementById('submitOrder');
 
-    // Service type selection
+    // Service type / category selection
     var serviceOptions = orderForm.querySelectorAll('.service-option');
     serviceOptions.forEach(function(option) {
         option.addEventListener('click', function() {
             serviceOptions.forEach(function(o) { o.classList.remove('selected'); });
             this.classList.add('selected');
             this.querySelector('input[type="radio"]').checked = true;
-            updateStep2Options();
+            updateCategoryOptions();
         });
     });
 
-    function updateStep2Options() {
+    function updateCategoryOptions() {
         var selected = orderForm.querySelector('input[name="service_type"]:checked');
-        var containerOpts = document.getElementById('containerOptions');
-        var materialOpts = document.getElementById('materialOptions');
-        var truckingOpts = document.getElementById('truckingOptions');
 
-        if (containerOpts) containerOpts.classList.add('hidden');
-        if (materialOpts) materialOpts.classList.add('hidden');
-        if (truckingOpts) truckingOpts.classList.add('hidden');
+        // Hide all category-specific option panels
+        var allCategoryOpts = orderForm.querySelectorAll('.category-options');
+        allCategoryOpts.forEach(function(panel) {
+            panel.classList.add('hidden');
+        });
 
         if (selected) {
-            var val = selected.value;
-            if (val === 'container' && containerOpts) containerOpts.classList.remove('hidden');
-            if (val === 'material' && materialOpts) materialOpts.classList.remove('hidden');
-            if (val === 'trucking' && truckingOpts) truckingOpts.classList.remove('hidden');
+            var categorySlug = selected.value;
+            var targetPanel = document.getElementById('categoryOptions_' + categorySlug);
+            if (targetPanel) {
+                targetPanel.classList.remove('hidden');
+            }
         }
     }
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentStep === 1) {
             var serviceType = orderForm.querySelector('input[name="service_type"]:checked');
             if (!serviceType) {
-                alert('Please select a service type.');
+                alert('Please select a category.');
                 return false;
             }
         }
@@ -124,20 +124,29 @@ document.addEventListener('DOMContentLoaded', function() {
         var html = '<table style="width:100%; border-collapse:collapse;">';
 
         if (serviceType) {
-            var labels = { container: 'Roll Off Container', material: 'Material Delivery', trucking: 'Trucking Service' };
-            html += reviewRow('Service Type', labels[serviceType.value] || serviceType.value);
+            // Use the label text from the selected option
+            var selectedOption = serviceType.closest('.service-option');
+            var categoryLabel = selectedOption ? selectedOption.querySelector('h4').textContent : serviceType.value;
+            html += reviewRow('Category', categoryLabel);
         }
 
-        // Service-specific details
-        if (serviceType && serviceType.value === 'container') {
-            var size = orderForm.querySelector('[name="product_details[container_size]"]');
-            if (size && size.value) html += reviewRow('Container Size', size.value);
+        // Category-specific details
+        if (serviceType) {
+            var categorySlug = serviceType.value;
+            var productSelect = orderForm.querySelector('.category-product-select[data-category="' + categorySlug + '"]');
+            var quantityInput = orderForm.querySelector('.category-quantity-input[data-category="' + categorySlug + '"]');
+            if (productSelect && productSelect.value) {
+                html += reviewRow('Product', productSelect.options[productSelect.selectedIndex].text);
+            }
+            if (quantityInput && quantityInput.value) {
+                html += reviewRow('Quantity / Details', quantityInput.value);
+            }
         }
-        if (serviceType && serviceType.value === 'material') {
-            var product = orderForm.querySelector('[name="product_details[product]"]');
-            var qty = orderForm.querySelector('[name="product_details[quantity]"]');
-            if (product && product.value) html += reviewRow('Product', product.value);
-            if (qty && qty.value) html += reviewRow('Quantity', qty.value);
+
+        // General description
+        var descField = orderForm.querySelector('[name="product_details[description]"]');
+        if (descField && descField.value) {
+            html += reviewRow('Description', descField.value);
         }
 
         if (address && address.value) html += reviewRow('Delivery Address', address.value);
@@ -180,6 +189,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please enter a valid email address.');
                 email.focus();
             }
+        });
+    }
+
+    // ---- Category tabs on catalog page ----
+    var categoryTabs = document.getElementById('categoryTabs');
+    if (categoryTabs) {
+        var tabs = categoryTabs.querySelectorAll('.category-tab');
+        var sections = document.querySelectorAll('.product-category-section');
+
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                this.classList.add('active');
+
+                var category = this.getAttribute('data-category');
+
+                sections.forEach(function(section) {
+                    if (category === 'all') {
+                        section.style.display = '';
+                    } else {
+                        section.style.display = section.getAttribute('data-category') === category ? '' : 'none';
+                    }
+                });
+            });
         });
     }
 

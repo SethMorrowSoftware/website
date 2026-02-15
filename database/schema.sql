@@ -33,18 +33,19 @@ CREATE TABLE IF NOT EXISTS pages (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Product categories
+-- Product/service categories
 CREATE TABLE IF NOT EXISTS product_categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL,
     description TEXT,
     image TEXT,
+    icon TEXT DEFAULT 'fa-tag',
     sort_order INTEGER DEFAULT 0,
     is_visible INTEGER DEFAULT 1
 );
 
--- Products
+-- Products and services
 CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     category_id INTEGER NOT NULL,
@@ -54,27 +55,14 @@ CREATE TABLE IF NOT EXISTS products (
     image TEXT,
     price TEXT,
     unit TEXT,
+    specifications TEXT,
+    features TEXT,
+    price_note TEXT,
     is_available INTEGER DEFAULT 1,
     is_visible INTEGER DEFAULT 1,
     sort_order INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES product_categories(id) ON DELETE CASCADE
-);
-
--- Containers (roll-off)
-CREATE TABLE IF NOT EXISTS containers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    size TEXT NOT NULL,
-    unit TEXT DEFAULT 'yard',
-    dimensions TEXT,
-    description TEXT,
-    use_cases TEXT,
-    image TEXT,
-    price TEXT,
-    price_note TEXT,
-    is_visible INTEGER DEFAULT 1,
-    sort_order INTEGER DEFAULT 0
 );
 
 -- Testimonials

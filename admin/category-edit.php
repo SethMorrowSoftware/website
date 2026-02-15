@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     $name = trim($_POST['name'] ?? '');
     $slug = createSlug($_POST['slug'] ?? $name);
     $description = trim($_POST['description'] ?? '');
+    $icon = trim($_POST['icon'] ?? 'fa-tag');
     $is_visible = isset($_POST['is_visible']) ? 1 : 0;
     $sort_order = (int)($_POST['sort_order'] ?? 0);
 
@@ -34,12 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if ($name) {
         if ($id && $category) {
-            $stmt = $db->prepare('UPDATE product_categories SET name=?, slug=?, description=?, image=?, is_visible=?, sort_order=? WHERE id=?');
-            $stmt->execute([$name, $slug, $description, $image, $is_visible, $sort_order, $id]);
+            $stmt = $db->prepare('UPDATE product_categories SET name=?, slug=?, description=?, image=?, icon=?, is_visible=?, sort_order=? WHERE id=?');
+            $stmt->execute([$name, $slug, $description, $image, $icon, $is_visible, $sort_order, $id]);
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Category updated!'];
         } else {
-            $stmt = $db->prepare('INSERT INTO product_categories (name, slug, description, image, is_visible, sort_order) VALUES (?,?,?,?,?,?)');
-            $stmt->execute([$name, $slug, $description, $image, $is_visible, $sort_order]);
+            $stmt = $db->prepare('INSERT INTO product_categories (name, slug, description, image, icon, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)');
+            $stmt->execute([$name, $slug, $description, $image, $icon, $is_visible, $sort_order]);
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Category created!'];
         }
@@ -73,6 +74,14 @@ require_once __DIR__ . '/header.php';
             <textarea name="description" class="form-control" rows="3"><?php echo e($category['description'] ?? ''); ?></textarea>
         </div>
         <div class="form-group">
+            <label>Icon (Font Awesome class)</label>
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                <span style="font-size: 1.5rem; width: 40px; text-align: center;"><i class="fas <?php echo e($category['icon'] ?? 'fa-tag'); ?>" id="iconPreview"></i></span>
+                <input type="text" name="icon" class="form-control" value="<?php echo e($category['icon'] ?? 'fa-tag'); ?>" placeholder="e.g., fa-box, fa-concierge-bell, fa-tools" id="iconInput">
+            </div>
+            <small class="form-help">Font Awesome icon class (e.g., fa-box, fa-concierge-bell, fa-truck, fa-tools, fa-store). Browse icons at fontawesome.com/icons.</small>
+        </div>
+        <div class="form-group">
             <label>Category Image</label>
             <?php if (!empty($category['image'])): ?>
                 <div class="current-image"><img src="<?php echo e($category['image']); ?>" alt=""></div>
@@ -97,5 +106,17 @@ require_once __DIR__ . '/header.php';
         <button type="submit" class="btn-admin btn-save"><i class="fas fa-save"></i> Save Category</button>
     </div>
 </form>
+
+<script>
+(function() {
+    var iconInput = document.getElementById('iconInput');
+    var iconPreview = document.getElementById('iconPreview');
+    if (iconInput && iconPreview) {
+        iconInput.addEventListener('input', function() {
+            iconPreview.className = 'fas ' + this.value.trim();
+        });
+    }
+})();
+</script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

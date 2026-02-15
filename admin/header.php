@@ -54,15 +54,12 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
             <i class="fas fa-bars"></i> Navigation
         </a>
 
-        <div class="nav-section">Products</div>
+        <div class="nav-section">Catalog</div>
         <a href="<?php echo url('admin/categories.php'); ?>" class="<?php echo $adminPage === 'categories' || $adminPage === 'category-edit' ? 'active' : ''; ?>">
             <i class="fas fa-tags"></i> Categories
         </a>
         <a href="<?php echo url('admin/products.php'); ?>" class="<?php echo $adminPage === 'products' || $adminPage === 'product-edit' ? 'active' : ''; ?>">
             <i class="fas fa-box"></i> Products
-        </a>
-        <a href="<?php echo url('admin/containers.php'); ?>" class="<?php echo $adminPage === 'containers' || $adminPage === 'container-edit' ? 'active' : ''; ?>">
-            <i class="fas fa-dumpster"></i> Containers
         </a>
 
         <div class="nav-section">Engagement</div>
