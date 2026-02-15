@@ -672,7 +672,8 @@ $flashMessage = $_SESSION['flash_message'] ?? null;
 $flashType = $_SESSION['flash_type'] ?? 'info';
 unset($_SESSION['flash_message'], $_SESSION['flash_type']);
 
-// Load the page
+// Load the page with output buffering so template-level redirects work
+ob_start();
 require_once __DIR__ . '/includes/header.php';
 require_once $template;
 require_once __DIR__ . '/includes/footer.php';

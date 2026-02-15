@@ -9,8 +9,8 @@ require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
 
-// Handle logout
-if (isset($_POST['logout']) || isset($_GET['logout'])) {
+// Handle logout (POST only)
+if (isset($_POST['logout'])) {
     logout();
     redirect('admin/login.php');
 }
