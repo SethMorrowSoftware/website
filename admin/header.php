@@ -120,6 +120,7 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         </a>
         <form id="logoutForm" method="POST" action="<?php echo url('admin/login.php'); ?>" style="display:none;">
             <input type="hidden" name="logout" value="1">
+            <input type="hidden" name="csrf_token" value="<?php echo e(generateCSRFToken()); ?>">
         </form>
     </div>
 </aside>
