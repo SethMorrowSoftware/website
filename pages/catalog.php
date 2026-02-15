@@ -25,7 +25,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? $catalogPageTitle); ?></h1>
         <p><?php echo e($hero['subtitle'] ?? $catalogSectionTitle); ?></p>
-        <?php if ($hero && $hero['cta_text']): ?>
+        <?php if ($hero && $hero['cta_text'] && isHeroCtaLinkEnabled($hero['cta_link'])): ?>
             <a href="<?php echo e(url($hero['cta_link'])); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
         <?php endif; ?>
     </div>

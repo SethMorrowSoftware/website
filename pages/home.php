@@ -37,7 +37,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
         <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'Your Business Name')); ?></h1>
         <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Quality Products & Services You Can Count On')); ?></p>
         <div class="btn-group">
-            <?php if ($hero && $hero['cta_text']): ?>
+            <?php if ($hero && $hero['cta_text'] && isHeroCtaLinkEnabled($hero['cta_link'] ?: 'index.php?page=order')): ?>
                 <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
                     <?php echo e($hero['cta_text']); ?>
                 </a>
