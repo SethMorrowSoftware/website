@@ -5,146 +5,161 @@ Repository: `/workspace/website`
 
 ## Scope and Method
 
-This audit covered architecture, runtime behavior, and operational readiness for a professional e-commerce deployment.
+This review focused on production readiness for a modern e-commerce storefront and admin system.
 
-### Areas reviewed
-- Public storefront routing, product/cart/checkout, account flows
-- Admin dashboard and API endpoints
-- Database schema + migrations
-- Security controls (CSRF/session handling, auth flow, upload path)
-- SEO and support endpoints (`sitemap.php`, `robots.txt`)
+### Coverage
+- Storefront routing and feature guards (`index.php`, `pages/*`, `includes/header.php`)
+- Checkout, payment callbacks, and order state transitions (`index.php`, `includes/functions.php`, `admin/api/*`)
+- Admin configuration and controls (`admin/settings.php`, `admin/*`)
+- Security controls (session/cookie settings, CSRF, webhook verification, upload/delete/reorder APIs)
+- Deployment/documentation consistency (`README.md`, `.htaccess`, schema/migrations)
 
-### Validation checks run
-1. PHP syntax lint across all PHP files
-2. Runtime smoke test with PHP built-in server and endpoint crawl
-3. Static review of core flow files (`index.php`, `includes/functions.php`, `includes/migrations.php`, admin order/auth pages)
+### Validation checks executed
+1. PHP lint across all PHP files
+2. Local runtime smoke checks on public/admin routes
+3. Link spider smoke check from homepage
+4. Admin/public API auth behavior checks
+5. Static code review of critical paths
 
 ---
 
 ## Executive Summary
 
-The codebase is functionally broad and generally stable (all major routes load, checkout/account guards behave correctly, and baseline security practices are mostly present). However, there are a few **high-impact consistency and production-hardening gaps** that should be fixed before treating this as production-ready.
+The project is in **good functional shape** at a baseline: pages render, syntax is clean, and the major flows are implemented with CSRF/session protections. However, there are several **high-impact configuration and security-hardening issues** that should be addressed before production rollout.
 
-**Top risks:**
-1. **Payment status inconsistency (`paid` vs `completed`)** causes inaccurate sales analytics in admin.
-2. **Migration versioning collision** (`005_*.php` and `005_*.sql`) increases schema drift risk.
-3. **Admin logout POST path lacks CSRF validation**, allowing forced-logout requests from third-party sites.
+### Overall readiness (current)
+- **Reliability:** Moderate–High
+- **Security:** Moderate (needs tightening for webhooks + credential hygiene)
+- **Operational readiness:** Moderate (feature toggles are inconsistent with admin UI)
+- **Documentation quality:** Moderate-Low (README drift from current architecture)
 
 ---
 
 ## Findings
 
-## High
+## High Severity
 
-### 1) Payment status mismatch breaks revenue analytics
-
-**Evidence**
-- Core order updates treat successful payment as `completed` (`updateOrderPayment`).
-- Admin dashboard revenue widgets query `orders` using `payment_status = 'paid'`.
-- Order completion flow also checks/sets `completed`.
-
-**Impact**
-- Revenue widgets and “top selling products” can report zero/incorrect values even when orders are successfully paid.
-- Admins can make incorrect decisions based on broken metrics.
-
-**Recommendation**
-- Standardize on one payment status vocabulary (`pending`, `processing`, `completed`, `failed`, etc.).
-- Replace admin analytics filters from `'paid'` to the canonical paid state (currently `completed`).
-- Add a regression check that seeds a completed order and asserts non-zero dashboard metrics.
-
-## Medium
-
-### 2) Migration numbering collision introduces long-term schema risk
+### 1) Feature flags are inconsistent, so some "disabled" features may still render as enabled
 
 **Evidence**
-- Two migrations share version prefix `005`:
-  - `005_add_reviews_table.php`
-  - `005_product_variants.sql`
+- `isFeatureEnabled()` maps `catalog/cart/order/contact/testimonials/about/reviews`, but **does not map** `customer_accounts`, `search`, or `wishlists` to their stored keys (`enable_customer_accounts`, `enable_search`, `enable_wishlists`).
+- Header and routing checks call `isFeatureEnabled('search')`, `isFeatureEnabled('wishlists')`, `isFeatureEnabled('customer_accounts')`, which will default to key names that are not the persisted setting keys.
+- Admin settings UI includes checkboxes for core features, but not customer accounts/search/wishlists/reviews toggles in this screen.
 
 **Impact**
-- Migration order depends on filename sort shape instead of explicit version progression.
-- Future migrations become harder to reason about; conflict/debug time increases.
-- Higher chance of partially applied changes in real deployments.
+- Feature gating can be misleading: admins may expect a feature to be disabled while it still appears to users.
+- Increased support/debug burden because behavior depends on mismatched key naming conventions.
 
 **Recommendation**
-- Renumber migrations into a single monotonic sequence without duplicates.
-- Add a pre-commit/CI check that enforces unique migration version prefixes.
+- Add explicit mappings in `isFeatureEnabled()` for:
+  - `customer_accounts => enable_customer_accounts`
+  - `search => enable_search`
+  - `wishlists => enable_wishlists`
+- Add corresponding toggle controls in `admin/settings.php` and persist them in checkbox handling.
+- Add a regression check that asserts nav/page guard behavior for all feature switches.
 
-### 3) Admin logout endpoint is POST-only but not CSRF-protected
+## Medium Severity
+
+### 2) BTCPay webhook signature verification can be bypassed when secret is unset
 
 **Evidence**
-- `admin/login.php` accepts `POST logout` and executes `logout()` without CSRF validation.
-- `admin/index.php` also accepts `POST logout` without CSRF token verification.
+- `verifyBTCPayWebhookSignature()` returns `true` when `btcpay_webhook_secret` is empty.
+- Public webhook endpoint accepts requests and processes order status events if signature validation returns true.
 
 **Impact**
-- Cross-site POST can force an administrator to log out unexpectedly.
-- Not a data exfiltration issue, but disrupts workflow and weakens security posture.
+- In environments where admins forget to set a secret, webhook authenticity is not enforced.
+- Attackers could spoof status events and alter payment state.
 
 **Recommendation**
-- Require valid CSRF token for all logout POST handlers.
-- Keep logout form tokenized consistently from admin header.
+- Fail closed for production: reject all webhook requests unless a secret is configured.
+- Add explicit admin warning banner in settings when BTCPay is enabled but webhook secret is missing.
+- Optionally add source IP allowlisting or replay protection.
 
-## Low
-
-### 4) Legacy/readme drift may mislead deployment and QA
+### 3) First-run credential artifact risk (plaintext admin password file)
 
 **Evidence**
-- `README.md` still references older service-business pages/components that do not match current e-commerce page set.
+- Seeder generates random admin credentials and writes them to `ADMIN_CREDENTIALS.txt` at repo root.
+- README instructs manual deletion after first login.
 
 **Impact**
-- Slower onboarding, mistaken QA expectations, and possible missed route checks.
+- If this file is left on disk in production (or exposed via misconfigured web server), admin takeover risk increases.
 
 **Recommendation**
-- Refresh README route inventory and module descriptions to match the live e-commerce architecture.
+- Keep creation behavior for bootstrap, but add forced expiration flow:
+  - Require password change on first login.
+  - Auto-delete credential file after successful first admin login.
+- Add startup health check warning if file still exists.
+
+## Low Severity
+
+### 4) Documentation drift (service-business template docs vs current e-commerce implementation)
+
+**Evidence**
+- README sections still reference routes/modules that no longer reflect current page inventory and e-commerce feature set.
+
+**Impact**
+- Slower onboarding and QA confusion.
+- Higher risk of missed regression checks due to stale docs.
+
+**Recommendation**
+- Update README route map, feature inventory, and payment integration behavior to match the actual codebase.
 
 ---
 
 ## Positive Findings
 
-- Full PHP lint pass with no syntax errors.
-- Runtime smoke crawl successful for storefront, account pages, admin login, sitemap, and robots.
-- Redirect behavior works for guard routes (e.g., unauthenticated account access and empty checkout redirect).
-- Core admin APIs enforce authenticated access + CSRF token checks.
-- Upload handler validates MIME type and size and derives extensions from server-side MIME detection.
+- All PHP files passed syntax lint (`php -l`) during this audit.
+- Public storefront pages and major flows returned expected status codes in smoke checks.
+- Internal link spider (depth-limited) reported no broken links from homepage crawl.
+- Admin mutation APIs (`upload/delete/reorder`) correctly require authentication and return 401 when unauthenticated.
+- CSRF checks are broadly and consistently present in public and admin form handlers.
 
 ---
 
-## Route Smoke Test Snapshot
+## Smoke Check Snapshot
 
-### Pages returning expected `200`
-- `/`, `/?page=home`, `/?page=catalog`, `/?page=cart`, `/?page=login`, `/?page=register`, `/?page=wishlist`, `/?page=search&q=test`, `/?page=order-status`, `/?page=order-complete&order=INVALID`, `/?page=forgot-password`, `/?page=reset-password&token=bad`, `/admin/login.php`, `/sitemap.php`, `/robots.txt`
+### Expected `200`
+- `/`, `/?page=home`, `/?page=catalog`, `/?page=cart`, `/?page=login`, `/?page=register`, `/?page=wishlist`, `/?page=contact`, `/?page=order`, `/?page=search&q=test`, `/admin/login.php`
 
-### Pages returning expected redirects (`302`)
+### Expected redirects (`302`)
 - `/?page=checkout` (empty-cart guard)
 - `/?page=account` (auth guard)
-- `/?page=product&slug=nonexistent` (invalid slug guard)
-- `/?page=paypal-checkout&order=bad` (invalid/missing pending order guard)
-- `/admin/` (redirect to login when unauthenticated)
+- `/?page=product&slug=nonexistent` (invalid product slug guard)
+- `/admin/` (admin auth guard)
+
+### API guard behavior
+- `POST /admin/api/upload.php` → 401 unauthenticated
+- `POST /admin/api/delete.php` → 401 unauthenticated
+- `POST /admin/api/reorder.php` → 401 unauthenticated
+- `POST /admin/api/paypal-create.php` → 403 without CSRF/session
+- `POST /admin/api/paypal-capture.php` → 403 without CSRF/session
 
 ---
 
-## Recommended Action Plan
+## Priority Action Plan
 
-### Phase 1 (Immediate)
-1. Normalize payment status semantics and fix admin analytics queries.
-2. Add CSRF validation to all admin logout handlers.
-3. Renumber migration files to a unique linear sequence.
+### Immediate (P0)
+1. Fix feature-flag key mapping + expose missing toggles in admin settings.
+2. Enforce mandatory BTCPay webhook secret verification when BTCPay is enabled.
+3. Mitigate credential-file lifecycle risk (auto-delete + first-login password enforcement).
 
-### Phase 2 (Short-term)
-1. Add automated smoke checks for core routes and redirect assertions.
-2. Add migration integrity check in CI (fresh DB bootstrap + schema assertion).
-3. Update README to e-commerce-specific documentation.
+### Short-term (P1)
+1. Add route + feature-toggle integration checks to CI.
+2. Add payment-webhook negative tests (invalid signatures should always fail).
+3. Refresh README to match current architecture and route list.
 
-### Phase 3 (Hardening)
-1. Add integration tests for checkout/order-complete/account flows.
-2. Add admin analytics unit/integration test with seeded completed orders.
-3. Add lightweight security checklist gating releases.
+### Hardening (P2)
+1. Add end-to-end happy-path checkout tests for each payment provider mode.
+2. Add admin configuration health dashboard checks (missing secrets, insecure defaults).
+3. Add deployment checklist for Apache/Nginx parity (sensitive file blocking, security headers).
 
 ---
 
 ## Commands Executed During Audit
 
 - `find . -name '*.php' -print0 | xargs -0 -n1 php -l`
-- `php -S 127.0.0.1:8090 -t /workspace/website` (runtime smoke server)
-- `curl` route sweep for public/admin/SEO endpoints
-- `rg` + `nl` review of routing, payment, migration, and auth/logout code paths
+- `php -S 127.0.0.1:8080 -t /workspace/website`
+- `curl` sweep of key public/admin routes for status validation
+- `wget --spider --recursive --level=2 --no-verbose --adjust-extension --reject-regex 'logout|delete|api' http://127.0.0.1:8080/`
+- `curl -X POST` checks against admin APIs for auth/CSRF guard behavior
+- `rg`/`sed` static review across routing, settings, payment, and security code paths
