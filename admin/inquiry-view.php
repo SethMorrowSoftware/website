@@ -120,7 +120,7 @@ require_once __DIR__ . '/header.php';
         </div>
 
         <div class="form-actions">
-            <a href="mailto:<?php echo e($item['email']); ?>?subject=Re: Your inquiry at Hudson Valley Supply" class="btn-admin btn-save">
+            <a href="mailto:<?php echo e($item['email']); ?>?subject=Re: Your inquiry" class="btn-admin btn-save">
                 <i class="fas fa-reply"></i> Reply via Email
             </a>
             <?php if ($item['phone']): ?>

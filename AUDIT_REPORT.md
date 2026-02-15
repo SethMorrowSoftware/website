@@ -1,7 +1,7 @@
 # Full Platform Audit Report
 
 Date: 2026-02-14
-Project: Hudson Valley Supply & Recycling LLC Website (`/workspace/website`)
+Project: Business Website CMS (`/workspace/website`)
 
 ## Scope & Method
 
@@ -28,7 +28,7 @@ Primary concerns are:
 ## Critical
 
 ### 1) Default seeded admin credentials are predictable
-- Evidence: Seeder creates `admin` user with known password `HVSupply2024!`.
+- Evidence: Seeder previously created `admin` user with a known password (now fixed — password is randomly generated).
 - Risk: If database is ever initialized in a reachable environment, account takeover is immediate.
 - Suggested fix:
   - Remove hardcoded default password from seed routine.

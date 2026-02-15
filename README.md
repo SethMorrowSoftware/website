@@ -1,6 +1,6 @@
-# Hudson Valley Supply & Recycling LLC — Website
+# Business Website CMS
 
-A self-contained PHP/SQLite content management system built for a supply and recycling business. Manages roll-off containers, landscaping materials, trucking services, customer inquiries, and online payments. Everything runs on vanilla PHP with no framework dependencies.
+A self-contained PHP/SQLite content management system template for service businesses. Manages roll-off containers, landscaping materials, trucking services, customer inquiries, and online payments. Everything runs on vanilla PHP with no framework dependencies. Designed as a blank starting point — customize the company name, contact info, colors, and content through the admin panel.
 
 ## Requirements
 
@@ -15,15 +15,15 @@ A self-contained PHP/SQLite content management system built for a supply and rec
 1. Clone or copy the project into your Apache document root (or a subdirectory):
 
 ```bash
-git clone <repo-url> /var/www/html/hvsr
+git clone <repo-url> /var/www/html/mysite
 ```
 
 2. Set directory permissions:
 
 ```bash
-chmod 755 /var/www/html/hvsr
-chmod -R 775 /var/www/html/hvsr/uploads
-chmod -R 775 /var/www/html/hvsr/database
+chmod 755 /var/www/html/mysite
+chmod -R 775 /var/www/html/mysite/uploads
+chmod -R 775 /var/www/html/mysite/database
 ```
 
 The web server user (e.g., `www-data`) needs write access to `uploads/` and `database/`.
@@ -32,10 +32,10 @@ The web server user (e.g., `www-data`) needs write access to `uploads/` and `dat
 
 4. Admin credentials are generated randomly and written to `ADMIN_CREDENTIALS.txt` in the project root. This file is restricted to owner-read-only (`chmod 0600`) and is blocked from web access by `.htaccess`. Read the credentials, log in, change your password at `/admin/profile.php`, then delete the file.
 
-5. If deploying to a subdirectory (e.g., `/hvsr/`), the `BASE_URL` is auto-detected. If auto-detection fails, set it manually in `config.php`:
+5. If deploying to a subdirectory (e.g., `/mysite/`), the `BASE_URL` is auto-detected. If auto-detection fails, set it manually in `config.php`:
 
 ```php
-define('BASE_URL', '/hvsr');
+define('BASE_URL', '/mysite');
 ```
 
 ## Directory Structure
@@ -115,7 +115,7 @@ All runtime configuration is in `config.php`:
 | `DB_PATH` | `database/database.sqlite` | Path to SQLite database file |
 | `UPLOADS_PATH` | `uploads/` | Filesystem path for uploaded files |
 | `BASE_URL` | Auto-detected | URL prefix if site is in a subdirectory |
-| `SITE_NAME` | `Hudson Valley Supply & Recycling LLC` | Fallback site name |
+| `SITE_NAME` | `Your Business Name` | Fallback site name |
 | `ADMIN_SESSION_TIMEOUT` | `3600` (1 hour) | Admin session inactivity timeout in seconds |
 
 Error display is off by default (`display_errors = 0`). Errors are written to the PHP error log (`log_errors = 1`).
@@ -327,8 +327,8 @@ If `mail()` is not configured on your server, submissions are still saved to the
 Colors are controlled by CSS custom properties defined in `assets/css/variables.css`. The admin panel allows overriding the primary and secondary colors, which are injected as inline `<style>` overrides in the header.
 
 Default palette:
-- Primary: `#1B4D3E` (dark green)
-- Secondary: `#D4A843` (gold)
+- Primary: `#2563EB` (blue)
+- Secondary: `#F59E0B` (amber)
 
 Font stack uses system fonts with Google Fonts loaded for headings.
 

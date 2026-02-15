@@ -1,6 +1,6 @@
 <?php
 /**
- * Hudson Valley Supply & Recycling LLC
+ * Business Website CMS
  * Configuration file
  */
 
@@ -36,7 +36,7 @@ if (!defined('BASE_URL')) {
 define('UPLOADS_URL', BASE_URL . '/uploads');
 
 // Site defaults
-define('SITE_NAME', 'Hudson Valley Supply & Recycling LLC');
+define('SITE_NAME', 'Your Business Name');
 define('ADMIN_SESSION_TIMEOUT', 3600); // 1 hour
 
 /**

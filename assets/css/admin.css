@@ -1,6 +1,6 @@
 /* ============================================
    Admin Panel Styles
-   Hudson Valley Supply & Recycling LLC
+   Business Website CMS
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap');
@@ -8,10 +8,10 @@
 :root {
     --admin-sidebar-width: 260px;
     --admin-topbar-height: 60px;
-    --color-primary: #1B4D3E;
-    --color-primary-dark: #133829;
-    --color-primary-light: #2a7a62;
-    --color-secondary: #D4A843;
+    --color-primary: #2563EB;
+    --color-primary-dark: #1D4ED8;
+    --color-primary-light: #3B82F6;
+    --color-secondary: #F59E0B;
     --color-bg: #f4f6f9;
     --color-white: #fff;
     --color-dark: #1a1a1a;

@@ -1,6 +1,6 @@
 /**
  * Main Site JavaScript
- * Hudson Valley Supply & Recycling LLC
+ * Business Website CMS
  */
 
 document.addEventListener('DOMContentLoaded', function() {
