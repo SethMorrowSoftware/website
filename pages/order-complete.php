@@ -12,6 +12,16 @@ $downloads = [];
 if ($orderNumber) {
     $order = getOrderByNumber($orderNumber);
     if ($order) {
+        // Verify order access: session-based (recent checkout) or customer ownership
+        $sessionMatch = isset($_SESSION['recent_order_number']) && $_SESSION['recent_order_number'] === $orderNumber;
+        $customerOwns = isCustomerLoggedIn() && !empty($order['customer_id']) && (int)$order['customer_id'] === getCustomerId();
+
+        if (!$sessionMatch && !$customerOwns) {
+            $order = null;
+        }
+    }
+
+    if ($order) {
         $items = getOrderItems($order['id']);
         $downloads = getDownloadTokens($order['id']);
 

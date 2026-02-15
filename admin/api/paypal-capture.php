@@ -45,6 +45,13 @@ if (!$order) {
     exit;
 }
 
+// Verify order belongs to the current session's pending PayPal checkout
+if (!isset($_SESSION['pending_paypal_order']) || (int)$_SESSION['pending_paypal_order'] !== $orderId) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Order does not match current checkout session']);
+    exit;
+}
+
 // Capture the PayPal order
 $captureResult = capturePayPalOrder($paypalOrderId);
 
