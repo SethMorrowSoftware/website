@@ -12,6 +12,9 @@ $facebookUrl = getSetting('facebook_url');
 $instagramUrl = getSetting('instagram_url');
 $twitterUrl = getSetting('twitter_url');
 $currentPage = $_GET['page'] ?? 'home';
+$cartEnabled = isFeatureEnabled('cart');
+$showPhoneHeader = isFeatureEnabled('phone_header');
+$showEmailHeader = isFeatureEnabled('email_header');
 
 // Get page meta
 $pageData = getPage($currentPage);
@@ -63,33 +66,41 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
     <?php endif; ?>
 
     <!-- Structured Data -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        "name": "<?php echo e($companyName); ?>",
-        "telephone": "<?php echo e($companyPhone); ?>",
-        "email": "<?php echo e($companyEmail); ?>",
-        "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "<?php echo e(getSetting('company_address')); ?>"
-        },
-        "description": "<?php echo e($metaDescription); ?>"
+    <?php
+    $schemaType = getBusinessType() === 'online' ? 'Organization' : 'LocalBusiness';
+    $schemaData = [
+        '@context' => 'https://schema.org',
+        '@type' => $schemaType,
+        'name' => $companyName,
+        'description' => $metaDescription,
+    ];
+    if ($companyPhone) $schemaData['telephone'] = $companyPhone;
+    if ($companyEmail) $schemaData['email'] = $companyEmail;
+    if (isFeatureEnabled('address') && getSetting('company_address')) {
+        $schemaData['address'] = [
+            '@type' => 'PostalAddress',
+            'streetAddress' => getSetting('company_address'),
+        ];
     }
+    ?>
+    <script type="application/ld+json">
+    <?php echo json_encode($schemaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES); ?>
     </script>
 </head>
 <body>
 
 <!-- Top Bar -->
+<?php $hasTopBarContent = ($showPhoneHeader && $companyPhone) || ($showEmailHeader && $companyEmail) || $facebookUrl || $instagramUrl || $twitterUrl; ?>
+<?php if ($hasTopBarContent): ?>
 <div class="top-bar">
     <div class="container">
         <div class="top-bar-left">
-            <?php if ($companyPhone): ?>
+            <?php if ($showPhoneHeader && $companyPhone): ?>
                 <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
                     <i class="fas fa-phone"></i> <?php echo e($companyPhone); ?>
                 </a>
             <?php endif; ?>
-            <?php if ($companyEmail): ?>
+            <?php if ($showEmailHeader && $companyEmail): ?>
                 <a href="mailto:<?php echo e($companyEmail); ?>">
                     <i class="fas fa-envelope"></i> <?php echo e($companyEmail); ?>
                 </a>
@@ -116,6 +127,7 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Header -->
 <header class="site-header" id="siteHeader">
@@ -159,16 +171,20 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                     <?php endforeach; ?>
                 </ul>
                 <div class="nav-cta">
-                    <?php $cartCount = getCartCount(); ?>
-                    <a href="<?php echo url('index.php?page=cart'); ?>" class="cart-link" title="Shopping Cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        <?php if ($cartCount > 0): ?>
-                            <span class="cart-badge"><?php echo $cartCount; ?></span>
-                        <?php endif; ?>
-                    </a>
-                    <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
-                        <i class="fas fa-phone"></i> Call Now
-                    </a>
+                    <?php if ($cartEnabled): ?>
+                        <?php $cartCount = getCartCount(); ?>
+                        <a href="<?php echo url('index.php?page=cart'); ?>" class="cart-link" title="Shopping Cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            <?php if ($cartCount > 0): ?>
+                                <span class="cart-badge"><?php echo $cartCount; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    <?php endif; ?>
+                    <?php if ($showPhoneHeader && $companyPhone): ?>
+                        <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
+                            <i class="fas fa-phone"></i> Call Now
+                        </a>
+                    <?php endif; ?>
                 </div>
             </nav>
         </div>

@@ -162,6 +162,41 @@ function migrateDatabase(PDO $db): void {
         FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE
     )");
 
+    // ---- Store Configuration settings ----
+    // These are stored in the settings table; add defaults for existing installs.
+    $storeConfigDefaults = [
+        ['store_type',           'products_and_services'],
+        ['business_type',        'local'],
+        ['enable_catalog',       '1'],
+        ['enable_cart',          '1'],
+        ['enable_order_inquiry', '1'],
+        ['enable_contact_form',  '1'],
+        ['enable_testimonials',  '1'],
+        ['enable_about_page',    '1'],
+        ['show_phone_header',    '1'],
+        ['show_email_header',    '1'],
+        ['show_address',         '1'],
+        ['show_business_hours',  '1'],
+        ['show_map',             '1'],
+        ['catalog_page_title',   'Our Catalog'],
+        ['catalog_section_title','Browse Our Offerings'],
+        ['order_inquiry_title',  'Order Inquiry'],
+        ['cta_heading',          'Ready to Get Started?'],
+        ['cta_subtext',          ''],
+        ['homepage_offerings_heading', 'What We Offer'],
+        ['homepage_offerings_subtext', 'Explore our products and services'],
+        ['homepage_featured_heading',  'Featured Products & Services'],
+        ['homepage_featured_subtext',  'A selection of what we have to offer'],
+    ];
+    $checkStmt = $db->prepare('SELECT COUNT(*) FROM settings WHERE key = ?');
+    $insertStmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');
+    foreach ($storeConfigDefaults as [$sKey, $sVal]) {
+        $checkStmt->execute([$sKey]);
+        if ((int)$checkStmt->fetchColumn() === 0) {
+            $insertStmt->execute([$sKey, $sVal, 'text']);
+        }
+    }
+
     // Migrate containers into products if containers table still exists
     $tables = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='containers'")->fetchColumn();
     if ($tables) {

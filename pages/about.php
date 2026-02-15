@@ -6,8 +6,10 @@
 $hero = getHero('about');
 $aboutText = getSetting('about_text');
 $serviceArea = getSetting('service_area');
-$categories = getCategories();
-$totalProducts = getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1')->fetchColumn();
+$_catalogEnabled = isFeatureEnabled('catalog');
+$_contactFormEnabled = isFeatureEnabled('contact_form');
+$categories = $_catalogEnabled ? getCategories() : [];
+$totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1')->fetchColumn() : 0;
 ?>
 
 <!-- Hero -->
@@ -49,6 +51,7 @@ $totalProducts = getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible 
     </div>
 </section>
 
+<?php if ($_catalogEnabled && ($totalProducts > 0 || !empty($categories))): ?>
 <!-- Stats -->
 <section class="section section-light">
     <div class="container">
@@ -68,6 +71,7 @@ $totalProducts = getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible 
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- Mission & Values -->
 <section class="section">
@@ -106,6 +110,7 @@ $totalProducts = getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible 
     </div>
 </section>
 
+<?php if ($serviceArea): ?>
 <!-- Service Area -->
 <section class="section section-primary">
     <div class="container text-center">
@@ -113,6 +118,9 @@ $totalProducts = getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible 
         <p style="font-size: var(--text-lg); margin: var(--space-lg) auto; max-width: 700px; opacity: 0.9;" class="fade-in">
             <?php echo e($serviceArea); ?>
         </p>
-        <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-primary btn-lg fade-in">Get in Touch</a>
+        <?php if ($_contactFormEnabled): ?>
+            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-primary btn-lg fade-in">Get in Touch</a>
+        <?php endif; ?>
     </div>
 </section>
+<?php endif; ?>

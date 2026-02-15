@@ -10,6 +10,12 @@ $companyAddress = getSetting('company_address');
 $businessHours = getSetting('business_hours');
 $mapsEmbed = getSetting('google_maps_embed');
 $csrfToken = generateCSRFToken();
+
+$_showPhone = isFeatureEnabled('phone_header');
+$_showEmail = isFeatureEnabled('email_header');
+$_showAddress = isFeatureEnabled('address');
+$_showHours = isFeatureEnabled('business_hours');
+$_showMap = isFeatureEnabled('map');
 ?>
 
 <!-- Hero -->
@@ -74,7 +80,7 @@ $csrfToken = generateCSRFToken();
             <div class="fade-in">
                 <h2 style="margin-bottom: var(--space-xl);">Get In Touch</h2>
 
-                <?php if ($companyPhone): ?>
+                <?php if ($_showPhone && $companyPhone): ?>
                     <div class="contact-info-card">
                         <div class="icon"><i class="fas fa-phone"></i></div>
                         <div>
@@ -84,7 +90,7 @@ $csrfToken = generateCSRFToken();
                     </div>
                 <?php endif; ?>
 
-                <?php if ($companyEmail): ?>
+                <?php if ($_showEmail && $companyEmail): ?>
                     <div class="contact-info-card">
                         <div class="icon"><i class="fas fa-envelope"></i></div>
                         <div>
@@ -94,7 +100,7 @@ $csrfToken = generateCSRFToken();
                     </div>
                 <?php endif; ?>
 
-                <?php if ($companyAddress): ?>
+                <?php if ($_showAddress && $companyAddress): ?>
                     <div class="contact-info-card">
                         <div class="icon"><i class="fas fa-map-marker-alt"></i></div>
                         <div>
@@ -104,7 +110,7 @@ $csrfToken = generateCSRFToken();
                     </div>
                 <?php endif; ?>
 
-                <?php if ($businessHours): ?>
+                <?php if ($_showHours && $businessHours): ?>
                     <div class="contact-info-card">
                         <div class="icon"><i class="fas fa-clock"></i></div>
                         <div>
@@ -114,7 +120,7 @@ $csrfToken = generateCSRFToken();
                     </div>
                 <?php endif; ?>
 
-                <?php if ($mapsEmbed): ?>
+                <?php if ($_showMap && $mapsEmbed): ?>
                     <div class="map-container">
                         <iframe src="<?php echo e($mapsEmbed); ?>" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Our Location"></iframe>
                     </div>

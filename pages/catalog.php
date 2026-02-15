@@ -6,6 +6,14 @@
 $hero = getHero('catalog');
 $categories = getCategories();
 $csrfToken = generateCSRFToken();
+
+$_cartEnabled = isFeatureEnabled('cart');
+$_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
+$_contactFormEnabled = isFeatureEnabled('contact_form');
+
+$catalogPageTitle = getSetting('catalog_page_title', 'Our Catalog');
+$catalogSectionTitle = getSetting('catalog_section_title', 'Browse Our Offerings');
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 ?>
 
 <!-- Hero -->
@@ -15,8 +23,8 @@ $csrfToken = generateCSRFToken();
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'Our Catalog'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Browse Our Full Selection of Products & Services'); ?></p>
+        <h1><?php echo e($hero['title'] ?? $catalogPageTitle); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? $catalogSectionTitle); ?></p>
         <?php if ($hero && $hero['cta_text']): ?>
             <a href="<?php echo e(url($hero['cta_link'])); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
         <?php endif; ?>
@@ -28,7 +36,7 @@ $csrfToken = generateCSRFToken();
     <div class="breadcrumb">
         <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
-        <span class="current">Catalog</span>
+        <span class="current"><?php echo e($catalogPageTitle); ?></span>
     </div>
 </div>
 
@@ -36,7 +44,7 @@ $csrfToken = generateCSRFToken();
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Browse Our Offerings</h2>
+            <h2><?php echo e($catalogSectionTitle); ?></h2>
             <p>Select a category below or browse everything we have available</p>
         </div>
 
@@ -116,7 +124,7 @@ $csrfToken = generateCSRFToken();
                                 </div>
                                 <?php
                                 $numericPrice = parsePrice($product['price']);
-                                if ($numericPrice > 0): ?>
+                                if ($_cartEnabled && $numericPrice > 0): ?>
                                     <form method="POST" action="<?php echo url('index.php'); ?>" class="add-to-cart-form">
                                         <input type="hidden" name="action" value="add_to_cart">
                                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
@@ -125,8 +133,10 @@ $csrfToken = generateCSRFToken();
                                             <i class="fas fa-cart-plus"></i> Add to Cart
                                         </button>
                                     </form>
-                                <?php else: ?>
-                                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order</a>
+                                <?php elseif ($_orderInquiryEnabled): ?>
+                                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary"><?php echo e($orderInquiryTitle === 'Order Inquiry' ? 'Order' : $orderInquiryTitle); ?></a>
+                                <?php elseif ($_contactFormEnabled): ?>
+                                    <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-sm btn-primary">Inquire</a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -144,7 +154,15 @@ $csrfToken = generateCSRFToken();
             <div class="fade-in">
                 <h2>Ready to Order?</h2>
                 <p style="color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                    Browse our catalog above and add items to your cart, or submit an order inquiry for custom requests. We offer competitive pricing and reliable service. Contact us for bulk orders, custom requests, or any questions.
+                    <?php if ($_cartEnabled && $_orderInquiryEnabled): ?>
+                        Browse our catalog above and add items to your cart, or submit an order inquiry for custom requests. We offer competitive pricing and reliable service. Contact us for bulk orders, custom requests, or any questions.
+                    <?php elseif ($_cartEnabled): ?>
+                        Browse our catalog above and add items to your cart. We offer competitive pricing and reliable service.
+                    <?php elseif ($_orderInquiryEnabled): ?>
+                        Browse our catalog above and submit an inquiry for any items you're interested in. We offer competitive pricing and reliable service.
+                    <?php else: ?>
+                        Browse our catalog above and contact us about any items you're interested in. We offer competitive pricing and reliable service.
+                    <?php endif; ?>
                 </p>
                 <ul style="list-style: none; margin: var(--space-xl) 0;">
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Competitive pricing</li>
@@ -153,8 +171,14 @@ $csrfToken = generateCSRFToken();
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community</li>
                 </ul>
                 <div class="cta-buttons-inline">
-                    <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-primary"><i class="fas fa-shopping-cart"></i> View Cart</a>
-                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark">Submit an Inquiry</a>
+                    <?php if ($_cartEnabled): ?>
+                        <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-primary"><i class="fas fa-shopping-cart"></i> View Cart</a>
+                    <?php endif; ?>
+                    <?php if ($_orderInquiryEnabled): ?>
+                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark">Submit an Inquiry</a>
+                    <?php elseif ($_contactFormEnabled): ?>
+                        <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline-dark">Contact Us</a>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="about-image fade-in">
