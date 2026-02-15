@@ -37,6 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     $is_visible = isset($_POST['is_visible']) ? 1 : 0;
     $is_available = isset($_POST['is_available']) ? 1 : 0;
     $sort_order = (int)($_POST['sort_order'] ?? 0);
+    $track_inventory = isset($_POST['track_inventory']) ? 1 : 0;
+    $stock_quantity = (int)($_POST['stock_quantity'] ?? 0);
+    $low_stock_threshold = (int)($_POST['low_stock_threshold'] ?? 5);
+    $allow_backorder = isset($_POST['allow_backorder']) ? 1 : 0;
 
     $image = $product['image'] ?? '';
     if (!empty($_FILES['image']['name'])) {
@@ -53,12 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if ($name && $category_id) {
         if ($id && $product) {
-            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, product_type=?, download_file=?, download_limit=?, download_expiry_hours=?, is_visible=?, is_available=?, sort_order=? WHERE id=?');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order, $id]);
+            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, product_type=?, download_file=?, download_limit=?, download_expiry_hours=?, is_visible=?, is_available=?, sort_order=?, track_inventory=?, stock_quantity=?, low_stock_threshold=?, allow_backorder=? WHERE id=?');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order, $track_inventory, $stock_quantity, $low_stock_threshold, $allow_backorder, $id]);
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product updated!'];
         } else {
-            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, product_type, download_file, download_limit, download_expiry_hours, is_visible, is_available, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order]);
+            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, product_type, download_file, download_limit, download_expiry_hours, is_visible, is_available, sort_order, track_inventory, stock_quantity, low_stock_threshold, allow_backorder) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order, $track_inventory, $stock_quantity, $low_stock_threshold, $allow_backorder]);
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product created!'];
         }
@@ -205,6 +209,35 @@ require_once __DIR__ . '/header.php';
                     <input type="number" name="sort_order" class="form-control" value="<?php echo e($product['sort_order'] ?? '0'); ?>">
                 </div>
             </div>
+
+            <div class="form-section">
+                <h4><i class="fas fa-warehouse"></i> Inventory</h4>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="track_inventory" value="1" id="trackInventory" <?php echo ($product['track_inventory'] ?? 0) ? 'checked' : ''; ?>>
+                        Track inventory
+                    </label>
+                    <small class="form-help">Enable stock quantity tracking for this product.</small>
+                </div>
+                <div id="inventoryFields" style="<?php echo ($product['track_inventory'] ?? 0) ? '' : 'display:none;'; ?>">
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" name="stock_quantity" class="form-control" value="<?php echo e($product['stock_quantity'] ?? '0'); ?>" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Low Stock Alert</label>
+                        <input type="number" name="low_stock_threshold" class="form-control" value="<?php echo e($product['low_stock_threshold'] ?? '5'); ?>" min="0">
+                        <small class="form-help">Alert when stock falls below this.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="allow_backorder" value="1" <?php echo ($product['allow_backorder'] ?? 0) ? 'checked' : ''; ?>>
+                            Allow backorders
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <button type="submit" class="btn-admin btn-save" style="width:100%;"><i class="fas fa-save"></i> Save Product</button>
         </div>
     </div>
@@ -213,6 +246,9 @@ require_once __DIR__ . '/header.php';
 <script>
 document.getElementById('productType').addEventListener('change', function() {
     document.getElementById('digitalSection').style.display = this.value === 'digital' ? '' : 'none';
+});
+document.getElementById('trackInventory').addEventListener('change', function() {
+    document.getElementById('inventoryFields').style.display = this.checked ? '' : 'none';
 });
 </script>
 

@@ -11,7 +11,12 @@ RewriteEngine On
 # Clean URLs: /about -> index.php?page=about
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout)/?$ index.php?page=$1 [L,QSA]
+RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout|search|login|register|account|wishlist|forgot-password|reset-password|order-status)/?$ index.php?page=$1 [L,QSA]
+
+# Product detail pages: /product/slug -> index.php?page=product&slug=slug
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^product/([a-zA-Z0-9_-]+)/?$ index.php?page=product&slug=$1 [L,QSA]
 
 # Protect downloads directory (digital product files served via PHP)
 <IfModule mod_rewrite.c>

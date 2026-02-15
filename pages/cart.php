@@ -4,7 +4,8 @@
  */
 
 $cart = getCart();
-$totals = getCartTotals();
+$totals = getCartTotalsWithCoupon();
+$appliedCoupon = getAppliedCoupon();
 $csrfToken = generateCSRFToken();
 ?>
 
@@ -96,6 +97,19 @@ $csrfToken = generateCSRFToken();
                         <span>Subtotal</span>
                         <span><?php echo formatCurrency($totals['subtotal']); ?></span>
                     </div>
+                    <?php if ($appliedCoupon): ?>
+                        <div class="summary-row summary-discount">
+                            <span>
+                                Coupon: <strong><?php echo e($appliedCoupon['code']); ?></strong>
+                                <form method="POST" action="<?php echo url('index.php'); ?>" style="display:inline;">
+                                    <input type="hidden" name="action" value="remove_coupon">
+                                    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                    <button type="submit" class="btn-text-link" title="Remove coupon" style="color: var(--color-error); font-size: 0.8rem;">&times;</button>
+                                </form>
+                            </span>
+                            <span style="color: var(--color-success);">-<?php echo formatCurrency($totals['discount']); ?></span>
+                        </div>
+                    <?php endif; ?>
                     <?php if ($totals['tax'] > 0): ?>
                         <div class="summary-row">
                             <span>Tax (<?php echo $totals['tax_rate']; ?>%)</span>
@@ -106,6 +120,20 @@ $csrfToken = generateCSRFToken();
                         <span>Total</span>
                         <span><?php echo formatCurrency($totals['total']); ?></span>
                     </div>
+
+                    <!-- Coupon Code -->
+                    <?php if (!$appliedCoupon): ?>
+                        <div class="coupon-form" style="margin-top: var(--space-lg);">
+                            <form method="POST" action="<?php echo url('index.php'); ?>">
+                                <input type="hidden" name="action" value="apply_coupon">
+                                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                <div class="coupon-input-group">
+                                    <input type="text" name="coupon_code" placeholder="Coupon code" class="form-control" style="text-transform: uppercase;">
+                                    <button type="submit" class="btn btn-outline-dark btn-sm">Apply</button>
+                                </div>
+                            </form>
+                        </div>
+                    <?php endif; ?>
 
                     <a href="<?php echo url('index.php?page=checkout'); ?>" class="btn btn-primary btn-lg" style="width: 100%; margin-top: var(--space-lg);">
                         <i class="fas fa-lock"></i> Proceed to Checkout

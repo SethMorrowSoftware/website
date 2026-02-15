@@ -57,6 +57,10 @@ function getDB(): PDO {
         } else {
             migrateDatabase($db);
         }
+
+        // Run file-based migrations (for both new and existing DBs)
+        require_once BASE_PATH . '/includes/migrations.php';
+        runMigrations($db);
     }
     return $db;
 }
@@ -187,6 +191,10 @@ function migrateDatabase(PDO $db): void {
         ['homepage_offerings_subtext', 'Explore our products and services'],
         ['homepage_featured_heading',  'Featured Products & Services'],
         ['homepage_featured_subtext',  'A selection of what we have to offer'],
+        ['enable_customer_accounts', '1'],
+        ['enable_search',       '1'],
+        ['enable_wishlists',    '1'],
+        ['enable_reviews',      '0'],
     ];
     $checkStmt = $db->prepare('SELECT COUNT(*) FROM settings WHERE key = ?');
     $insertStmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');

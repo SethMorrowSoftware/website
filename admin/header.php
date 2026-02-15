@@ -67,6 +67,9 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/orders.php'); ?>" class="<?php echo $adminPage === 'orders' || $adminPage === 'order-view' ? 'active' : ''; ?>">
             <i class="fas fa-shopping-bag"></i> Orders
         </a>
+        <a href="<?php echo url('admin/coupons.php'); ?>" class="<?php echo $adminPage === 'coupons' ? 'active' : ''; ?>">
+            <i class="fas fa-ticket-alt"></i> Coupons
+        </a>
         <?php endif; ?>
 
         <div class="nav-section">Engagement</div>
