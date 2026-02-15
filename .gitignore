@@ -1,6 +1,9 @@
 # Database
 database/database.sqlite
 
+# Auto-generated credentials (created on first run)
+ADMIN_CREDENTIALS.txt
+
 # Uploads (user-generated content)
 uploads/images/*
 uploads/videos/*
