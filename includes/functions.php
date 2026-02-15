@@ -74,6 +74,48 @@ function storeIsInformational(): bool {
 }
 
 /**
+ * Check whether a hero CTA link targets a feature page that is currently
+ * disabled.  Returns true when the link is safe to render, false when the
+ * destination would redirect the user to the homepage.
+ */
+function isHeroCtaLinkEnabled(?string $link): bool {
+    if (!$link) return false;
+
+    // Normalise: strip BASE_URL prefix, query-string form, and clean-URL form
+    $path = $link;
+    // Remove leading base-url if present
+    if (BASE_URL && str_starts_with($path, ltrim(BASE_URL, '/'))) {
+        $path = substr($path, strlen(ltrim(BASE_URL, '/')));
+    }
+
+    // Extract the page slug from either "index.php?page=X" or "/X"
+    $slug = null;
+    if (preg_match('/[?&]page=([a-z_-]+)/i', $path, $m)) {
+        $slug = $m[1];
+    } else {
+        $slug = trim(parse_url($path, PHP_URL_PATH) ?? '', '/');
+    }
+
+    if (!$slug) return true; // homepage or external — always OK
+
+    $featureMap = [
+        'catalog'         => 'catalog',
+        'cart'            => 'cart',
+        'checkout'        => 'cart',
+        'paypal-checkout' => 'cart',
+        'order'           => 'order_inquiry',
+        'contact'         => 'contact_form',
+        'about'           => 'about_page',
+    ];
+
+    if (isset($featureMap[$slug])) {
+        return isFeatureEnabled($featureMap[$slug]);
+    }
+
+    return true; // custom page or unknown — allow
+}
+
+/**
  * Get a customizable label with fallback default
  */
 function getLabel(string $key, string $default = ''): string {
