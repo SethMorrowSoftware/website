@@ -22,7 +22,7 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="<?php echo e($metaDescription); ?>">
     <meta name="robots" content="index, follow">
     <title><?php echo e($pageTitle); ?></title>
@@ -132,11 +132,11 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                 </div>
             </a>
 
-            <div class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+            <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">
                 <span></span>
                 <span></span>
                 <span></span>
-            </div>
+            </button>
 
             <nav class="main-nav" id="mainNav">
                 <ul class="nav-menu">
@@ -152,7 +152,7 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                             : url($rawUrl);
                         ?>
                         <li>
-                            <a href="<?php echo e($href); ?>" class="<?php echo $isActive ? 'active' : ''; ?>">
+                            <a href="<?php echo e($href); ?>" class="<?php echo $isActive ? 'active' : ''; ?>"<?php if ($isActive): ?> aria-current="page"<?php endif; ?>>
                                 <?php echo e($item['label']); ?>
                             </a>
                         </li>
@@ -180,9 +180,9 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
 <main>
 <?php if ($flashMessage): ?>
     <div class="container" style="padding-top: var(--space-xl);">
-        <div class="flash-message <?php echo e($flashType); ?>">
+        <div class="flash-message <?php echo e($flashType); ?>" role="alert">
             <i class="fas fa-<?php echo $flashType === 'success' ? 'check-circle' : ($flashType === 'error' ? 'exclamation-circle' : 'info-circle'); ?>"></i>
-            <?php echo e($flashMessage); ?>
+            <span class="flash-text"><?php echo e($flashMessage); ?></span>
         </div>
     </div>
 <?php endif; ?>

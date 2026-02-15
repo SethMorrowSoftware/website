@@ -31,9 +31,9 @@ if (empty($cart)) {
 
 <?php if (isset($_GET['cancelled'])): ?>
     <div class="container" style="padding-top: var(--space-lg);">
-        <div class="flash-message info">
+        <div class="flash-message info" role="alert">
             <i class="fas fa-info-circle"></i>
-            Payment was cancelled. You can try again or choose a different payment method.
+            <span class="flash-text">Payment was cancelled. You can try again or choose a different payment method.</span>
         </div>
     </div>
 <?php endif; ?>

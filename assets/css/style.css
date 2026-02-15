@@ -275,6 +275,15 @@ p {
     cursor: pointer;
     padding: var(--space-sm);
     z-index: var(--z-fixed);
+    background: none;
+    border: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-toggle span {
@@ -945,6 +954,28 @@ select.form-control {
     display: flex;
     align-items: center;
     gap: var(--space-md);
+    position: relative;
+}
+
+.flash-message .flash-text {
+    flex: 1;
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: var(--space-xs) var(--space-sm);
+    line-height: 1;
+    color: inherit;
+    transition: opacity var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.flash-close:hover {
+    opacity: 1;
 }
 
 .flash-message.success {
@@ -1178,7 +1209,15 @@ select.form-control {
 }
 
 .service-option input[type="radio"] {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .service-option .icon {
@@ -1757,7 +1796,15 @@ select.form-control {
 }
 
 .payment-option input[type="radio"] {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .payment-option-content {
@@ -2006,6 +2053,47 @@ select.form-control {
 
 .current-file i {
     color: var(--color-primary);
+}
+
+/* ---- Focus Styles ---- */
+.category-tab:focus-visible,
+.service-option:focus-within,
+.payment-option:focus-within,
+.dot:focus-visible,
+.qty-btn:focus-visible,
+.btn:focus-visible,
+.nav-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.service-option:focus-within {
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.payment-option:focus-within .payment-option-content {
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* ---- CTA Button Pairs (responsive stacking) ---- */
+.cta-buttons-inline {
+    display: inline-flex;
+    gap: var(--space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ---- Inline Form Validation Errors ---- */
+.field-error {
+    border-color: var(--color-error) !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+}
+
+.field-error-message {
+    color: var(--color-error);
+    font-size: var(--text-sm);
+    margin-top: var(--space-xs);
+    font-weight: var(--font-medium);
 }
 
 /* ---- Animations ---- */
