@@ -201,6 +201,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
 
+            case 'btcpay':
+                $btcpayUrl = createBTCPayInvoice($orderId);
+                if ($btcpayUrl) {
+                    clearCart();
+                    header('Location: ' . $btcpayUrl);
+                    exit;
+                } else {
+                    $_SESSION['flash_message'] = 'Could not connect to BTCPay Server. Please try another payment method.';
+                    $_SESSION['flash_type'] = 'error';
+                    redirect('index.php?page=checkout');
+                }
+                break;
+
             case 'manual':
             default:
                 // No payment gateway — just mark as pending and complete

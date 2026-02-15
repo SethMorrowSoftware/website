@@ -788,6 +788,9 @@ function getEnabledPaymentProviders(): array {
     if (getSetting('square_enabled') === '1' && getSetting('square_application_id')) {
         $providers[] = 'square';
     }
+    if (getSetting('btcpay_enabled') === '1' && getSetting('btcpay_url') && getSetting('btcpay_api_key') && getSetting('btcpay_store_id')) {
+        $providers[] = 'btcpay';
+    }
     if (getSetting('swipesimple_link') || getSetting('swipesimple_embed')) {
         $providers[] = 'swipesimple';
     }
@@ -1114,6 +1117,139 @@ function createSquareCheckout(int $orderId): ?string {
     updateOrderPayment($orderId, 'pending', $data['payment_link']['id'] ?? '', 'square');
 
     return $data['payment_link']['url'];
+}
+
+/**
+ * Create a BTCPay Server invoice via the Greenfield API
+ */
+function createBTCPayInvoice(int $orderId): ?string {
+    $order = getOrder($orderId);
+    if (!$order) return null;
+
+    $btcpayUrl = rtrim(getSetting('btcpay_url'), '/');
+    $apiKey = getSetting('btcpay_api_key');
+    $storeId = getSetting('btcpay_store_id');
+    if (!$btcpayUrl || !$apiKey || !$storeId) return null;
+
+    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+
+    $currencyCode = strtoupper(getSetting('currency_code', 'USD'));
+
+    $payload = [
+        'amount' => number_format($order['total'], 2, '.', ''),
+        'currency' => $currencyCode,
+        'metadata' => [
+            'orderId' => (string)$orderId,
+            'orderNumber' => $order['order_number'],
+            'buyerName' => $order['customer_name'],
+            'buyerEmail' => $order['customer_email'],
+        ],
+        'checkout' => [
+            'redirectURL' => $baseUrl . '/index.php?page=order-complete&order=' . $order['order_number'] . '&payment=btcpay',
+            'redirectAutomatically' => true,
+            'defaultLanguage' => 'en',
+        ],
+        'receipt' => [
+            'enabled' => true,
+        ],
+    ];
+
+    // Include buyer email for receipt
+    if ($order['customer_email']) {
+        $payload['metadata']['buyerEmail'] = $order['customer_email'];
+    }
+
+    $endpoint = $btcpayUrl . '/api/v1/stores/' . urlencode($storeId) . '/invoices';
+
+    $ch = curl_init($endpoint);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: token ' . $apiKey,
+        ],
+        CURLOPT_TIMEOUT => 30,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlError) {
+        error_log('[BTCPAY ERROR] cURL error: ' . $curlError);
+        return null;
+    }
+
+    if ($httpCode < 200 || $httpCode >= 300) {
+        error_log('[BTCPAY ERROR] HTTP ' . $httpCode . ': ' . $response);
+        return null;
+    }
+
+    $data = json_decode($response, true);
+    if (!$data || !isset($data['id'])) {
+        error_log('[BTCPAY ERROR] Invalid response: ' . $response);
+        return null;
+    }
+
+    // Store invoice ID and mark as pending
+    updateOrderPayment($orderId, 'pending', $data['id'], 'btcpay');
+
+    // BTCPay checkout URL is the invoice page
+    return $btcpayUrl . '/i/' . $data['id'];
+}
+
+/**
+ * Verify a BTCPay Server invoice status via the Greenfield API
+ */
+function verifyBTCPayInvoice(string $invoiceId): ?array {
+    $btcpayUrl = rtrim(getSetting('btcpay_url'), '/');
+    $apiKey = getSetting('btcpay_api_key');
+    $storeId = getSetting('btcpay_store_id');
+    if (!$btcpayUrl || !$apiKey || !$storeId) return null;
+
+    $endpoint = $btcpayUrl . '/api/v1/stores/' . urlencode($storeId) . '/invoices/' . urlencode($invoiceId);
+
+    $ch = curl_init($endpoint);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: token ' . $apiKey,
+        ],
+        CURLOPT_TIMEOUT => 30,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) return null;
+
+    return json_decode($response, true) ?: null;
+}
+
+/**
+ * Verify BTCPay webhook signature (HMAC-SHA256)
+ */
+function verifyBTCPayWebhookSignature(string $payload, string $signature): bool {
+    $secret = getSetting('btcpay_webhook_secret');
+    if (!$secret) {
+        // If no webhook secret is configured, skip verification (less secure)
+        return true;
+    }
+
+    // BTCPay sends signature as "sha256=HEXDIGEST"
+    $sigParts = explode('=', $signature, 2);
+    if (count($sigParts) !== 2 || $sigParts[0] !== 'sha256') {
+        return false;
+    }
+
+    $expected = hash_hmac('sha256', $payload, $secret);
+    return hash_equals($expected, $sigParts[1]);
 }
 
 /**

@@ -24,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'paypal_client_id', 'paypal_secret',
         // Square
         'square_application_id', 'square_access_token', 'square_location_id',
+        // BTCPay Server
+        'btcpay_url', 'btcpay_api_key', 'btcpay_store_id', 'btcpay_webhook_secret',
     ];
 
     foreach ($fields as $field) {
@@ -33,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 
     // Handle checkbox toggles separately (unchecked = not sent)
-    $checkboxes = ['stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox'];
+    $checkboxes = ['stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled'];
     foreach ($checkboxes as $cb) {
         updateSetting($cb, isset($_POST[$cb]) ? '1' : '0');
     }
@@ -288,6 +290,40 @@ require_once __DIR__ . '/header.php';
             </div>
         </div>
         <small class="form-help">Get your credentials from the Square Developer Dashboard.</small>
+    </div>
+
+    <!-- BTCPay Server -->
+    <div class="form-section">
+        <h3><i class="fab fa-bitcoin"></i> BTCPay Server (Bitcoin)</h3>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="btcpay_enabled" value="1" <?php echo getSetting('btcpay_enabled') === '1' ? 'checked' : ''; ?>>
+                Enable BTCPay Server Payments
+            </label>
+            <small class="form-help">Accept Bitcoin (on-chain and Lightning) payments via your self-hosted BTCPay Server instance. Fully self-custodial — you control your keys.</small>
+        </div>
+        <div class="form-group">
+            <label>BTCPay Server URL</label>
+            <input type="url" name="btcpay_url" class="form-control" value="<?php echo e(getSetting('btcpay_url')); ?>" placeholder="https://btcpay.yourdomain.com">
+            <small class="form-help">The base URL of your BTCPay Server instance (no trailing slash).</small>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" name="btcpay_api_key" class="form-control" value="<?php echo e(getSetting('btcpay_api_key')); ?>" placeholder="BTCPay API Key">
+                <small class="form-help">Generate in BTCPay > Account > API Keys. Needs <code>btcpay.store.cancreateinvoice</code> permission.</small>
+            </div>
+            <div class="form-group">
+                <label>Store ID</label>
+                <input type="text" name="btcpay_store_id" class="form-control" value="<?php echo e(getSetting('btcpay_store_id')); ?>" placeholder="Store ID">
+                <small class="form-help">Found in BTCPay > Settings > General > Store ID.</small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Webhook Secret (optional)</label>
+            <input type="password" name="btcpay_webhook_secret" class="form-control" value="<?php echo e(getSetting('btcpay_webhook_secret')); ?>" placeholder="Webhook secret for signature verification">
+            <small class="form-help">If you configure a webhook in BTCPay (recommended), paste the secret here to verify incoming notifications. Webhook URL: <code><?php echo e((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'yourdomain.com') . url('admin/api/btcpay-webhook.php')); ?></code></small>
+        </div>
     </div>
 
     <!-- SwipeSimple (Legacy) -->
