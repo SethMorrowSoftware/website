@@ -7,8 +7,10 @@ ADMIN_CREDENTIALS.txt
 # Uploads (user-generated content)
 uploads/images/*
 uploads/videos/*
+uploads/downloads/*
 !uploads/images/.gitkeep
 !uploads/videos/.gitkeep
+!uploads/downloads/.htaccess
 
 # IDE
 .idea/

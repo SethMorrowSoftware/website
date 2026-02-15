@@ -58,6 +58,10 @@ CREATE TABLE IF NOT EXISTS products (
     specifications TEXT,
     features TEXT,
     price_note TEXT,
+    product_type TEXT DEFAULT 'physical',
+    download_file TEXT,
+    download_limit INTEGER DEFAULT 0,
+    download_expiry_hours INTEGER DEFAULT 72,
     is_available INTEGER DEFAULT 1,
     is_visible INTEGER DEFAULT 1,
     sort_order INTEGER DEFAULT 0,
@@ -131,6 +135,54 @@ CREATE TABLE IF NOT EXISTS login_attempts (
     ip_address TEXT NOT NULL,
     username TEXT NOT NULL,
     attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Orders (actual purchases)
+CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_number TEXT UNIQUE NOT NULL,
+    customer_name TEXT NOT NULL,
+    customer_email TEXT NOT NULL,
+    customer_phone TEXT,
+    shipping_address TEXT,
+    subtotal REAL DEFAULT 0,
+    tax REAL DEFAULT 0,
+    total REAL DEFAULT 0,
+    payment_method TEXT,
+    payment_id TEXT,
+    payment_status TEXT DEFAULT 'pending',
+    order_status TEXT DEFAULT 'pending',
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Order line items
+CREATE TABLE IF NOT EXISTS order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER,
+    product_name TEXT NOT NULL,
+    product_type TEXT DEFAULT 'physical',
+    quantity INTEGER DEFAULT 1,
+    unit_price REAL DEFAULT 0,
+    total_price REAL DEFAULT 0,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- Download tokens for digital products
+CREATE TABLE IF NOT EXISTS download_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL,
+    order_item_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    download_count INTEGER DEFAULT 0,
+    max_downloads INTEGER DEFAULT 0,
+    expires_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE
 );
 
 -- Hero sections

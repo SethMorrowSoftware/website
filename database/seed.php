@@ -33,6 +33,25 @@ function seedDatabase(PDO $db): void {
         ['tagline', 'Quality Products & Services You Can Count On', 'text'],
         ['about_text', 'We are a locally owned and operated business proudly serving our community. With years of experience in the industry, we provide reliable products and professional services to residential and commercial customers alike.', 'text'],
         ['service_area', 'Proudly serving our local community and surrounding areas. Contact us to confirm service availability in your location.', 'text'],
+        // E-commerce
+        ['currency_code', 'USD', 'text'],
+        ['currency_symbol', '$', 'text'],
+        ['tax_rate', '0', 'text'],
+        // Stripe
+        ['stripe_enabled', '0', 'text'],
+        ['stripe_publishable_key', '', 'text'],
+        ['stripe_secret_key', '', 'text'],
+        // PayPal
+        ['paypal_enabled', '0', 'text'],
+        ['paypal_client_id', '', 'text'],
+        ['paypal_secret', '', 'text'],
+        ['paypal_sandbox', '1', 'text'],
+        // Square
+        ['square_enabled', '0', 'text'],
+        ['square_application_id', '', 'text'],
+        ['square_access_token', '', 'text'],
+        ['square_location_id', '', 'text'],
+        ['square_sandbox', '1', 'text'],
     ];
 
     $stmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');

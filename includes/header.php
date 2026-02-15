@@ -159,6 +159,13 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                     <?php endforeach; ?>
                 </ul>
                 <div class="nav-cta">
+                    <?php $cartCount = getCartCount(); ?>
+                    <a href="<?php echo url('index.php?page=cart'); ?>" class="cart-link" title="Shopping Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <?php if ($cartCount > 0): ?>
+                            <span class="cart-badge"><?php echo $cartCount; ?></span>
+                        <?php endif; ?>
+                    </a>
                     <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
                         <i class="fas fa-phone"></i> Call Now
                     </a>

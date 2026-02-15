@@ -15,13 +15,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'contact_email', 'business_hours', 'tagline', 'about_text', 'service_area',
         'google_maps_embed', 'footer_text', 'primary_color', 'secondary_color',
         'facebook_url', 'instagram_url', 'twitter_url',
-        'swipesimple_link', 'swipesimple_embed'
+        'swipesimple_link', 'swipesimple_embed',
+        // E-commerce settings
+        'currency_code', 'currency_symbol', 'tax_rate',
+        // Stripe
+        'stripe_publishable_key', 'stripe_secret_key',
+        // PayPal
+        'paypal_client_id', 'paypal_secret',
+        // Square
+        'square_application_id', 'square_access_token', 'square_location_id',
     ];
 
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
             updateSetting($field, $_POST[$field]);
         }
+    }
+
+    // Handle checkbox toggles separately (unchecked = not sent)
+    $checkboxes = ['stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox'];
+    foreach ($checkboxes as $cb) {
+        updateSetting($cb, isset($_POST[$cb]) ? '1' : '0');
     }
 
     // Handle logo upload
@@ -168,13 +182,121 @@ require_once __DIR__ . '/header.php';
         </div>
     </div>
 
-    <!-- Payment -->
+    <!-- E-Commerce Settings -->
     <div class="form-section">
-        <h3><i class="fas fa-credit-card"></i> Payment Integration (SwipeSimple)</h3>
+        <h3><i class="fas fa-store"></i> E-Commerce Settings</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Currency Code</label>
+                <input type="text" name="currency_code" class="form-control" value="<?php echo e(getSetting('currency_code', 'USD')); ?>" placeholder="USD" maxlength="3">
+                <small class="form-help">ISO 4217 code (e.g., USD, EUR, GBP, CAD).</small>
+            </div>
+            <div class="form-group">
+                <label>Currency Symbol</label>
+                <input type="text" name="currency_symbol" class="form-control" value="<?php echo e(getSetting('currency_symbol', '$')); ?>" placeholder="$" maxlength="5">
+            </div>
+        </div>
+        <div class="form-group" style="max-width: 50%;">
+            <label>Tax Rate (%)</label>
+            <input type="number" name="tax_rate" class="form-control" value="<?php echo e(getSetting('tax_rate', '0')); ?>" step="0.01" min="0" max="100" placeholder="0">
+            <small class="form-help">Set to 0 to disable tax. Applied to all cart orders.</small>
+        </div>
+    </div>
+
+    <!-- Stripe Payment -->
+    <div class="form-section">
+        <h3><i class="fab fa-stripe-s"></i> Stripe Payment Integration</h3>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="stripe_enabled" value="1" <?php echo getSetting('stripe_enabled') === '1' ? 'checked' : ''; ?>>
+                Enable Stripe Payments
+            </label>
+            <small class="form-help">Accept credit and debit card payments via Stripe Checkout. Customers are redirected to Stripe's hosted payment page.</small>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Publishable Key</label>
+                <input type="text" name="stripe_publishable_key" class="form-control" value="<?php echo e(getSetting('stripe_publishable_key')); ?>" placeholder="pk_live_...">
+            </div>
+            <div class="form-group">
+                <label>Secret Key</label>
+                <input type="password" name="stripe_secret_key" class="form-control" value="<?php echo e(getSetting('stripe_secret_key')); ?>" placeholder="sk_live_...">
+            </div>
+        </div>
+        <small class="form-help">Get your API keys from the Stripe Dashboard. Use test keys (pk_test_ / sk_test_) for testing.</small>
+    </div>
+
+    <!-- PayPal Payment -->
+    <div class="form-section">
+        <h3><i class="fab fa-paypal"></i> PayPal Payment Integration</h3>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="paypal_enabled" value="1" <?php echo getSetting('paypal_enabled') === '1' ? 'checked' : ''; ?>>
+                Enable PayPal Payments
+            </label>
+            <small class="form-help">Accept PayPal payments with PayPal Buttons. Customers pay without leaving your site.</small>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Client ID</label>
+                <input type="text" name="paypal_client_id" class="form-control" value="<?php echo e(getSetting('paypal_client_id')); ?>" placeholder="PayPal Client ID">
+            </div>
+            <div class="form-group">
+                <label>Secret</label>
+                <input type="password" name="paypal_secret" class="form-control" value="<?php echo e(getSetting('paypal_secret')); ?>" placeholder="PayPal Secret">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="paypal_sandbox" value="1" <?php echo getSetting('paypal_sandbox', '1') === '1' ? 'checked' : ''; ?>>
+                Sandbox Mode (for testing)
+            </label>
+            <small class="form-help">Get your credentials from the PayPal Developer Dashboard. Uncheck sandbox mode for live payments.</small>
+        </div>
+    </div>
+
+    <!-- Square Payment -->
+    <div class="form-section">
+        <h3><i class="fas fa-square"></i> Square Payment Integration</h3>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="square_enabled" value="1" <?php echo getSetting('square_enabled') === '1' ? 'checked' : ''; ?>>
+                Enable Square Payments
+            </label>
+            <small class="form-help">Accept credit card payments via Square Checkout. Customers are redirected to Square's hosted payment page.</small>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Application ID</label>
+                <input type="text" name="square_application_id" class="form-control" value="<?php echo e(getSetting('square_application_id')); ?>" placeholder="sq0idp-...">
+            </div>
+            <div class="form-group">
+                <label>Access Token</label>
+                <input type="password" name="square_access_token" class="form-control" value="<?php echo e(getSetting('square_access_token')); ?>" placeholder="Access Token">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Location ID</label>
+                <input type="text" name="square_location_id" class="form-control" value="<?php echo e(getSetting('square_location_id')); ?>" placeholder="Location ID">
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label" style="margin-top: var(--space-xl);">
+                    <input type="checkbox" name="square_sandbox" value="1" <?php echo getSetting('square_sandbox', '1') === '1' ? 'checked' : ''; ?>>
+                    Sandbox Mode (for testing)
+                </label>
+            </div>
+        </div>
+        <small class="form-help">Get your credentials from the Square Developer Dashboard.</small>
+    </div>
+
+    <!-- SwipeSimple (Legacy) -->
+    <div class="form-section">
+        <h3><i class="fas fa-credit-card"></i> SwipeSimple Payment Integration</h3>
         <div class="form-group">
             <label>SwipeSimple Payment Link</label>
             <input type="url" name="swipesimple_link" class="form-control" value="<?php echo e(getSetting('swipesimple_link')); ?>" placeholder="https://...">
-            <small class="form-help">Paste your SwipeSimple payment link. Customers will be redirected to this URL to pay.</small>
+            <small class="form-help">Paste your SwipeSimple payment link. Shown on the Payment page for manual payments.</small>
         </div>
         <div class="form-group">
             <label>SwipeSimple Embed Code (HTML)</label>

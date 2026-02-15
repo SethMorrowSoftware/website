@@ -23,8 +23,11 @@ $totalProducts = $db->query('SELECT COUNT(*) FROM products')->fetchColumn();
 $totalCategories = $db->query('SELECT COUNT(*) FROM product_categories')->fetchColumn();
 $totalPages = $db->query('SELECT COUNT(*) FROM pages')->fetchColumn();
 $totalMedia = $db->query('SELECT COUNT(*) FROM media')->fetchColumn();
+$totalOrders = $db->query('SELECT COUNT(*) FROM orders')->fetchColumn();
+$pendingOrders = $db->query("SELECT COUNT(*) FROM orders WHERE order_status IN ('pending','processing')")->fetchColumn();
 $recentContacts = $db->query('SELECT * FROM contact_submissions ORDER BY created_at DESC LIMIT 5')->fetchAll();
 $recentOrders = $db->query('SELECT * FROM order_inquiries ORDER BY created_at DESC LIMIT 5')->fetchAll();
+$recentPurchases = $db->query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5')->fetchAll();
 
 require_once __DIR__ . '/header.php';
 ?>
@@ -64,6 +67,13 @@ require_once __DIR__ . '/header.php';
             <div class="stat-label">Categories</div>
         </div>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#6366f1;color:#fff;"><i class="fas fa-shopping-bag"></i></div>
+        <div class="stat-info">
+            <div class="stat-number"><?php echo $pendingOrders; ?> / <?php echo $totalOrders; ?></div>
+            <div class="stat-label">Active / Total Orders</div>
+        </div>
+    </div>
 </div>
 
 <!-- Quick Actions -->
@@ -72,8 +82,8 @@ require_once __DIR__ . '/header.php';
     <div class="quick-actions">
         <a href="<?php echo url('admin/product-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Product</a>
         <a href="<?php echo url('admin/category-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Category</a>
+        <a href="<?php echo url('admin/orders.php'); ?>" class="quick-action"><i class="fas fa-shopping-bag"></i> View Orders</a>
         <a href="<?php echo url('admin/page-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Page</a>
-        <a href="<?php echo url('admin/testimonial-edit.php'); ?>" class="quick-action"><i class="fas fa-plus"></i> Add Testimonial</a>
         <a href="<?php echo url('admin/settings.php'); ?>" class="quick-action"><i class="fas fa-cog"></i> Site Settings</a>
         <a href="<?php echo url('/'); ?>" target="_blank" class="quick-action"><i class="fas fa-eye"></i> View Website</a>
     </div>
@@ -158,6 +168,48 @@ require_once __DIR__ . '/header.php';
             </div>
         <?php endif; ?>
     </div>
+</div>
+
+<!-- Recent Purchases (from cart checkout) -->
+<div class="admin-section">
+    <div class="section-head">
+        <h2>Recent Orders (Purchases)</h2>
+        <a href="<?php echo url('admin/orders.php'); ?>" class="btn-link">View All</a>
+    </div>
+    <?php if (empty($recentPurchases)): ?>
+        <p class="empty-state">No orders yet. Orders placed through the shopping cart will appear here.</p>
+    <?php else: ?>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentPurchases as $p): ?>
+                        <tr>
+                            <td><strong><a href="<?php echo url('admin/order-view.php?id=' . $p['id']); ?>"><?php echo e($p['order_number']); ?></a></strong></td>
+                            <td><?php echo e($p['customer_name']); ?></td>
+                            <td><?php echo formatCurrency($p['total']); ?></td>
+                            <td><?php echo e(ucfirst($p['payment_method'] ?: 'pending')); ?></td>
+                            <td>
+                                <span class="badge-status badge-<?php echo $p['order_status'] === 'completed' ? 'active' : ($p['order_status'] === 'cancelled' ? 'inactive' : 'unread'); ?>">
+                                    <?php echo e(ucfirst($p['order_status'])); ?>
+                                </span>
+                            </td>
+                            <td><?php echo formatDate($p['created_at']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

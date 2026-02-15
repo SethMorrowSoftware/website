@@ -48,6 +48,22 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
+    /* Cart & Checkout layouts stack on tablet */
+    .cart-layout,
+    .checkout-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-summary,
+    .order-review,
+    .checkout-sidebar {
+        position: static;
+    }
+
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+
     .stats-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -228,6 +244,24 @@
 
     .payment-methods {
         grid-template-columns: 1fr;
+    }
+
+    /* Cart items stack on mobile */
+    .cart-item {
+        flex-wrap: wrap;
+        gap: var(--space-md);
+    }
+
+    .cart-item-total {
+        min-width: auto;
+    }
+
+    .cart-item-quantity {
+        order: 3;
+    }
+
+    .cart-item-remove {
+        order: 4;
     }
 
     .stats-grid {

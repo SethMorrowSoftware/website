@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     $specifications = trim($_POST['specifications'] ?? '');
     $features = trim($_POST['features'] ?? '');
     $price_note = trim($_POST['price_note'] ?? '');
+    $product_type = in_array($_POST['product_type'] ?? '', ['physical', 'digital', 'service']) ? $_POST['product_type'] : 'physical';
+    $download_limit = (int)($_POST['download_limit'] ?? 0);
+    $download_expiry_hours = (int)($_POST['download_expiry_hours'] ?? 72);
     $is_visible = isset($_POST['is_visible']) ? 1 : 0;
     $is_available = isset($_POST['is_available']) ? 1 : 0;
     $sort_order = (int)($_POST['sort_order'] ?? 0);
@@ -41,14 +44,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         if ($uploaded) $image = $uploaded;
     }
 
+    // Handle digital download file upload
+    $download_file = $product['download_file'] ?? '';
+    if ($product_type === 'digital' && !empty($_FILES['download_file']['name'])) {
+        $uploadedFile = handleDownloadUpload($_FILES['download_file']);
+        if ($uploadedFile) $download_file = $uploadedFile;
+    }
+
     if ($name && $category_id) {
         if ($id && $product) {
-            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, is_visible=?, is_available=?, sort_order=? WHERE id=?');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $is_visible, $is_available, $sort_order, $id]);
+            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, product_type=?, download_file=?, download_limit=?, download_expiry_hours=?, is_visible=?, is_available=?, sort_order=? WHERE id=?');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order, $id]);
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product updated!'];
         } else {
-            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, is_visible, is_available, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $is_visible, $is_available, $sort_order]);
+            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, product_type, download_file, download_limit, download_expiry_hours, is_visible, is_available, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order]);
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product created!'];
         }
@@ -79,16 +89,27 @@ require_once __DIR__ . '/header.php';
                     <label>URL Slug</label>
                     <input type="text" name="slug" class="form-control" value="<?php echo e($product['slug'] ?? ''); ?>" placeholder="auto-generated">
                 </div>
-                <div class="form-group">
-                    <label>Category <span class="required">*</span></label>
-                    <select name="category_id" class="form-control" required>
-                        <option value="">-- Select Category --</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>" <?php echo ($product['category_id'] ?? 0) == $cat['id'] ? 'selected' : ''; ?>>
-                                <?php echo e($cat['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category <span class="required">*</span></label>
+                        <select name="category_id" class="form-control" required>
+                            <option value="">-- Select Category --</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo $cat['id']; ?>" <?php echo ($product['category_id'] ?? 0) == $cat['id'] ? 'selected' : ''; ?>>
+                                    <?php echo e($cat['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Product Type <span class="required">*</span></label>
+                        <select name="product_type" class="form-control" id="productType">
+                            <option value="physical" <?php echo ($product['product_type'] ?? 'physical') === 'physical' ? 'selected' : ''; ?>>Physical Product</option>
+                            <option value="digital" <?php echo ($product['product_type'] ?? '') === 'digital' ? 'selected' : ''; ?>>Digital Download</option>
+                            <option value="service" <?php echo ($product['product_type'] ?? '') === 'service' ? 'selected' : ''; ?>>Service</option>
+                        </select>
+                        <small class="form-help">Physical: shipped/delivered. Digital: downloadable file. Service: no physical item.</small>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
@@ -108,6 +129,34 @@ require_once __DIR__ . '/header.php';
                     <label>Price Note</label>
                     <input type="text" name="price_note" class="form-control" value="<?php echo e($product['price_note'] ?? ''); ?>" placeholder="e.g., Pricing varies by location">
                     <small class="form-help">Optional note shown below the price (e.g., disclaimers, conditions).</small>
+                </div>
+            </div>
+
+            <!-- Digital Download Section -->
+            <div class="form-section" id="digitalSection" style="<?php echo ($product['product_type'] ?? 'physical') !== 'digital' ? 'display:none;' : ''; ?>">
+                <h3><i class="fas fa-file-download"></i> Digital Download Settings</h3>
+                <div class="form-group">
+                    <label>Download File</label>
+                    <?php if (!empty($product['download_file'])): ?>
+                        <div class="current-file">
+                            <i class="fas fa-file"></i>
+                            <span><?php echo e(basename($product['download_file'])); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <input type="file" name="download_file" class="form-control">
+                    <small class="form-help">Upload the file customers will download after purchase. Supports PDF, ZIP, MP3, MP4, and many more formats (max 500MB).</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Download Limit</label>
+                        <input type="number" name="download_limit" class="form-control" value="<?php echo e($product['download_limit'] ?? '0'); ?>" min="0">
+                        <small class="form-help">Max downloads per purchase. 0 = unlimited.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Link Expiry (hours)</label>
+                        <input type="number" name="download_expiry_hours" class="form-control" value="<?php echo e($product['download_expiry_hours'] ?? '72'); ?>" min="1">
+                        <small class="form-help">Hours until download link expires after purchase.</small>
+                    </div>
                 </div>
             </div>
 
@@ -160,5 +209,11 @@ require_once __DIR__ . '/header.php';
         </div>
     </div>
 </form>
+
+<script>
+document.getElementById('productType').addEventListener('change', function() {
+    document.getElementById('digitalSection').style.display = this.value === 'digital' ? '' : 'none';
+});
+</script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

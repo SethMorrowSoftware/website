@@ -5,6 +5,7 @@
 
 $hero = getHero('catalog');
 $categories = getCategories();
+$csrfToken = generateCSRFToken();
 ?>
 
 <!-- Hero -->
@@ -60,13 +61,30 @@ $categories = getCategories();
 
                 <div class="grid grid-3">
                     <?php foreach ($products as $product): ?>
+                        <?php $productType = $product['product_type'] ?? 'physical'; ?>
                         <div class="card fade-in">
                             <div class="card-image">
+                                <?php if ($productType !== 'physical'): ?>
+                                    <span class="product-type-badge badge-<?php echo e($productType); ?>" style="position: absolute; top: var(--space-sm); right: var(--space-sm); z-index: 2;">
+                                        <?php if ($productType === 'digital'): ?>
+                                            <i class="fas fa-download"></i>
+                                        <?php else: ?>
+                                            <i class="fas fa-concierge-bell"></i>
+                                        <?php endif; ?>
+                                        <?php echo e(ucfirst($productType)); ?>
+                                    </span>
+                                <?php endif; ?>
                                 <?php if ($product['image']): ?>
                                     <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>">
                                 <?php else: ?>
                                     <div class="placeholder-icon">
-                                        <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>"></i>
+                                        <?php if ($productType === 'digital'): ?>
+                                            <i class="fas fa-file-download"></i>
+                                        <?php elseif ($productType === 'service'): ?>
+                                            <i class="fas fa-concierge-bell"></i>
+                                        <?php else: ?>
+                                            <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>"></i>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -96,7 +114,20 @@ $categories = getCategories();
                                         <br><span class="card-unit"><?php echo e($product['price_note']); ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order</a>
+                                <?php
+                                $numericPrice = parsePrice($product['price']);
+                                if ($numericPrice > 0): ?>
+                                    <form method="POST" action="<?php echo url('index.php'); ?>" class="add-to-cart-form">
+                                        <input type="hidden" name="action" value="add_to_cart">
+                                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order</a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -113,14 +144,16 @@ $categories = getCategories();
             <div class="fade-in">
                 <h2>Ready to Order?</h2>
                 <p style="color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                    Browse our catalog above and submit an order inquiry when you're ready. We offer competitive pricing and reliable service. Contact us for bulk orders, custom requests, or any questions.
+                    Browse our catalog above and add items to your cart, or submit an order inquiry for custom requests. We offer competitive pricing and reliable service. Contact us for bulk orders, custom requests, or any questions.
                 </p>
                 <ul style="list-style: none; margin: var(--space-xl) 0;">
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Competitive pricing</li>
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Fast, reliable service</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Digital downloads delivered instantly</li>
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community</li>
                 </ul>
-                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary">Submit an Inquiry</a>
+                <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-primary"><i class="fas fa-shopping-cart"></i> View Cart</a>
+                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark" style="margin-left: var(--space-sm);">Submit an Inquiry</a>
             </div>
             <div class="about-image fade-in">
                 <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));">
