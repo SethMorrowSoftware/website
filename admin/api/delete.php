@@ -33,7 +33,7 @@ if (!verifyCSRFToken($csrfToken)) {
 $table = $input['table'] ?? '';
 $id = (int)($input['id'] ?? 0);
 
-$allowedTables = ['products', 'containers', 'testimonials', 'media', 'navigation'];
+$allowedTables = ['products', 'containers', 'testimonials', 'media', 'navigation', 'orders'];
 
 if (!in_array($table, $allowedTables) || !$id) {
     http_response_code(400);

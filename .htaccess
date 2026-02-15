@@ -11,7 +11,12 @@ RewriteEngine On
 # Clean URLs: /about -> index.php?page=about
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(home|about|catalog|contact|order|payment)/?$ index.php?page=$1 [L,QSA]
+RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout)/?$ index.php?page=$1 [L,QSA]
+
+# Protect downloads directory (digital product files served via PHP)
+<IfModule mod_rewrite.c>
+    RewriteRule ^uploads/downloads/ - [F,L]
+</IfModule>
 
 # Protect database directory
 <IfModule mod_rewrite.c>
@@ -38,7 +43,7 @@ Options -Indexes
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
     Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; frame-src 'self' https://www.google.com https://*.swipesimple.com; connect-src 'self'"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.paypal.com https://js.stripe.com https://web.squarecdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://www.paypalobjects.com https://*.stripe.com; frame-src 'self' https://www.google.com https://*.swipesimple.com https://www.paypal.com https://js.stripe.com https://*.squareup.com https://*.squareupsandbox.com; connect-src 'self' https://www.paypal.com https://api-m.paypal.com https://api-m.sandbox.paypal.com"
     Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 

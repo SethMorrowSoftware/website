@@ -100,6 +100,68 @@ function migrateDatabase(PDO $db): void {
         $db->exec("ALTER TABLE product_categories ADD COLUMN icon TEXT DEFAULT 'fa-tag'");
     }
 
+    // Add e-commerce columns to products
+    if (!in_array('product_type', $colNames)) {
+        $db->exec("ALTER TABLE products ADD COLUMN product_type TEXT DEFAULT 'physical'");
+    }
+    if (!in_array('download_file', $colNames)) {
+        $db->exec('ALTER TABLE products ADD COLUMN download_file TEXT');
+    }
+    if (!in_array('download_limit', $colNames)) {
+        $db->exec('ALTER TABLE products ADD COLUMN download_limit INTEGER DEFAULT 0');
+    }
+    if (!in_array('download_expiry_hours', $colNames)) {
+        $db->exec('ALTER TABLE products ADD COLUMN download_expiry_hours INTEGER DEFAULT 72');
+    }
+
+    // Create orders table if it doesn't exist
+    $db->exec("CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_number TEXT UNIQUE NOT NULL,
+        customer_name TEXT NOT NULL,
+        customer_email TEXT NOT NULL,
+        customer_phone TEXT,
+        shipping_address TEXT,
+        subtotal REAL DEFAULT 0,
+        tax REAL DEFAULT 0,
+        total REAL DEFAULT 0,
+        payment_method TEXT,
+        payment_id TEXT,
+        payment_status TEXT DEFAULT 'pending',
+        order_status TEXT DEFAULT 'pending',
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Create order_items table if it doesn't exist
+    $db->exec("CREATE TABLE IF NOT EXISTS order_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER NOT NULL,
+        product_id INTEGER,
+        product_name TEXT NOT NULL,
+        product_type TEXT DEFAULT 'physical',
+        quantity INTEGER DEFAULT 1,
+        unit_price REAL DEFAULT 0,
+        total_price REAL DEFAULT 0,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    )");
+
+    // Create download_tokens table if it doesn't exist
+    $db->exec("CREATE TABLE IF NOT EXISTS download_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER NOT NULL,
+        order_item_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        download_count INTEGER DEFAULT 0,
+        max_downloads INTEGER DEFAULT 0,
+        expires_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE
+    )");
+
     // Migrate containers into products if containers table still exists
     $tables = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='containers'")->fetchColumn();
     if ($tables) {

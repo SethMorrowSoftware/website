@@ -1,0 +1,4 @@
+# Deny all direct access to download files
+# Downloads are served through PHP for access control
+Order Allow,Deny
+Deny from all

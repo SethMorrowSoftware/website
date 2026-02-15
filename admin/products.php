@@ -41,6 +41,7 @@ require_once __DIR__ . '/header.php';
             <tr>
                 <th>Image</th>
                 <th>Name</th>
+                <th>Type</th>
                 <th>Category</th>
                 <th>Price</th>
                 <th>Status</th>
@@ -58,6 +59,7 @@ require_once __DIR__ . '/header.php';
                         <?php endif; ?>
                     </td>
                     <td><strong><?php echo e($p['name']); ?></strong></td>
+                    <td><span class="badge-status badge-<?php echo ($p['product_type'] ?? 'physical') === 'digital' ? 'active' : 'inactive'; ?>"><?php echo e(ucfirst($p['product_type'] ?? 'physical')); ?></span></td>
                     <td><?php echo e($p['category_name']); ?></td>
                     <td><?php echo e($p['price'] ?: 'Call'); ?> <?php echo $p['unit'] ? '/ ' . e($p['unit']) : ''; ?></td>
                     <td>

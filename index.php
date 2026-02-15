@@ -80,11 +80,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         redirect('index.php?page=order');
     }
+
+    // ---- Cart Actions ----
+
+    if ($action === 'add_to_cart' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $quantity = max(1, (int)($_POST['quantity'] ?? 1));
+        if ($productId && addToCart($productId, $quantity)) {
+            $_SESSION['flash_message'] = 'Item added to your cart!';
+            $_SESSION['flash_type'] = 'success';
+        } else {
+            $_SESSION['flash_message'] = 'Could not add item to cart.';
+            $_SESSION['flash_type'] = 'error';
+        }
+        // Redirect back to referring page or catalog
+        $referrer = $_SERVER['HTTP_REFERER'] ?? '';
+        if ($referrer && str_contains($referrer, $_SERVER['HTTP_HOST'])) {
+            header('Location: ' . $referrer);
+            exit;
+        }
+        redirect('index.php?page=catalog');
+    }
+
+    if ($action === 'update_cart' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $quantity = (int)($_POST['quantity'] ?? 0);
+        if ($productId) {
+            updateCartItem($productId, $quantity);
+        }
+        redirect('index.php?page=cart');
+    }
+
+    if ($action === 'remove_from_cart' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        if ($productId) {
+            removeFromCart($productId);
+            $_SESSION['flash_message'] = 'Item removed from cart.';
+            $_SESSION['flash_type'] = 'info';
+        }
+        redirect('index.php?page=cart');
+    }
+
+    // ---- Checkout Action ----
+
+    if ($action === 'checkout' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $cart = getCart();
+        if (empty($cart)) {
+            $_SESSION['flash_message'] = 'Your cart is empty.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=cart');
+        }
+
+        $customerData = [
+            'name' => trim($_POST['name'] ?? ''),
+            'email' => trim($_POST['email'] ?? ''),
+            'phone' => trim($_POST['phone'] ?? ''),
+            'shipping_address' => trim($_POST['shipping_address'] ?? ''),
+            'notes' => trim($_POST['notes'] ?? ''),
+        ];
+
+        $paymentMethod = $_POST['payment_method'] ?? 'manual';
+
+        // Validate
+        $errors = [];
+        if (!$customerData['name'] || strlen($customerData['name']) < 2) {
+            $errors[] = 'Please provide your full name.';
+        }
+        if (!filter_var($customerData['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Please provide a valid email address.';
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['flash_message'] = implode(' ', $errors);
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=checkout');
+        }
+
+        // Create order
+        $orderId = createOrder($customerData, $paymentMethod);
+        if (!$orderId) {
+            $_SESSION['flash_message'] = 'There was a problem creating your order. Please try again.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=checkout');
+        }
+
+        $order = getOrder($orderId);
+
+        // Route to payment provider
+        switch ($paymentMethod) {
+            case 'stripe':
+                $stripeUrl = createStripeCheckoutSession($orderId);
+                if ($stripeUrl) {
+                    clearCart();
+                    header('Location: ' . $stripeUrl);
+                    exit;
+                } else {
+                    $_SESSION['flash_message'] = 'Could not connect to Stripe. Please try another payment method.';
+                    $_SESSION['flash_type'] = 'error';
+                    redirect('index.php?page=checkout');
+                }
+                break;
+
+            case 'paypal':
+                // PayPal uses client-side JS SDK — redirect to a PayPal checkout page
+                clearCart();
+                $_SESSION['pending_paypal_order'] = $orderId;
+                redirect('index.php?page=paypal-checkout&order=' . $order['order_number']);
+                break;
+
+            case 'square':
+                $squareUrl = createSquareCheckout($orderId);
+                if ($squareUrl) {
+                    clearCart();
+                    header('Location: ' . $squareUrl);
+                    exit;
+                } else {
+                    $_SESSION['flash_message'] = 'Could not connect to Square. Please try another payment method.';
+                    $_SESSION['flash_type'] = 'error';
+                    redirect('index.php?page=checkout');
+                }
+                break;
+
+            case 'manual':
+            default:
+                // No payment gateway — just mark as pending and complete
+                clearCart();
+                generateDownloadTokens($orderId);
+                sendOrderConfirmation($orderId);
+                redirect('index.php?page=order-complete&order=' . $order['order_number'] . '&payment=manual');
+                break;
+        }
+    }
 }
 
 // Route to correct page
 $page = $_GET['page'] ?? 'home';
-$allowedPages = ['home', 'about', 'catalog', 'contact', 'order', 'payment'];
+$allowedPages = ['home', 'about', 'catalog', 'contact', 'order', 'payment', 'cart', 'checkout', 'order-complete', 'download', 'paypal-checkout'];
 
 // Check if it's a system page or a custom page
 if (in_array($page, $allowedPages)) {
