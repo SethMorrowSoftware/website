@@ -8,8 +8,8 @@ require_once __DIR__ . '/../includes/auth.php';
 
 ensureSession();
 
-// Handle logout (POST only)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
+// Handle logout (POST only, CSRF protected)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     logout();
     redirect('admin/login.php');
 }
