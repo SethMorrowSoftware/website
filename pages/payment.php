@@ -64,6 +64,14 @@ $swipesimpleEmbed = getSetting('swipesimple_embed');
                 </div>
             <?php endif; ?>
 
+            <?php if (in_array('btcpay', $enabledProviders)): ?>
+                <div class="payment-method">
+                    <div class="icon"><i class="fab fa-bitcoin"></i></div>
+                    <h4>Bitcoin</h4>
+                    <p>Pay with Bitcoin on-chain or via Lightning Network. Self-custodial via BTCPay Server.</p>
+                </div>
+            <?php endif; ?>
+
             <div class="payment-method">
                 <div class="icon"><i class="fas fa-credit-card"></i></div>
                 <h4>Credit Card</h4>

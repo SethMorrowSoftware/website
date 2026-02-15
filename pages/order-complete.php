@@ -42,6 +42,27 @@ if ($orderNumber) {
             }
             sendOrderConfirmation($order['id']);
         }
+
+        // For BTCPay, verify the invoice status via the API
+        if ($paymentMethod === 'btcpay' && $order['payment_id'] && $order['payment_status'] !== 'completed') {
+            $invoice = verifyBTCPayInvoice($order['payment_id']);
+            if ($invoice) {
+                $btcStatus = $invoice['status'] ?? '';
+                // BTCPay statuses: New, Processing, Expired, Invalid, Settled
+                if ($btcStatus === 'Settled') {
+                    updateOrderPayment($order['id'], 'completed', $order['payment_id'], 'btcpay');
+                    $order['payment_status'] = 'completed';
+
+                    if (empty($downloads)) {
+                        $downloads = generateDownloadTokens($order['id']);
+                    }
+                    sendOrderConfirmation($order['id']);
+                } elseif ($btcStatus === 'Processing') {
+                    // Payment received, waiting for confirmation
+                    $order['payment_status'] = 'processing';
+                }
+            }
+        }
     }
 }
 ?>

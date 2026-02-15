@@ -141,6 +141,19 @@ if (empty($cart)) {
                                 </label>
                             <?php endif; ?>
 
+                            <?php if (in_array('btcpay', $enabledProviders)): ?>
+                                <label class="payment-option">
+                                    <input type="radio" name="payment_method" value="btcpay" <?php echo !in_array('stripe', $enabledProviders) && !in_array('paypal', $enabledProviders) && !in_array('square', $enabledProviders) ? 'checked' : ''; ?>>
+                                    <div class="payment-option-content">
+                                        <div class="payment-icon"><i class="fab fa-bitcoin"></i></div>
+                                        <div>
+                                            <strong>Bitcoin</strong>
+                                            <small>On-chain or Lightning via BTCPay</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            <?php endif; ?>
+
                             <label class="payment-option">
                                 <input type="radio" name="payment_method" value="manual">
                                 <div class="payment-option-content">

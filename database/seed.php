@@ -52,6 +52,12 @@ function seedDatabase(PDO $db): void {
         ['square_access_token', '', 'text'],
         ['square_location_id', '', 'text'],
         ['square_sandbox', '1', 'text'],
+        // BTCPay Server
+        ['btcpay_enabled', '0', 'text'],
+        ['btcpay_url', '', 'text'],
+        ['btcpay_api_key', '', 'text'],
+        ['btcpay_store_id', '', 'text'],
+        ['btcpay_webhook_secret', '', 'text'],
     ];
 
     $stmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');
