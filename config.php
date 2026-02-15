@@ -345,6 +345,9 @@ function asset(string $path): string {
  * Redirect helper — automatically prepends BASE_URL
  */
 function redirect(string $path): void {
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
     header('Location: ' . url($path));
     exit;
 }

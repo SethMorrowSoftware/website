@@ -43,9 +43,11 @@ function runMigrations(PDO $db): void {
                 // SQL migration: execute each statement separately
                 $sql = file_get_contents($file);
                 if ($sql) {
+                    // Strip SQL line comments before splitting on semicolons
+                    $sql = preg_replace('/--.*$/m', '', $sql);
                     $statements = array_filter(array_map('trim', explode(';', $sql)));
                     foreach ($statements as $statement) {
-                        if ($statement && !str_starts_with($statement, '--')) {
+                        if ($statement) {
                             $db->exec($statement);
                         }
                     }
@@ -54,12 +56,16 @@ function runMigrations(PDO $db): void {
             $stmt = $db->prepare('INSERT INTO migrations (filename) VALUES (?)');
             $stmt->execute([$filename]);
         } catch (Exception $e) {
-            error_log('[MIGRATION ERROR] ' . $filename . ': ' . $e->getMessage());
-            // Mark as executed to avoid retrying failed migrations
-            try {
-                $stmt = $db->prepare('INSERT OR IGNORE INTO migrations (filename) VALUES (?)');
-                $stmt->execute([$filename]);
-            } catch (Exception $ex) {}
+            $msg = $e->getMessage();
+            // Tolerate idempotent operations (table/column already exists)
+            if (str_contains($msg, 'already exists') || str_contains($msg, 'duplicate column')) {
+                try {
+                    $db->prepare('INSERT OR IGNORE INTO migrations (filename) VALUES (?)')->execute([$filename]);
+                } catch (Exception $ex) {}
+            } else {
+                // Log genuine errors; do NOT mark as executed so they can be retried
+                error_log('[MIGRATION ERROR] ' . $filename . ': ' . $msg);
+            }
         }
     }
 }
