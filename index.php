@@ -16,7 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'contact' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    if ($action === 'contact' && isFeatureEnabled('contact_form') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?page=contact');
     }
 
-    if ($action === 'order_inquiry' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    if ($action === 'order_inquiry' && isFeatureEnabled('order_inquiry') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         // Validate service_type against actual category slugs
         $validCategories = array_column(getCategories(), 'slug');
         $data = [
@@ -81,9 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?page=order');
     }
 
-    // ---- Cart Actions ----
+    // ---- Cart Actions (only when cart is enabled) ----
 
-    if ($action === 'add_to_cart' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    if ($action === 'add_to_cart' && isFeatureEnabled('cart') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = max(1, (int)($_POST['quantity'] ?? 1));
         if ($productId && addToCart($productId, $quantity)) {
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?page=catalog');
     }
 
-    if ($action === 'update_cart' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    if ($action === 'update_cart' && isFeatureEnabled('cart') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = (int)($_POST['quantity'] ?? 0);
         if ($productId) {
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?page=cart');
     }
 
-    if ($action === 'remove_from_cart' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    if ($action === 'remove_from_cart' && isFeatureEnabled('cart') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $productId = (int)($_POST['product_id'] ?? 0);
         if ($productId) {
             removeFromCart($productId);
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ---- Checkout Action ----
 
-    if ($action === 'checkout' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    if ($action === 'checkout' && isFeatureEnabled('cart') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $cart = getCart();
         if (empty($cart)) {
             $_SESSION['flash_message'] = 'Your cart is empty.';
@@ -229,6 +229,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Route to correct page
 $page = $_GET['page'] ?? 'home';
 $allowedPages = ['home', 'about', 'catalog', 'contact', 'order', 'payment', 'cart', 'checkout', 'order-complete', 'download', 'paypal-checkout'];
+
+// Redirect away from disabled feature pages
+$featurePageMap = [
+    'catalog'         => 'catalog',
+    'cart'            => 'cart',
+    'checkout'        => 'cart',
+    'paypal-checkout' => 'cart',
+    'order'           => 'order_inquiry',
+    'contact'         => 'contact_form',
+    'about'           => 'about_page',
+];
+if (isset($featurePageMap[$page]) && !isFeatureEnabled($featurePageMap[$page])) {
+    // order-complete and download still need to work even if cart is disabled
+    // (for existing orders), so don't block those
+    if (!in_array($page, ['order-complete', 'download'])) {
+        redirect('/');
+    }
+}
 
 // Check if it's a system page or a custom page
 if (in_array($page, $allowedPages)) {

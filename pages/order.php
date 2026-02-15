@@ -7,6 +7,7 @@ $hero = getHero('order');
 $categories = getCategories();
 $allProducts = getAllProducts();
 $csrfToken = generateCSRFToken();
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 ?>
 
 <!-- Hero -->
@@ -16,7 +17,7 @@ $csrfToken = generateCSRFToken();
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'Order Inquiry'); ?></h1>
+        <h1><?php echo e($hero['title'] ?? $orderInquiryTitle); ?></h1>
         <p><?php echo e($hero['subtitle'] ?? 'Tell Us What You Need — We\'ll Get Back to You Fast'); ?></p>
     </div>
 </section>
@@ -26,7 +27,7 @@ $csrfToken = generateCSRFToken();
     <div class="breadcrumb">
         <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
-        <span class="current">Order Inquiry</span>
+        <span class="current"><?php echo e($orderInquiryTitle); ?></span>
     </div>
 </div>
 

@@ -13,8 +13,12 @@ $baseUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https'
 
 $db = getDB();
 
-// System pages
-$systemPages = ['home', 'about', 'catalog', 'contact', 'order', 'payment'];
+// System pages — only include enabled features
+$systemPages = ['home'];
+if (isFeatureEnabled('about_page')) $systemPages[] = 'about';
+if (isFeatureEnabled('catalog')) $systemPages[] = 'catalog';
+if (isFeatureEnabled('contact_form')) $systemPages[] = 'contact';
+if (isFeatureEnabled('order_inquiry')) $systemPages[] = 'order';
 
 // Custom published pages
 $customPages = $db->query("SELECT slug, updated_at FROM pages WHERE is_published = 1 AND is_system = 0")->fetchAll();

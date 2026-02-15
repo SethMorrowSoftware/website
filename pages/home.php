@@ -4,9 +4,22 @@
  */
 
 $hero = getHero('home');
-$categories = getCategories();
-$testimonials = getTestimonials();
-$featuredProducts = getFeaturedProducts(6);
+
+$_catalogEnabled = isFeatureEnabled('catalog');
+$_cartEnabled = isFeatureEnabled('cart');
+$_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
+$_contactFormEnabled = isFeatureEnabled('contact_form');
+$_testimonialsEnabled = isFeatureEnabled('testimonials');
+
+$categories = $_catalogEnabled ? getCategories() : [];
+$testimonials = $_testimonialsEnabled ? getTestimonials() : [];
+$featuredProducts = $_catalogEnabled ? getFeaturedProducts(6) : [];
+
+$offeringsHeading = getSetting('homepage_offerings_heading', 'What We Offer');
+$offeringsSubtext = getSetting('homepage_offerings_subtext', 'Explore our products and services');
+$featuredHeading = getSetting('homepage_featured_heading', 'Featured Products & Services');
+$featuredSubtext = getSetting('homepage_featured_subtext', 'A selection of what we have to offer');
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 ?>
 
 <!-- Hero Section -->
@@ -28,21 +41,27 @@ $featuredProducts = getFeaturedProducts(6);
                 <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
                     <?php echo e($hero['cta_text']); ?>
                 </a>
-            <?php else: ?>
+            <?php elseif ($_orderInquiryEnabled): ?>
                 <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Get a Free Quote</a>
+            <?php elseif ($_cartEnabled && $_catalogEnabled): ?>
+                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">Shop Now</a>
+            <?php elseif ($_catalogEnabled): ?>
+                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">View Our Catalog</a>
             <?php endif; ?>
-            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
+            <?php if ($_contactFormEnabled): ?>
+                <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
+            <?php endif; ?>
         </div>
     </div>
 </section>
 
 <!-- Categories Overview -->
-<?php if (!empty($categories)): ?>
+<?php if ($_catalogEnabled && !empty($categories)): ?>
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>What We Offer</h2>
-            <p>Explore our products and services</p>
+            <h2><?php echo e($offeringsHeading); ?></h2>
+            <p><?php echo e($offeringsSubtext); ?></p>
         </div>
 
         <div class="services-grid">
@@ -62,15 +81,16 @@ $featuredProducts = getFeaturedProducts(6);
 <?php endif; ?>
 
 <!-- Featured Products -->
-<?php if (!empty($featuredProducts)): ?>
+<?php if ($_catalogEnabled && !empty($featuredProducts)): ?>
 <section class="section section-light">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Featured Products &amp; Services</h2>
-            <p>A selection of what we have to offer</p>
+            <h2><?php echo e($featuredHeading); ?></h2>
+            <p><?php echo e($featuredSubtext); ?></p>
         </div>
 
         <div class="grid grid-3">
+            <?php $csrfToken = generateCSRFToken(); ?>
             <?php foreach ($featuredProducts as $product): ?>
                 <div class="card fade-in">
                     <div class="card-image">
@@ -88,14 +108,29 @@ $featuredProducts = getFeaturedProducts(6);
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo e($product['price'] ?: 'Call for Pricing'); ?></span>
-                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order Now</a>
+                        <?php
+                        $numericPrice = parsePrice($product['price']);
+                        if ($_cartEnabled && $numericPrice > 0): ?>
+                            <form method="POST" action="<?php echo url('index.php'); ?>" class="add-to-cart-form">
+                                <input type="hidden" name="action" value="add_to_cart">
+                                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </button>
+                            </form>
+                        <?php elseif ($_orderInquiryEnabled): ?>
+                            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order Now</a>
+                        <?php elseif ($_contactFormEnabled): ?>
+                            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-sm btn-primary">Inquire</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
 
         <div class="text-center mt-3">
-            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View Full Catalog</a>
+            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View Full <?php echo e(getSetting('catalog_page_title', 'Catalog')); ?></a>
         </div>
     </div>
 </section>

@@ -5,6 +5,81 @@
 
 require_once __DIR__ . '/../config.php';
 
+// ============================================================
+// Store Configuration Helpers
+// ============================================================
+
+/**
+ * Check if a feature is enabled via settings.
+ * Accepts: 'catalog', 'cart', 'order_inquiry', 'contact_form',
+ *          'testimonials', 'about_page', 'phone_header', 'email_header',
+ *          'address', 'business_hours', 'map'
+ */
+function isFeatureEnabled(string $feature): bool {
+    // Map short names to setting keys
+    $map = [
+        'catalog'        => 'enable_catalog',
+        'cart'           => 'enable_cart',
+        'order_inquiry'  => 'enable_order_inquiry',
+        'contact_form'   => 'enable_contact_form',
+        'testimonials'   => 'enable_testimonials',
+        'about_page'     => 'enable_about_page',
+        'phone_header'   => 'show_phone_header',
+        'email_header'   => 'show_email_header',
+        'address'        => 'show_address',
+        'business_hours' => 'show_business_hours',
+        'map'            => 'show_map',
+    ];
+
+    $key = $map[$feature] ?? $feature;
+    return getSetting($key, '1') === '1';
+}
+
+/**
+ * Get store type: products_and_services, products_only, services_only,
+ *                 digital_only, informational
+ */
+function getStoreType(): string {
+    return getSetting('store_type', 'products_and_services');
+}
+
+/**
+ * Get business type: local, online, hybrid
+ */
+function getBusinessType(): string {
+    return getSetting('business_type', 'local');
+}
+
+/**
+ * Check if the store sells physical products
+ */
+function storeHasProducts(): bool {
+    $type = getStoreType();
+    return in_array($type, ['products_and_services', 'products_only', 'digital_only']);
+}
+
+/**
+ * Check if the store offers services
+ */
+function storeHasServices(): bool {
+    $type = getStoreType();
+    return in_array($type, ['products_and_services', 'services_only']);
+}
+
+/**
+ * Check if the store is purely informational (no catalog, no cart)
+ */
+function storeIsInformational(): bool {
+    return getStoreType() === 'informational';
+}
+
+/**
+ * Get a customizable label with fallback default
+ */
+function getLabel(string $key, string $default = ''): string {
+    return getSetting($key, $default);
+}
+
 /**
  * Get all navigation items (ordered)
  */

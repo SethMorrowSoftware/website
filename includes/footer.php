@@ -12,7 +12,33 @@ $footerText = getSetting('footer_text', '&copy; ' . date('Y') . ' ' . $companyNa
 $facebookUrl = getSetting('facebook_url');
 $instagramUrl = getSetting('instagram_url');
 $twitterUrl = getSetting('twitter_url');
-$footerCategories = getCategories();
+
+$_catalogEnabled = isFeatureEnabled('catalog');
+$_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
+$_contactFormEnabled = isFeatureEnabled('contact_form');
+$_aboutEnabled = isFeatureEnabled('about_page');
+$_showAddress = isFeatureEnabled('address');
+$_showHours = isFeatureEnabled('business_hours');
+$_showPhone = isFeatureEnabled('phone_header');
+$_showEmail = isFeatureEnabled('email_header');
+$_cartEnabled = isFeatureEnabled('cart');
+
+$footerCategories = $_catalogEnabled ? getCategories() : [];
+
+$ctaHeading = getSetting('cta_heading', 'Ready to Get Started?');
+$ctaSubtext = getSetting('cta_subtext');
+if (!$ctaSubtext) {
+    // Auto-generate CTA subtext based on enabled features
+    $parts = [];
+    if ($_showPhone && $companyPhone) $parts[] = 'give us a call';
+    if ($_orderInquiryEnabled) $parts[] = 'submit an inquiry';
+    if ($_contactFormEnabled) $parts[] = 'send us a message';
+    if ($_cartEnabled && $_catalogEnabled) $parts[] = 'shop our catalog';
+    $ctaSubtext = !empty($parts) ? ucfirst(implode(', ', array_slice($parts, 0, 2))) . " \u{2014} we're here to help!" : "We're here to help!";
+}
+
+$catalogPageTitle = getSetting('catalog_page_title', 'Our Catalog');
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 ?>
 
 </main>
@@ -20,16 +46,24 @@ $footerCategories = getCategories();
 <!-- CTA Banner -->
 <section class="cta-banner">
     <div class="container">
-        <h2>Ready to Get Started?</h2>
-        <p>Give us a call or submit an order inquiry — we're here to help!</p>
-        <span class="phone-number">
-            <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
-                <i class="fas fa-phone"></i> <?php echo e($companyPhone); ?>
-            </a>
-        </span>
+        <h2><?php echo e($ctaHeading); ?></h2>
+        <p><?php echo e($ctaSubtext); ?></p>
+        <?php if ($_showPhone && $companyPhone): ?>
+            <span class="phone-number">
+                <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
+                    <i class="fas fa-phone"></i> <?php echo e($companyPhone); ?>
+                </a>
+            </span>
+        <?php endif; ?>
         <div class="btn-group">
-            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Request a Quote</a>
-            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
+            <?php if ($_orderInquiryEnabled): ?>
+                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg"><?php echo e($orderInquiryTitle === 'Order Inquiry' ? 'Request a Quote' : $orderInquiryTitle); ?></a>
+            <?php elseif ($_cartEnabled && $_catalogEnabled): ?>
+                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">Shop Now</a>
+            <?php endif; ?>
+            <?php if ($_contactFormEnabled): ?>
+                <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
+            <?php endif; ?>
         </div>
     </div>
 </section>
@@ -66,44 +100,56 @@ $footerCategories = getCategories();
                 <h4>Quick Links</h4>
                 <ul>
                     <li><a href="<?php echo url('/'); ?>">Home</a></li>
-                    <li><a href="<?php echo url('index.php?page=about'); ?>">About Us</a></li>
-                    <li><a href="<?php echo url('index.php?page=catalog'); ?>">Catalog</a></li>
-                    <li><a href="<?php echo url('index.php?page=contact'); ?>">Contact</a></li>
-                    <li><a href="<?php echo url('index.php?page=order'); ?>">Order Inquiry</a></li>
+                    <?php if ($_aboutEnabled): ?>
+                        <li><a href="<?php echo url('index.php?page=about'); ?>">About Us</a></li>
+                    <?php endif; ?>
+                    <?php if ($_catalogEnabled): ?>
+                        <li><a href="<?php echo url('index.php?page=catalog'); ?>"><?php echo e($catalogPageTitle); ?></a></li>
+                    <?php endif; ?>
+                    <?php if ($_contactFormEnabled): ?>
+                        <li><a href="<?php echo url('index.php?page=contact'); ?>">Contact</a></li>
+                    <?php endif; ?>
+                    <?php if ($_orderInquiryEnabled): ?>
+                        <li><a href="<?php echo url('index.php?page=order'); ?>"><?php echo e($orderInquiryTitle); ?></a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
 
+            <?php if ($_catalogEnabled && !empty($footerCategories)): ?>
             <div class="footer-col">
-                <h4>Our Catalog</h4>
+                <h4><?php echo e($catalogPageTitle); ?></h4>
                 <ul>
                     <?php foreach ($footerCategories as $fCat): ?>
                         <li><a href="<?php echo url('index.php?page=catalog'); ?>#<?php echo e($fCat['slug']); ?>"><?php echo e($fCat['name']); ?></a></li>
                     <?php endforeach; ?>
-                    <li><a href="<?php echo url('index.php?page=order'); ?>">Request a Quote</a></li>
+                    <?php if ($_orderInquiryEnabled): ?>
+                        <li><a href="<?php echo url('index.php?page=order'); ?>">Request a Quote</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
+            <?php endif; ?>
 
             <div class="footer-col">
                 <h4>Contact Info</h4>
-                <?php if ($companyPhone): ?>
+                <?php if ($_showPhone && $companyPhone): ?>
                     <div class="footer-contact-item">
                         <i class="fas fa-phone"></i>
                         <div><a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>"><?php echo e($companyPhone); ?></a></div>
                     </div>
                 <?php endif; ?>
-                <?php if ($companyEmail): ?>
+                <?php if ($_showEmail && $companyEmail): ?>
                     <div class="footer-contact-item">
                         <i class="fas fa-envelope"></i>
                         <div><a href="mailto:<?php echo e($companyEmail); ?>"><?php echo e($companyEmail); ?></a></div>
                     </div>
                 <?php endif; ?>
-                <?php if ($companyAddress): ?>
+                <?php if ($_showAddress && $companyAddress): ?>
                     <div class="footer-contact-item">
                         <i class="fas fa-map-marker-alt"></i>
                         <div><?php echo e($companyAddress); ?></div>
                     </div>
                 <?php endif; ?>
-                <?php if ($businessHours): ?>
+                <?php if ($_showHours && $businessHours): ?>
                     <div class="footer-contact-item">
                         <i class="fas fa-clock"></i>
                         <div><?php echo nl2br(e($businessHours)); ?></div>

@@ -16,6 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'google_maps_embed', 'footer_text', 'primary_color', 'secondary_color',
         'facebook_url', 'instagram_url', 'twitter_url',
         'swipesimple_link', 'swipesimple_embed',
+        // Store configuration
+        'store_type', 'business_type',
+        'catalog_page_title', 'catalog_section_title',
+        'order_inquiry_title',
+        'cta_heading', 'cta_subtext',
+        'homepage_offerings_heading', 'homepage_offerings_subtext',
+        'homepage_featured_heading', 'homepage_featured_subtext',
         // E-commerce settings
         'currency_code', 'currency_symbol', 'tax_rate',
         // Stripe
@@ -35,7 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 
     // Handle checkbox toggles separately (unchecked = not sent)
-    $checkboxes = ['stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled'];
+    $checkboxes = [
+        'enable_catalog', 'enable_cart', 'enable_order_inquiry', 'enable_contact_form',
+        'enable_testimonials', 'enable_about_page',
+        'show_phone_header', 'show_email_header', 'show_address', 'show_business_hours', 'show_map',
+        'stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled',
+    ];
     foreach ($checkboxes as $cb) {
         updateSetting($cb, isset($_POST[$cb]) ? '1' : '0');
     }
@@ -67,6 +79,173 @@ require_once __DIR__ . '/header.php';
 
 <form method="POST" enctype="multipart/form-data" class="admin-form">
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+
+    <!-- Store Configuration -->
+    <div class="form-section">
+        <h3><i class="fas fa-sliders-h"></i> Store Configuration</h3>
+        <p style="color:var(--color-gray-500);margin-bottom:var(--space-lg);">Configure what type of business this website represents and which features to enable.</p>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Store Type</label>
+                <select name="store_type" class="form-control">
+                    <?php $storeType = getSetting('store_type', 'products_and_services'); ?>
+                    <option value="products_and_services" <?php echo $storeType === 'products_and_services' ? 'selected' : ''; ?>>Products & Services</option>
+                    <option value="products_only" <?php echo $storeType === 'products_only' ? 'selected' : ''; ?>>Products Only</option>
+                    <option value="services_only" <?php echo $storeType === 'services_only' ? 'selected' : ''; ?>>Services Only</option>
+                    <option value="digital_only" <?php echo $storeType === 'digital_only' ? 'selected' : ''; ?>>Digital Products Only</option>
+                    <option value="informational" <?php echo $storeType === 'informational' ? 'selected' : ''; ?>>Informational (No Store)</option>
+                </select>
+                <small class="form-help">Determines default layout and which sections appear on the site.</small>
+            </div>
+            <div class="form-group">
+                <label>Business Type</label>
+                <select name="business_type" class="form-control">
+                    <?php $businessType = getSetting('business_type', 'local'); ?>
+                    <option value="local" <?php echo $businessType === 'local' ? 'selected' : ''; ?>>Local Business</option>
+                    <option value="online" <?php echo $businessType === 'online' ? 'selected' : ''; ?>>Online Business</option>
+                    <option value="hybrid" <?php echo $businessType === 'hybrid' ? 'selected' : ''; ?>>Hybrid (Local + Online)</option>
+                </select>
+                <small class="form-help">Local shows address, map, hours. Online hides physical location details.</small>
+            </div>
+        </div>
+
+        <h4 style="margin-top:var(--space-xl);margin-bottom:var(--space-md);">Feature Toggles</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_catalog" value="1" <?php echo getSetting('enable_catalog', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Catalog / Product Listings
+                </label>
+                <small class="form-help">Show the catalog page and product/service listings.</small>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_cart" value="1" <?php echo getSetting('enable_cart', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Shopping Cart & Checkout
+                </label>
+                <small class="form-help">Allow customers to add items to cart and check out online.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_order_inquiry" value="1" <?php echo getSetting('enable_order_inquiry', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Order Inquiry Form
+                </label>
+                <small class="form-help">Show the multi-step order inquiry / quote request form.</small>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_contact_form" value="1" <?php echo getSetting('enable_contact_form', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Contact Form
+                </label>
+                <small class="form-help">Show the contact us page and form.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_testimonials" value="1" <?php echo getSetting('enable_testimonials', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable Testimonials
+                </label>
+                <small class="form-help">Show customer testimonials on the homepage.</small>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="enable_about_page" value="1" <?php echo getSetting('enable_about_page', '1') === '1' ? 'checked' : ''; ?>>
+                    Enable About Page
+                </label>
+                <small class="form-help">Show the About Us page and link.</small>
+            </div>
+        </div>
+
+        <h4 style="margin-top:var(--space-xl);margin-bottom:var(--space-md);">Visibility Options</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="show_phone_header" value="1" <?php echo getSetting('show_phone_header', '1') === '1' ? 'checked' : ''; ?>>
+                    Show Phone in Header
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="show_email_header" value="1" <?php echo getSetting('show_email_header', '1') === '1' ? 'checked' : ''; ?>>
+                    Show Email in Header
+                </label>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="show_address" value="1" <?php echo getSetting('show_address', '1') === '1' ? 'checked' : ''; ?>>
+                    Show Physical Address
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="show_business_hours" value="1" <?php echo getSetting('show_business_hours', '1') === '1' ? 'checked' : ''; ?>>
+                    Show Business Hours
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="show_map" value="1" <?php echo getSetting('show_map', '1') === '1' ? 'checked' : ''; ?>>
+                Show Google Map
+            </label>
+        </div>
+
+        <h4 style="margin-top:var(--space-xl);margin-bottom:var(--space-md);">Custom Labels</h4>
+        <p style="color:var(--color-gray-500);margin-bottom:var(--space-md);">Customize the headings and labels used throughout the site.</p>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Catalog Page Title</label>
+                <input type="text" name="catalog_page_title" class="form-control" value="<?php echo e(getSetting('catalog_page_title', 'Our Catalog')); ?>" placeholder="Our Catalog">
+                <small class="form-help">e.g., "Our Menu", "Services", "Shop", "Products"</small>
+            </div>
+            <div class="form-group">
+                <label>Catalog Section Heading</label>
+                <input type="text" name="catalog_section_title" class="form-control" value="<?php echo e(getSetting('catalog_section_title', 'Browse Our Offerings')); ?>" placeholder="Browse Our Offerings">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Order Inquiry Page Title</label>
+                <input type="text" name="order_inquiry_title" class="form-control" value="<?php echo e(getSetting('order_inquiry_title', 'Order Inquiry')); ?>" placeholder="Order Inquiry">
+                <small class="form-help">e.g., "Request a Quote", "Book a Service", "Get an Estimate"</small>
+            </div>
+            <div class="form-group">
+                <label>CTA Banner Heading</label>
+                <input type="text" name="cta_heading" class="form-control" value="<?php echo e(getSetting('cta_heading', 'Ready to Get Started?')); ?>" placeholder="Ready to Get Started?">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>CTA Banner Subtext</label>
+            <input type="text" name="cta_subtext" class="form-control" value="<?php echo e(getSetting('cta_subtext')); ?>" placeholder="Give us a call or submit an order inquiry — we're here to help!">
+            <small class="form-help">Leave blank for auto-generated text based on enabled features.</small>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Homepage Offerings Heading</label>
+                <input type="text" name="homepage_offerings_heading" class="form-control" value="<?php echo e(getSetting('homepage_offerings_heading', 'What We Offer')); ?>" placeholder="What We Offer">
+            </div>
+            <div class="form-group">
+                <label>Homepage Offerings Subtext</label>
+                <input type="text" name="homepage_offerings_subtext" class="form-control" value="<?php echo e(getSetting('homepage_offerings_subtext', 'Explore our products and services')); ?>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Homepage Featured Heading</label>
+                <input type="text" name="homepage_featured_heading" class="form-control" value="<?php echo e(getSetting('homepage_featured_heading', 'Featured Products & Services')); ?>">
+            </div>
+            <div class="form-group">
+                <label>Homepage Featured Subtext</label>
+                <input type="text" name="homepage_featured_subtext" class="form-control" value="<?php echo e(getSetting('homepage_featured_subtext', 'A selection of what we have to offer')); ?>">
+            </div>
+        </div>
+    </div>
 
     <!-- Company Info -->
     <div class="form-section">

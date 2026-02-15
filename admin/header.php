@@ -54,6 +54,7 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
             <i class="fas fa-bars"></i> Navigation
         </a>
 
+        <?php if (isFeatureEnabled('catalog')): ?>
         <div class="nav-section">Catalog</div>
         <a href="<?php echo url('admin/categories.php'); ?>" class="<?php echo $adminPage === 'categories' || $adminPage === 'category-edit' ? 'active' : ''; ?>">
             <i class="fas fa-tags"></i> Categories
@@ -61,20 +62,27 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/products.php'); ?>" class="<?php echo $adminPage === 'products' || $adminPage === 'product-edit' ? 'active' : ''; ?>">
             <i class="fas fa-box"></i> Products
         </a>
+        <?php endif; ?>
+        <?php if (isFeatureEnabled('cart')): ?>
         <a href="<?php echo url('admin/orders.php'); ?>" class="<?php echo $adminPage === 'orders' || $adminPage === 'order-view' ? 'active' : ''; ?>">
             <i class="fas fa-shopping-bag"></i> Orders
         </a>
+        <?php endif; ?>
 
         <div class="nav-section">Engagement</div>
+        <?php if (isFeatureEnabled('testimonials')): ?>
         <a href="<?php echo url('admin/testimonials.php'); ?>" class="<?php echo $adminPage === 'testimonials' || $adminPage === 'testimonial-edit' ? 'active' : ''; ?>">
             <i class="fas fa-quote-right"></i> Testimonials
         </a>
+        <?php endif; ?>
+        <?php if (isFeatureEnabled('contact_form') || isFeatureEnabled('order_inquiry')): ?>
         <a href="<?php echo url('admin/inquiries.php'); ?>" class="<?php echo $adminPage === 'inquiries' || $adminPage === 'inquiry-view' ? 'active' : ''; ?>">
             <i class="fas fa-inbox"></i> Inquiries
             <?php if ($totalUnread > 0): ?>
                 <span class="badge"><?php echo $totalUnread; ?></span>
             <?php endif; ?>
         </a>
+        <?php endif; ?>
 
         <div class="nav-section">System</div>
         <a href="<?php echo url('admin/media.php'); ?>" class="<?php echo $adminPage === 'media' ? 'active' : ''; ?>">
