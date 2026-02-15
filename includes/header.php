@@ -170,45 +170,49 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <div class="nav-cta">
-                    <?php if (isFeatureEnabled('search')): ?>
-                        <a href="<?php echo url('index.php?page=search'); ?>" class="nav-icon-link" title="Search">
-                            <i class="fas fa-search"></i>
-                        </a>
-                    <?php endif; ?>
-                    <?php if (isFeatureEnabled('wishlists')): ?>
-                        <?php $wishlistCount = getWishlistCount(); ?>
-                        <a href="<?php echo url('index.php?page=wishlist'); ?>" class="nav-icon-link" title="Wishlist">
-                            <i class="fas fa-heart"></i>
-                            <?php if ($wishlistCount > 0): ?>
-                                <span class="cart-badge"><?php echo $wishlistCount; ?></span>
-                            <?php endif; ?>
-                        </a>
-                    <?php endif; ?>
-                    <?php if ($cartEnabled): ?>
-                        <?php $cartCount = getCartCount(); ?>
-                        <a href="<?php echo url('index.php?page=cart'); ?>" class="cart-link" title="Shopping Cart">
-                            <i class="fas fa-shopping-cart"></i>
-                            <?php if ($cartCount > 0): ?>
-                                <span class="cart-badge"><?php echo $cartCount; ?></span>
-                            <?php endif; ?>
-                        </a>
-                    <?php endif; ?>
-                    <?php if (isFeatureEnabled('customer_accounts')): ?>
-                        <?php if (isCustomerLoggedIn()): ?>
-                            <a href="<?php echo url('index.php?page=account'); ?>" class="nav-icon-link" title="My Account">
-                                <i class="fas fa-user-circle"></i>
-                            </a>
-                        <?php else: ?>
-                            <a href="<?php echo url('index.php?page=login'); ?>" class="nav-icon-link" title="Sign In">
-                                <i class="fas fa-user"></i>
+                <div class="nav-actions">
+                    <div class="nav-icons">
+                        <?php if (isFeatureEnabled('search')): ?>
+                            <a href="<?php echo url('index.php?page=search'); ?>" class="nav-icon-link" title="Search">
+                                <i class="fas fa-search"></i>
                             </a>
                         <?php endif; ?>
-                    <?php endif; ?>
+                        <?php if (isFeatureEnabled('wishlists')): ?>
+                            <?php $wishlistCount = getWishlistCount(); ?>
+                            <a href="<?php echo url('index.php?page=wishlist'); ?>" class="nav-icon-link" title="Wishlist">
+                                <i class="fas fa-heart"></i>
+                                <?php if ($wishlistCount > 0): ?>
+                                    <span class="nav-badge"><?php echo $wishlistCount; ?></span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endif; ?>
+                        <?php if ($cartEnabled): ?>
+                            <?php $cartCount = getCartCount(); ?>
+                            <a href="<?php echo url('index.php?page=cart'); ?>" class="nav-icon-link" title="Shopping Cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <?php if ($cartCount > 0): ?>
+                                    <span class="nav-badge"><?php echo $cartCount; ?></span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endif; ?>
+                        <?php if (isFeatureEnabled('customer_accounts')): ?>
+                            <?php if (isCustomerLoggedIn()): ?>
+                                <a href="<?php echo url('index.php?page=account'); ?>" class="nav-icon-link" title="My Account">
+                                    <i class="fas fa-user-circle"></i>
+                                </a>
+                            <?php else: ?>
+                                <a href="<?php echo url('index.php?page=login'); ?>" class="nav-icon-link" title="Sign In">
+                                    <i class="fas fa-user"></i>
+                                </a>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                     <?php if ($showPhoneHeader && $companyPhone): ?>
-                        <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>">
-                            <i class="fas fa-phone"></i> Call Now
-                        </a>
+                        <div class="nav-cta">
+                            <a href="tel:<?php echo e(preg_replace('/[^0-9+]/', '', $companyPhone)); ?>" class="nav-cta-btn">
+                                <i class="fas fa-phone"></i> Call Now
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
             </nav>
