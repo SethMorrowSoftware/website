@@ -251,4 +251,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 8000);
     });
 
+    // ---- Back to Top Button ----
+    var backToTop = document.createElement('button');
+    backToTop.className = 'back-to-top';
+    backToTop.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    backToTop.setAttribute('aria-label', 'Back to top');
+    backToTop.addEventListener('click', function() { window.scrollTo({top: 0, behavior: 'smooth'}); });
+    document.body.appendChild(backToTop);
+
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 400) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+    }, { passive: true });
+
+    // ---- Sticky Add-to-Cart Bar (Mobile Product Page) ----
+    var addToCartForm = document.querySelector('.product-add-form');
+    if (addToCartForm && window.innerWidth <= 768) {
+        var productTitle = document.querySelector('.product-title');
+        var productPrice = document.querySelector('.product-price-large');
+        if (productTitle && productPrice) {
+            var stickyBar = document.createElement('div');
+            stickyBar.className = 'sticky-atc-bar';
+            stickyBar.innerHTML = '<div class="sticky-atc-info"><div class="sticky-atc-name">' + productTitle.textContent + '</div><div class="sticky-atc-price">' + productPrice.textContent + '</div></div>' +
+                '<button class="btn btn-primary" id="stickyAtcBtn"><i class="fas fa-cart-plus"></i> Add to Cart</button>';
+            document.body.appendChild(stickyBar);
+
+            document.getElementById('stickyAtcBtn').addEventListener('click', function() {
+                addToCartForm.requestSubmit ? addToCartForm.requestSubmit() : addToCartForm.submit();
+            });
+
+            var formRect;
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        stickyBar.classList.remove('visible');
+                    } else {
+                        stickyBar.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0 });
+            observer.observe(addToCartForm);
+        }
+    }
+
 });

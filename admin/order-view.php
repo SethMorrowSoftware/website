@@ -42,6 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => count($newTokens) . ' download token(s) generated.'];
         redirect('admin/order-view.php?id=' . $id);
     }
+
+    if (isset($_POST['update_tracking'])) {
+        $trackingCarrier = trim($_POST['tracking_carrier'] ?? '');
+        $trackingNumber = trim($_POST['tracking_number'] ?? '');
+        $db->prepare('UPDATE orders SET tracking_carrier = ?, tracking_number = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+            ->execute([$trackingCarrier, $trackingNumber, $id]);
+        $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Tracking information updated.'];
+        redirect('admin/order-view.php?id=' . $id);
+    }
 }
 
 $csrfToken = generateCSRFToken();
@@ -172,6 +181,24 @@ require_once __DIR__ . '/header.php';
                     <button type="submit" class="btn-admin btn-save">Update</button>
                 </div>
             </div>
+        </form>
+
+        <!-- Shipping & Tracking -->
+        <h3 style="margin-top: var(--space-xl);"><i class="fas fa-shipping-fast"></i> Shipping & Tracking</h3>
+        <form method="POST" style="margin-top: var(--space-md);">
+            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+            <input type="hidden" name="update_tracking" value="1">
+            <div class="form-group">
+                <label for="tracking_carrier">Tracking Carrier</label>
+                <input type="text" id="tracking_carrier" name="tracking_carrier" class="form-control" value="<?php echo e($order['tracking_carrier'] ?? ''); ?>" placeholder="e.g. UPS, FedEx, USPS, DHL">
+            </div>
+            <div class="form-group">
+                <label for="tracking_number">Tracking Number</label>
+                <input type="text" id="tracking_number" name="tracking_number" class="form-control" value="<?php echo e($order['tracking_number'] ?? ''); ?>" placeholder="Enter tracking number">
+            </div>
+            <button type="submit" class="btn-admin btn-save">
+                <i class="fas fa-save"></i> Save Tracking Info
+            </button>
         </form>
     </div>
 </div>

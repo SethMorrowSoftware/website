@@ -166,6 +166,30 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 
 <script src="<?php echo asset('js/main.js'); ?>"></script>
 <script src="<?php echo asset('js/forms.js'); ?>"></script>
+<script src="<?php echo asset('js/lightbox.js'); ?>"></script>
+<script src="<?php echo asset('js/ajax-cart.js'); ?>"></script>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <a href="<?php echo url('/'); ?>" class="mobile-nav-item <?php echo ($currentPage ?? 'home') === 'home' ? 'active' : ''; ?>">
+        <i class="fas fa-home"></i><span>Home</span>
+    </a>
+    <?php if (isFeatureEnabled('search')): ?>
+    <a href="<?php echo url('index.php?page=search'); ?>" class="mobile-nav-item <?php echo ($currentPage ?? '') === 'search' ? 'active' : ''; ?>">
+        <i class="fas fa-search"></i><span>Search</span>
+    </a>
+    <?php endif; ?>
+    <?php if (isFeatureEnabled('cart')): ?>
+    <a href="<?php echo url('index.php?page=cart'); ?>" class="mobile-nav-item <?php echo ($currentPage ?? '') === 'cart' ? 'active' : ''; ?>">
+        <i class="fas fa-shopping-cart"></i><span>Cart<?php $mc = getCartCount(); if ($mc > 0): ?> (<?php echo $mc; ?>)<?php endif; ?></span>
+    </a>
+    <?php endif; ?>
+    <?php if (isFeatureEnabled('customer_accounts')): ?>
+    <a href="<?php echo url(isCustomerLoggedIn() ? 'index.php?page=account' : 'index.php?page=login'); ?>" class="mobile-nav-item <?php echo in_array($currentPage ?? '', ['account','login','register']) ? 'active' : ''; ?>">
+        <i class="fas fa-user"></i><span><?php echo isCustomerLoggedIn() ? 'Account' : 'Sign In'; ?></span>
+    </a>
+    <?php endif; ?>
+</nav>
 
 </body>
 </html>

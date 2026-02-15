@@ -12,6 +12,71 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Maintenance mode check
+if (getSetting('maintenance_mode') === '1' || getSetting('enable_maintenance') === '1') {
+    // Allow admin access
+    $isAdminPath = str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin');
+    if (!$isAdminPath) {
+        $maintenanceMsg = getSetting('maintenance_message', 'We are currently performing scheduled maintenance. We will be back online shortly.');
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maintenance</title>';
+        echo '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;color:#334155}';
+        echo '.maintenance{text-align:center;max-width:500px}.maintenance i{font-size:4rem;color:#f59e0b;margin-bottom:1.5rem}.maintenance h1{font-size:1.75rem;margin-bottom:1rem}.maintenance p{color:#64748b;line-height:1.6}</style>';
+        echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></head>';
+        echo '<body><div class="maintenance"><i class="fas fa-tools"></i><h1>Under Maintenance</h1><p>' . htmlspecialchars($maintenanceMsg, ENT_QUOTES, 'UTF-8') . '</p></div></body></html>';
+        exit;
+    }
+}
+
+// Handle AJAX requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    header('Content-Type: application/json');
+    $action = $_POST['action'] ?? '';
+
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Invalid security token. Please refresh the page.']);
+        exit;
+    }
+
+    if ($action === 'add_to_cart' && isFeatureEnabled('cart')) {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $quantity = max(1, (int)($_POST['quantity'] ?? 1));
+
+        if ($productId && !isInStock($productId, $quantity)) {
+            $stock = getStockQuantity($productId);
+            echo json_encode(['success' => false, 'message' => $stock !== null ? "Sorry, only $stock available in stock." : 'This item is currently out of stock.']);
+            exit;
+        }
+
+        if ($productId && addToCart($productId, $quantity)) {
+            echo json_encode(['success' => true, 'message' => 'Item added to your cart!', 'cartCount' => getCartCount()]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Could not add item to cart.']);
+        }
+        exit;
+    }
+
+    if ($action === 'add_wishlist' && isFeatureEnabled('wishlists')) {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        if ($productId) {
+            addToWishlist($productId);
+            echo json_encode(['success' => true, 'message' => 'Added to your wishlist!', 'wishlistCount' => getWishlistCount()]);
+        }
+        exit;
+    }
+
+    if ($action === 'remove_wishlist' && isFeatureEnabled('wishlists')) {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        if ($productId) {
+            removeFromWishlist($productId);
+            echo json_encode(['success' => true, 'message' => 'Removed from wishlist.', 'wishlistCount' => getWishlistCount()]);
+        }
+        exit;
+    }
+
+    echo json_encode(['success' => false, 'message' => 'Unknown action.']);
+    exit;
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -206,12 +271,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('index.php?page=checkout');
         }
 
+        // Calculate shipping
+        $shippingMethodId = (int)($_POST['shipping_method_id'] ?? 0);
+        $shippingCost = 0;
+        $shippingMethodName = '';
+        if ($shippingMethodId > 0) {
+            $shippingCost = calculateShipping($shippingMethodId);
+            $sm = getShippingMethod($shippingMethodId);
+            $shippingMethodName = $sm ? $sm['name'] : '';
+        }
+
         // Create order (with coupon if applied)
         $orderId = createOrder($customerData, $paymentMethod);
         if (!$orderId) {
             $_SESSION['flash_message'] = 'There was a problem creating your order. Please try again.';
             $_SESSION['flash_type'] = 'error';
             redirect('index.php?page=checkout');
+        }
+
+        // Update order with shipping info
+        if ($shippingCost > 0 || $shippingMethodName) {
+            $db = getDB();
+            $db->prepare('UPDATE orders SET shipping_cost = ?, shipping_method = ?, total = total + ? WHERE id = ?')
+               ->execute([$shippingCost, $shippingMethodName, $shippingCost, $orderId]);
         }
 
         // Process inventory
@@ -322,6 +404,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         redirect('index.php?page=wishlist');
+    }
+
+    // ---- Review Submission ----
+    if ($action === 'submit_review' && isFeatureEnabled('reviews') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        if (isFormRateLimited('review', 3, 3600)) {
+            $_SESSION['flash_message'] = 'Too many reviews submitted. Please try again later.';
+            $_SESSION['flash_type'] = 'error';
+        } else {
+            $productId = (int)($_POST['product_id'] ?? 0);
+            $data = [
+                'name' => trim($_POST['reviewer_name'] ?? ''),
+                'email' => trim($_POST['reviewer_email'] ?? ''),
+                'rating' => (int)($_POST['rating'] ?? 0),
+                'title' => trim($_POST['review_title'] ?? ''),
+                'body' => trim($_POST['review_body'] ?? ''),
+            ];
+
+            $errors = [];
+            if (!$data['name']) $errors[] = 'Name is required.';
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
+            if ($data['rating'] < 1 || $data['rating'] > 5) $errors[] = 'Rating must be between 1 and 5.';
+            if (!$data['body'] || strlen($data['body']) < 10) $errors[] = 'Review must be at least 10 characters.';
+
+            if (empty($errors) && $productId) {
+                recordFormSubmission('review');
+                submitReview($productId, $data);
+                $_SESSION['flash_message'] = 'Thank you for your review! It will be visible after approval.';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = !empty($errors) ? implode(' ', $errors) : 'Could not submit review.';
+                $_SESSION['flash_type'] = 'error';
+            }
+        }
+        $slug = $_POST['product_slug'] ?? '';
+        redirect('index.php?page=product&slug=' . urlencode($slug) . '#reviews');
     }
 
     // ---- Customer Account Actions ----

@@ -9,6 +9,10 @@ require_once __DIR__ . '/customers.php';
 require_once __DIR__ . '/inventory.php';
 require_once __DIR__ . '/coupons.php';
 require_once __DIR__ . '/search.php';
+require_once __DIR__ . '/reviews.php';
+require_once __DIR__ . '/email.php';
+require_once __DIR__ . '/audit.php';
+require_once __DIR__ . '/shipping.php';
 
 // ============================================================
 // Store Configuration Helpers
@@ -34,6 +38,7 @@ function isFeatureEnabled(string $feature): bool {
         'address'        => 'show_address',
         'business_hours' => 'show_business_hours',
         'map'            => 'show_map',
+        'reviews'        => 'enable_reviews',
     ];
 
     $key = $map[$feature] ?? $feature;

@@ -70,12 +70,20 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/coupons.php'); ?>" class="<?php echo $adminPage === 'coupons' ? 'active' : ''; ?>">
             <i class="fas fa-ticket-alt"></i> Coupons
         </a>
+        <a href="<?php echo url('admin/shipping.php'); ?>" class="<?php echo $adminPage === 'shipping' ? 'active' : ''; ?>">
+            <i class="fas fa-shipping-fast"></i> Shipping
+        </a>
         <?php endif; ?>
 
         <div class="nav-section">Engagement</div>
         <?php if (isFeatureEnabled('testimonials')): ?>
         <a href="<?php echo url('admin/testimonials.php'); ?>" class="<?php echo $adminPage === 'testimonials' || $adminPage === 'testimonial-edit' ? 'active' : ''; ?>">
             <i class="fas fa-quote-right"></i> Testimonials
+        </a>
+        <?php endif; ?>
+        <?php if (isFeatureEnabled('reviews')): ?>
+        <a href="<?php echo url('admin/reviews.php'); ?>" class="<?php echo $adminPage === 'reviews' ? 'active' : ''; ?>">
+            <i class="fas fa-star"></i> Reviews
         </a>
         <?php endif; ?>
         <?php if (isFeatureEnabled('contact_form') || isFeatureEnabled('order_inquiry')): ?>
@@ -90,6 +98,12 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <div class="nav-section">System</div>
         <a href="<?php echo url('admin/media.php'); ?>" class="<?php echo $adminPage === 'media' ? 'active' : ''; ?>">
             <i class="fas fa-photo-video"></i> Media Library
+        </a>
+        <a href="<?php echo url('admin/export.php'); ?>" class="<?php echo $adminPage === 'export' ? 'active' : ''; ?>">
+            <i class="fas fa-download"></i> Export Data
+        </a>
+        <a href="<?php echo url('admin/audit-log.php'); ?>" class="<?php echo $adminPage === 'audit-log' ? 'active' : ''; ?>">
+            <i class="fas fa-clipboard-list"></i> Audit Log
         </a>
         <a href="<?php echo url('admin/settings.php'); ?>" class="<?php echo $adminPage === 'settings' ? 'active' : ''; ?>">
             <i class="fas fa-cog"></i> Settings

@@ -9,6 +9,8 @@ $csrfToken = generateCSRFToken();
 $enabledProviders = getEnabledPaymentProviders();
 $hasPhysical = cartHasPhysicalItems();
 $companyPhone = getSetting('company_phone');
+$shippingMethods = $hasPhysical ? getAvailableShippingMethods() : [];
+$customer = isCustomerLoggedIn() ? getLoggedInCustomer() : null;
 
 // Redirect to cart if empty
 if (empty($cart)) {
@@ -55,16 +57,16 @@ if (empty($cart)) {
                     <h3><i class="fas fa-user"></i> Contact Information</h3>
                     <div class="form-group">
                         <label for="checkout_name">Full Name <span class="required">*</span></label>
-                        <input type="text" id="checkout_name" name="name" class="form-control" required placeholder="Your full name">
+                        <input type="text" id="checkout_name" name="name" class="form-control" required placeholder="Your full name" value="<?php echo $customer ? e($customer['first_name'] . ' ' . $customer['last_name']) : ''; ?>">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="checkout_email">Email Address <span class="required">*</span></label>
-                            <input type="email" id="checkout_email" name="email" class="form-control" required placeholder="your@email.com">
+                            <input type="email" id="checkout_email" name="email" class="form-control" required placeholder="your@email.com" value="<?php echo $customer ? e($customer['email']) : ''; ?>">
                         </div>
                         <div class="form-group">
                             <label for="checkout_phone">Phone Number</label>
-                            <input type="tel" id="checkout_phone" name="phone" class="form-control" placeholder="(555) 000-0000">
+                            <input type="tel" id="checkout_phone" name="phone" class="form-control" placeholder="(555) 000-0000" value="<?php echo $customer ? e($customer['phone'] ?? '') : ''; ?>">
                         </div>
                     </div>
                 </div>
@@ -75,9 +77,37 @@ if (empty($cart)) {
                         <h3><i class="fas fa-truck"></i> Shipping Address</h3>
                         <div class="form-group">
                             <label for="checkout_address">Full Address <span class="required">*</span></label>
-                            <textarea id="checkout_address" name="shipping_address" class="form-control" rows="3" required placeholder="Street address, city, state, ZIP code"></textarea>
+                            <textarea id="checkout_address" name="shipping_address" class="form-control" rows="3" required placeholder="Street address, city, state, ZIP code"><?php echo $customer ? e($customer['default_shipping_address'] ?? '') : ''; ?></textarea>
                         </div>
                     </div>
+
+                    <?php if (!empty($shippingMethods)): ?>
+                    <div class="form-section">
+                        <h3><i class="fas fa-shipping-fast"></i> Shipping Method</h3>
+                        <div class="payment-options">
+                            <?php foreach ($shippingMethods as $idx => $sm): ?>
+                                <label class="payment-option">
+                                    <input type="radio" name="shipping_method_id" value="<?php echo $sm['id']; ?>" <?php echo $idx === 0 ? 'checked' : ''; ?>>
+                                    <div class="payment-option-content">
+                                        <div class="payment-icon"><i class="fas fa-<?php echo $sm['cost'] == 0 ? 'gift' : 'box'; ?>"></i></div>
+                                        <div style="flex:1;">
+                                            <strong><?php echo e($sm['name']); ?></strong>
+                                            <?php if ($sm['estimated_days']): ?>
+                                                <small><?php echo e($sm['estimated_days']); ?></small>
+                                            <?php endif; ?>
+                                            <?php if ($sm['free_threshold'] > 0 && $sm['cost'] == 0 && $sm['original_cost'] > 0): ?>
+                                                <small style="color: var(--color-success);">Free shipping applied!</small>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div style="font-weight: 700;">
+                                            <?php echo $sm['cost'] == 0 ? 'FREE' : formatCurrency($sm['cost']); ?>
+                                        </div>
+                                    </div>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <!-- Additional Notes -->
@@ -195,9 +225,15 @@ if (empty($cart)) {
                             <span><?php echo formatCurrency($totals['tax']); ?></span>
                         </div>
                     <?php endif; ?>
+                    <?php if (!empty($shippingMethods)): ?>
+                        <div class="summary-row" id="shippingSummary">
+                            <span>Shipping</span>
+                            <span id="shippingCost"><?php echo $shippingMethods[0]['cost'] == 0 ? 'FREE' : formatCurrency($shippingMethods[0]['cost']); ?></span>
+                        </div>
+                    <?php endif; ?>
                     <div class="summary-row summary-total">
                         <span>Total</span>
-                        <span><?php echo formatCurrency($totals['total']); ?></span>
+                        <span id="orderTotal"><?php echo formatCurrency($totals['total'] + ($shippingMethods[0]['cost'] ?? 0)); ?></span>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: var(--space-lg);">
