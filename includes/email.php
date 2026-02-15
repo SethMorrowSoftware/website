@@ -238,6 +238,25 @@ function sendOrderEmail(int $orderId): bool {
 }
 
 /**
+ * Send password reset email
+ */
+function sendPasswordResetEmail(string $toEmail, string $firstName, string $token): bool {
+    $baseUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http')
+        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+    $resetUrl = $baseUrl . '/reset-password?token=' . urlencode($token);
+    $companyName = getSetting('company_name', 'Our Store');
+
+    $bodyHtml = '<p>Hi ' . e($firstName) . ',</p>';
+    $bodyHtml .= '<p>We received a request to reset your password. Click the button below to set a new password:</p>';
+    $bodyHtml .= '<p style="text-align:center;margin:24px 0;"><a href="' . e($resetUrl) . '" style="display:inline-block;padding:12px 32px;background:' . e(getSetting('primary_color', '#2563EB')) . ';color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Reset Password</a></p>';
+    $bodyHtml .= '<p>If you did not request this, you can safely ignore this email. The link will expire in 1 hour.</p>';
+    $bodyHtml .= '<p style="font-size:12px;color:#94a3b8;margin-top:24px;">If the button doesn\'t work, copy and paste this URL into your browser:<br>' . e($resetUrl) . '</p>';
+
+    $html = buildEmailHtml('Password Reset', $bodyHtml);
+    return sendEmail($toEmail, 'Reset Your Password - ' . $companyName, $html);
+}
+
+/**
  * Send test email from admin settings
  */
 function sendTestEmail(string $toEmail): bool {

@@ -318,6 +318,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $order = getOrder($orderId);
 
+        // Store order number in session for order-complete page verification
+        $_SESSION['recent_order_number'] = $order['order_number'];
+
         // Route to payment provider
         switch ($paymentMethod) {
             case 'stripe':
@@ -508,6 +511,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // ---- Forgot Password ----
+    if ($action === 'forgot_password' && isFeatureEnabled('customer_accounts') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        if (isFormRateLimited('forgot_password', 5, 300)) {
+            $_SESSION['flash_message'] = 'Too many attempts. Please try again later.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=forgot-password');
+        }
+
+        $email = trim($_POST['email'] ?? '');
+        // Always show success message to prevent email enumeration
+        $_SESSION['flash_message'] = 'If an account exists with that email, a password reset link has been sent.';
+        $_SESSION['flash_type'] = 'success';
+
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            recordFormSubmission('forgot_password');
+            $customer = getCustomerByEmail($email);
+            if ($customer) {
+                $token = createPasswordResetToken($customer['id']);
+                sendPasswordResetEmail($customer['email'], $customer['first_name'], $token);
+            }
+        }
+        redirect('index.php?page=forgot-password');
+    }
+
+    // ---- Reset Password ----
+    if ($action === 'reset_password' && isFeatureEnabled('customer_accounts') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $token = $_POST['token'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $passwordConfirm = $_POST['password_confirm'] ?? '';
+
+        if (strlen($password) < 8) {
+            $_SESSION['flash_message'] = 'Password must be at least 8 characters.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=reset-password&token=' . urlencode($token));
+        }
+
+        if ($password !== $passwordConfirm) {
+            $_SESSION['flash_message'] = 'Passwords do not match.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=reset-password&token=' . urlencode($token));
+        }
+
+        $customerId = validatePasswordResetToken($token);
+        if ($customerId) {
+            resetCustomerPassword($customerId, $password);
+            $_SESSION['flash_message'] = 'Your password has been reset. You can now sign in.';
+            $_SESSION['flash_type'] = 'success';
+            redirect('index.php?page=login');
+        } else {
+            $_SESSION['flash_message'] = 'This reset link is invalid or has expired.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=forgot-password');
+        }
+    }
+
     if ($action === 'customer_logout' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         logoutCustomer();
         $_SESSION['flash_message'] = 'You have been signed out.';
@@ -579,6 +637,8 @@ $featurePageMap = [
     'login'           => 'customer_accounts',
     'register'        => 'customer_accounts',
     'account'         => 'customer_accounts',
+    'forgot-password' => 'customer_accounts',
+    'reset-password'  => 'customer_accounts',
     'wishlist'        => 'wishlists',
 ];
 if (isset($featurePageMap[$page]) && !isFeatureEnabled($featurePageMap[$page])) {

@@ -23,6 +23,14 @@ if (isFeatureEnabled('order_inquiry')) $systemPages[] = 'order';
 // Custom published pages
 $customPages = $db->query("SELECT slug, updated_at FROM pages WHERE is_published = 1 AND is_system = 0")->fetchAll();
 
+// Product pages (visible and available)
+$products = [];
+$categories = [];
+if (isFeatureEnabled('catalog')) {
+    $products = $db->query("SELECT slug, created_at FROM products WHERE is_visible = 1 AND is_available = 1")->fetchAll();
+    $categories = $db->query("SELECT slug FROM product_categories WHERE is_visible = 1")->fetchAll();
+}
+
 echo '<?xml version="1.0" encoding="UTF-8"?>';
 ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -34,6 +42,21 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
     <url>
         <loc><?php echo htmlspecialchars($baseUrl . '/' . $slug); ?></loc>
         <priority>0.8</priority>
+    </url>
+<?php endforeach; ?>
+<?php foreach ($categories as $cat): ?>
+    <url>
+        <loc><?php echo htmlspecialchars($baseUrl . '/catalog?category=' . urlencode($cat['slug'])); ?></loc>
+        <priority>0.7</priority>
+    </url>
+<?php endforeach; ?>
+<?php foreach ($products as $product): ?>
+    <url>
+        <loc><?php echo htmlspecialchars($baseUrl . '/product/' . $product['slug']); ?></loc>
+        <?php if ($product['created_at']): ?>
+        <lastmod><?php echo date('Y-m-d', strtotime($product['created_at'])); ?></lastmod>
+        <?php endif; ?>
+        <priority>0.7</priority>
     </url>
 <?php endforeach; ?>
 <?php foreach ($customPages as $cp): ?>

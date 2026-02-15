@@ -10,6 +10,12 @@ $items = [];
 if ($orderNumber) {
     $order = getOrderByNumber($orderNumber);
     if ($order) {
+        // Verify order belongs to the current session's pending PayPal checkout
+        if (!isset($_SESSION['pending_paypal_order']) || (int)$_SESSION['pending_paypal_order'] !== (int)$order['id']) {
+            $_SESSION['flash_message'] = 'Invalid checkout session. Please try again.';
+            $_SESSION['flash_type'] = 'error';
+            redirect('index.php?page=cart');
+        }
         $items = getOrderItems($order['id']);
     }
 }
