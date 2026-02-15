@@ -39,7 +39,7 @@ $twitterUrl = getSetting('twitter_url');
         <div class="footer-grid">
             <div class="footer-about">
                 <div class="footer-logo">
-                    <i class="fas fa-recycle"></i> Hudson Valley Supply &amp; Recycling
+                    <i class="fas fa-building"></i> <?php echo e($companyName); ?>
                 </div>
                 <p><?php echo e(getSetting('tagline')); ?></p>
                 <div class="footer-social-links">

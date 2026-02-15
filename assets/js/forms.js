@@ -1,6 +1,6 @@
 /**
  * Form Handling & Multi-Step Order Form
- * Hudson Valley Supply & Recycling LLC
+ * Business Website CMS
  */
 
 document.addEventListener('DOMContentLoaded', function() {

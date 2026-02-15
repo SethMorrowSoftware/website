@@ -21,7 +21,7 @@ $containers = getContainers();
     <?php endif; ?>
     <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'Hudson Valley Supply & Recycling'); ?></h1>
+        <h1><?php echo e($hero['title'] ?? 'Your Business Name'); ?></h1>
         <p><?php echo e($hero['subtitle'] ?? 'Your Trusted Source for Containers, Materials & Hauling Services'); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text']): ?>
@@ -59,7 +59,7 @@ $containers = getContainers();
                     <i class="fas fa-leaf"></i>
                 </div>
                 <h3>Materials &amp; Products</h3>
-                <p>Premium mulch, stone, topsoil, sand, and bulk salt. Available for pickup or delivery throughout the Hudson Valley.</p>
+                <p>Premium mulch, stone, topsoil, sand, and bulk salt. Available for pickup or delivery throughout our service area.</p>
                 <span class="btn btn-sm btn-outline-dark">View Products</span>
             </a>
 
@@ -171,7 +171,7 @@ $containers = getContainers();
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-handshake"></i></div>
                 <h4>Locally Owned</h4>
-                <p>A family-run business proudly serving the Hudson Valley community.</p>
+                <p>A locally owned business proudly serving our community.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-clock"></i></div>

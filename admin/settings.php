@@ -109,15 +109,15 @@ require_once __DIR__ . '/header.php';
             <div class="form-group">
                 <label>Primary Color</label>
                 <div class="color-input-wrap">
-                    <input type="color" name="primary_color" value="<?php echo e(getSetting('primary_color', '#1B4D3E')); ?>" class="color-input">
-                    <input type="text" value="<?php echo e(getSetting('primary_color', '#1B4D3E')); ?>" class="form-control color-text" readonly>
+                    <input type="color" name="primary_color" value="<?php echo e(getSetting('primary_color', '#2563EB')); ?>" class="color-input">
+                    <input type="text" value="<?php echo e(getSetting('primary_color', '#2563EB')); ?>" class="form-control color-text" readonly>
                 </div>
             </div>
             <div class="form-group">
                 <label>Secondary Color</label>
                 <div class="color-input-wrap">
-                    <input type="color" name="secondary_color" value="<?php echo e(getSetting('secondary_color', '#D4A843')); ?>" class="color-input">
-                    <input type="text" value="<?php echo e(getSetting('secondary_color', '#D4A843')); ?>" class="form-control color-text" readonly>
+                    <input type="color" name="secondary_color" value="<?php echo e(getSetting('secondary_color', '#F59E0B')); ?>" class="color-input">
+                    <input type="text" value="<?php echo e(getSetting('secondary_color', '#F59E0B')); ?>" class="form-control color-text" readonly>
                 </div>
             </div>
         </div>

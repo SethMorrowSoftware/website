@@ -50,9 +50,9 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
 
     <?php
     // Dynamic theme colors from admin settings
-    $primaryColor = getSetting('primary_color', '#1B4D3E');
-    $secondaryColor = getSetting('secondary_color', '#D4A843');
-    if ($primaryColor !== '#1B4D3E' || $secondaryColor !== '#D4A843'):
+    $primaryColor = getSetting('primary_color', '#2563EB');
+    $secondaryColor = getSetting('secondary_color', '#F59E0B');
+    if ($primaryColor !== '#2563EB' || $secondaryColor !== '#F59E0B'):
     ?>
     <style>
         :root {
@@ -125,11 +125,10 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
                 <?php if ($logoUrl): ?>
                     <img src="<?php echo e($logoUrl); ?>" alt="<?php echo e($companyName); ?>">
                 <?php else: ?>
-                    <i class="fas fa-recycle" style="font-size: 2rem; color: var(--color-primary);"></i>
+                    <i class="fas fa-building" style="font-size: 2rem; color: var(--color-primary);"></i>
                 <?php endif; ?>
                 <div class="logo-text">
-                    Hudson Valley<br>Supply &amp; Recycling
-                    <small>LLC</small>
+                    <?php echo e($companyName); ?>
                 </div>
             </a>
 

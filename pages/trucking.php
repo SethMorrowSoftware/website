@@ -14,7 +14,7 @@ $hero = getHero('trucking');
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? 'Trucking Services'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Reliable Delivery & Hauling Throughout the Hudson Valley'); ?></p>
+        <p><?php echo e($hero['subtitle'] ?? 'Reliable Delivery & Hauling Throughout Your Area'); ?></p>
         <?php if ($hero && $hero['cta_text']): ?>
             <a href="<?php echo e(url($hero['cta_link'])); ?>" class="btn btn-primary btn-lg"><?php echo e($hero['cta_text']); ?></a>
         <?php endif; ?>
@@ -107,7 +107,7 @@ $hero = getHero('trucking');
                 <div class="stats-grid mt-2">
                     <div class="stat-item">
                         <div class="number"><i class="fas fa-map-marked-alt" style="font-size: var(--text-3xl);"></i></div>
-                        <div class="label">Multiple Counties Served</div>
+                        <div class="label">Wide Area Served</div>
                     </div>
                     <div class="stat-item">
                         <div class="number"><i class="fas fa-clock" style="font-size: var(--text-3xl);"></i></div>
@@ -120,7 +120,7 @@ $hero = getHero('trucking');
                 </div>
             </div>
             <div class="about-image fade-in">
-                <div class="placeholder-banner" style="background: linear-gradient(135deg, #2d5a4e, #1B4D3E);">
+                <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));">
                     <i class="fas fa-map-marked-alt"></i>
                 </div>
             </div>

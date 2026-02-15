@@ -192,7 +192,7 @@ $csrfToken = generateCSRFToken();
                         </div>
                         <div class="form-group">
                             <label for="order_phone">Phone Number <span class="required">*</span></label>
-                            <input type="tel" id="order_phone" name="phone" class="form-control" required placeholder="(845) 555-0000">
+                            <input type="tel" id="order_phone" name="phone" class="form-control" required placeholder="(555) 000-0000">
                         </div>
                     </div>
                     <div class="form-group">

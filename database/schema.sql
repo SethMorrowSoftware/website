@@ -1,4 +1,4 @@
--- Hudson Valley Supply & Recycling LLC
+-- Business Website CMS
 -- Database Schema
 
 -- Site-wide settings (key-value store)

@@ -53,7 +53,7 @@ function toggleSource() {
         editorArea.textContent = editorArea.innerHTML;
         editorArea.contentEditable = 'true';
         sourceMode = true;
-        if (sourceBtn) sourceBtn.style.background = '#1B4D3E';
+        if (sourceBtn) sourceBtn.style.background = '#2563EB';
         if (sourceBtn) sourceBtn.style.color = '#fff';
     }
     syncContent();

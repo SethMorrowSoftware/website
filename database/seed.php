@@ -13,16 +13,16 @@ function seedDatabase(PDO $db): void {
 
     // Site settings
     $settings = [
-        ['company_name', 'Hudson Valley Supply & Recycling LLC', 'text'],
-        ['company_phone', '(845) 555-0123', 'text'],
-        ['company_email', 'info@hudsonvalleysupply.com', 'text'],
-        ['company_address', '123 Industrial Park Drive, Newburgh, NY 12550', 'text'],
-        ['contact_email', 'info@hudsonvalleysupply.com', 'text'],
-        ['business_hours', "Monday - Friday: 7:00 AM - 5:00 PM\nSaturday: 8:00 AM - 2:00 PM\nSunday: Closed", 'text'],
-        ['google_maps_embed', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d95890.21!2d-74.05!3d41.50!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDHCsDMwJzAwLjAiTiA3NMKwMDMnMDAuMCJX!5e0!3m2!1sen!2sus!4v1234567890', 'text'],
-        ['footer_text', '&copy; ' . date('Y') . ' Hudson Valley Supply & Recycling LLC. All Rights Reserved.', 'html'],
-        ['primary_color', '#1B4D3E', 'text'],
-        ['secondary_color', '#D4A843', 'text'],
+        ['company_name', 'Your Business Name', 'text'],
+        ['company_phone', '(555) 000-0000', 'text'],
+        ['company_email', 'info@yourbusiness.com', 'text'],
+        ['company_address', '123 Main Street, Anytown, ST 12345', 'text'],
+        ['contact_email', 'info@yourbusiness.com', 'text'],
+        ['business_hours', "Monday - Friday: 8:00 AM - 5:00 PM\nSaturday: 9:00 AM - 1:00 PM\nSunday: Closed", 'text'],
+        ['google_maps_embed', '', 'text'],
+        ['footer_text', '&copy; ' . date('Y') . ' Your Business Name. All Rights Reserved.', 'html'],
+        ['primary_color', '#2563EB', 'text'],
+        ['secondary_color', '#F59E0B', 'text'],
         ['facebook_url', '', 'text'],
         ['instagram_url', '', 'text'],
         ['twitter_url', '', 'text'],
@@ -31,8 +31,8 @@ function seedDatabase(PDO $db): void {
         ['logo', '', 'image'],
         ['favicon', '', 'image'],
         ['tagline', 'Your Trusted Source for Containers, Materials & Hauling', 'text'],
-        ['about_text', 'Hudson Valley Supply & Recycling LLC is a locally owned and operated business proudly serving the Hudson Valley region. With years of experience in the industry, we provide reliable roll-off container services, premium landscaping materials, and professional trucking services to residential and commercial customers alike.', 'text'],
-        ['service_area', 'Proudly serving Orange County, Dutchess County, Ulster County, Rockland County, and surrounding areas throughout the Hudson Valley region of New York.', 'text'],
+        ['about_text', 'We are a locally owned and operated business proudly serving our community. With years of experience in the industry, we provide reliable roll-off container services, premium landscaping materials, and professional trucking services to residential and commercial customers alike.', 'text'],
+        ['service_area', 'Proudly serving our local community and surrounding areas. Contact us to confirm service availability in your location.', 'text'],
     ];
 
     $stmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');
@@ -42,14 +42,14 @@ function seedDatabase(PDO $db): void {
 
     // Pages
     $pages = [
-        ['Home', 'home', '', 'Hudson Valley Supply & Recycling - Roll Off Containers, Mulch, Stone, Sand & Trucking Services', 1, 1, 0, 1, 'home'],
-        ['About Us', 'about', '', 'Learn about Hudson Valley Supply & Recycling LLC - your trusted local supplier', 1, 1, 1, 1, 'default'],
+        ['Home', 'home', '', 'Roll Off Containers, Landscaping Materials & Trucking Services', 1, 1, 0, 1, 'home'],
+        ['About Us', 'about', '', 'Learn about our company - your trusted local supplier', 1, 1, 1, 1, 'default'],
         ['Roll Off Containers', 'containers', '', 'Roll off container rentals in various sizes - 10, 15, 20, 30, 40 yard containers', 1, 1, 2, 1, 'containers'],
         ['Materials & Products', 'materials', '', 'Premium mulch, stone, topsoil, sand and bulk salt for delivery', 1, 1, 3, 1, 'products'],
-        ['Trucking Services', 'trucking', '', 'Professional trucking and hauling services in the Hudson Valley', 1, 1, 4, 1, 'default'],
-        ['Contact Us', 'contact', '', 'Contact Hudson Valley Supply & Recycling for quotes and information', 1, 1, 5, 1, 'contact'],
+        ['Trucking Services', 'trucking', '', 'Professional trucking and hauling services in your area', 1, 1, 4, 1, 'default'],
+        ['Contact Us', 'contact', '', 'Contact us for quotes and information', 1, 1, 5, 1, 'contact'],
         ['Order Inquiry', 'order', '', 'Submit an order inquiry for containers, materials, or trucking services', 1, 1, 6, 1, 'order'],
-        ['Payment', 'payment', '', 'Make a payment to Hudson Valley Supply & Recycling', 1, 1, 7, 0, 'payment'],
+        ['Payment', 'payment', '', 'Make a payment online', 1, 1, 7, 0, 'payment'],
     ];
 
     $stmt = $db->prepare('INSERT INTO pages (title, slug, content, meta_description, is_system, is_published, sort_order, show_in_nav, template) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
@@ -75,13 +75,13 @@ function seedDatabase(PDO $db): void {
 
     // Hero sections — store relative paths; url() is applied at render time
     $heroes = [
-        ['home', 'Hudson Valley Supply & Recycling', 'Your Trusted Source for Containers, Materials & Hauling Services', 'Get a Free Quote', 'index.php?page=order', '', '', 0.5],
+        ['home', 'Your Business Name', 'Your Trusted Source for Containers, Materials & Hauling Services', 'Get a Free Quote', 'index.php?page=order', '', '', 0.5],
         ['containers', 'Roll Off Containers', 'Available in 10, 15, 20, 30 & 40 Yard Sizes', 'Request a Container', 'index.php?page=order', '', '', 0.5],
         ['materials', 'Materials & Products', 'Premium Mulch, Stone, Topsoil, Sand & Bulk Salt', 'Order Materials', 'index.php?page=order', '', '', 0.5],
-        ['trucking', 'Trucking Services', 'Reliable Delivery & Hauling Throughout the Hudson Valley', 'Get a Quote', 'index.php?page=order', '', '', 0.5],
+        ['trucking', 'Trucking Services', 'Reliable Delivery & Hauling Throughout Your Area', 'Get a Quote', 'index.php?page=order', '', '', 0.5],
         ['contact', 'Contact Us', 'We\'re Here to Help — Reach Out Today', '', '', '', '', 0.5],
         ['order', 'Order Inquiry', 'Tell Us What You Need — We\'ll Get Back to You Fast', '', '', '', '', 0.5],
-        ['about', 'About Us', 'Locally Owned & Operated — Serving the Hudson Valley', '', '', '', '', 0.5],
+        ['about', 'About Us', 'Locally Owned & Operated — Serving Our Community', '', '', '', '', 0.5],
     ];
 
     $stmt = $db->prepare('INSERT INTO hero_sections (page_slug, title, subtitle, cta_text, cta_link, background_video, background_image, overlay_opacity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
@@ -141,11 +141,11 @@ function seedDatabase(PDO $db): void {
 
     // Containers
     $containers = [
-        ['10 Yard Container', '10', 'yard', '12\' x 8\' x 3.5\'', 'Our smallest roll-off container, perfect for small cleanouts, bathroom or kitchen renovations, and single-room projects.', 'Small renovations, garage cleanouts, yard debris', '', 'Call for Pricing', 'Pricing varies by material and location', 0],
+        ['10 Yard Container', '10', 'yard', '12\' x 8\' x 3.5\'', 'The smallest roll-off container, perfect for small cleanouts, bathroom or kitchen renovations, and single-room projects.', 'Small renovations, garage cleanouts, yard debris', '', 'Call for Pricing', 'Pricing varies by material and location', 0],
         ['15 Yard Container', '15', 'yard', '16\' x 8\' x 4\'', 'A versatile mid-size option ideal for medium renovation projects, roofing jobs, and larger cleanouts.', 'Medium renovations, roofing projects, basement cleanouts', '', 'Call for Pricing', 'Pricing varies by material and location', 1],
-        ['20 Yard Container', '20', 'yard', '22\' x 8\' x 4.5\'', 'Our most popular size. Great for large home renovation projects, construction debris, and major cleanouts.', 'Large renovations, construction projects, whole-house cleanouts', '', 'Call for Pricing', 'Pricing varies by material and location', 2],
+        ['20 Yard Container', '20', 'yard', '22\' x 8\' x 4.5\'', 'The most popular size. Great for large home renovation projects, construction debris, and major cleanouts.', 'Large renovations, construction projects, whole-house cleanouts', '', 'Call for Pricing', 'Pricing varies by material and location', 2],
         ['30 Yard Container', '30', 'yard', '22\' x 8\' x 6\'', 'Large capacity container for major construction and demolition projects. Handles significant volumes of debris.', 'Major construction, commercial projects, large demolitions', '', 'Call for Pricing', 'Pricing varies by material and location', 3],
-        ['40 Yard Container', '40', 'yard', '22\' x 8\' x 8\'', 'Our largest container for the biggest jobs. Ideal for commercial construction, industrial cleanouts, and large-scale projects.', 'Commercial construction, industrial projects, large-scale demolitions', '', 'Call for Pricing', 'Pricing varies by material and location', 4],
+        ['40 Yard Container', '40', 'yard', '22\' x 8\' x 8\'', 'The largest container for the biggest jobs. Ideal for commercial construction, industrial cleanouts, and large-scale projects.', 'Commercial construction, industrial projects, large-scale demolitions', '', 'Call for Pricing', 'Pricing varies by material and location', 4],
     ];
 
     $stmt = $db->prepare('INSERT INTO containers (name, size, unit, dimensions, description, use_cases, image, price, price_note, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
@@ -155,10 +155,10 @@ function seedDatabase(PDO $db): void {
 
     // Testimonials
     $testimonials = [
-        ['Mike R.', 'Hudson Valley Supply delivered our mulch right on time and the quality was outstanding. We\'ve been using them for our landscaping projects for three years now. Highly recommend!', 0],
-        ['Sarah L.', 'We needed a 20-yard container for our home renovation. The process was seamless from ordering to pickup. Fair pricing and great customer service.', 1],
-        ['Tom B.', 'Best stone prices in the Hudson Valley. We use them for all our commercial projects. Their trucking team is always professional and reliable.', 2],
-        ['Jennifer K.', 'Called on a Monday morning and had a container in my driveway by afternoon. Can\'t beat that kind of service. Will definitely use again!', 3],
+        ['Sample Customer A.', 'The delivery was right on time and the quality was outstanding. We have been using them for our landscaping projects for years now. Highly recommend!', 0],
+        ['Sample Customer B.', 'We needed a 20-yard container for our home renovation. The process was seamless from ordering to pickup. Fair pricing and great customer service.', 1],
+        ['Sample Customer C.', 'Best prices in town. We use them for all our commercial projects. The trucking team is always professional and reliable.', 2],
+        ['Sample Customer D.', 'Called on a Monday morning and had a container in my driveway by afternoon. Cannot beat that kind of service. Will definitely use again!', 3],
     ];
 
     $stmt = $db->prepare('INSERT INTO testimonials (customer_name, quote, sort_order) VALUES (?, ?, ?)');

@@ -16,7 +16,7 @@ $serviceArea = getSetting('service_area');
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? 'About Us'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Locally Owned & Operated — Serving the Hudson Valley'); ?></p>
+        <p><?php echo e($hero['subtitle'] ?? 'Locally Owned & Operated — Serving Our Community'); ?></p>
     </div>
 </section>
 
@@ -35,7 +35,7 @@ $serviceArea = getSetting('service_area');
         <div class="about-content">
             <div class="about-image fade-in">
                 <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));">
-                    <i class="fas fa-recycle"></i>
+                    <i class="fas fa-building"></i>
                 </div>
             </div>
             <div class="about-text fade-in">
@@ -75,7 +75,7 @@ $serviceArea = getSetting('service_area');
         </div>
         <div style="max-width: 800px; margin: 0 auto; text-align: center;" class="fade-in">
             <p style="font-size: var(--text-lg); color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                To provide the Hudson Valley community with reliable, high-quality supply and recycling services at fair prices. We are committed to environmental responsibility, exceptional customer service, and supporting local growth through dependable partnerships.
+                To provide our community with reliable, high-quality supply and services at fair prices. We are committed to exceptional customer service and supporting local growth through dependable partnerships.
             </p>
         </div>
 
@@ -93,7 +93,7 @@ $serviceArea = getSetting('service_area');
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-users"></i></div>
                 <h4>Community First</h4>
-                <p>Proud to serve our neighbors throughout the Hudson Valley.</p>
+                <p>Proud to serve our neighbors throughout the community.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-truck"></i></div>

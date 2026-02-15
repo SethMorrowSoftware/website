@@ -1,8 +1,8 @@
-# Hudson Valley Supply & Recycling LLC — Website Plan
+# Business Website CMS — Platform Plan
 
 ## Overview
 
-A professional, fully-featured business website built with vanilla HTML/CSS/JS and PHP. Includes a complete admin CMS backend so the business owner (non-programmer) can manage all content — text, images, pages, products, and site settings — without touching code.
+A professional, fully-featured business website template built with vanilla HTML/CSS/JS and PHP. Includes a complete admin CMS backend so the business owner (non-programmer) can manage all content — text, images, pages, products, and site settings — without touching code. Designed as a blank starting point for service-oriented businesses.
 
 All dynamic content is stored in a SQLite database (zero-config, no MySQL setup needed). The admin panel provides a WYSIWYG-style interface for full site management.
 
@@ -410,8 +410,8 @@ CREATE TABLE hero_sections (
 ## Design Specifications
 
 ### Color Palette (Admin-configurable via CSS variables)
-- **Primary:** #1B4D3E (dark forest green — earthy, construction/landscape feel)
-- **Secondary:** #D4A843 (warm gold — professional accent)
+- **Primary:** #2563EB (blue — professional, versatile)
+- **Secondary:** #F59E0B (amber — warm accent)
 - **Dark:** #1a1a1a
 - **Light:** #f5f5f0 (warm off-white)
 - **Text:** #333333
@@ -542,4 +542,4 @@ CREATE TABLE hero_sections (
 
 - **URL:** `/admin`
 - **Username:** `admin`
-- **Password:** `HVSupply2024!` (must be changed on first login)
+- **Password:** Randomly generated on first run (see `ADMIN_CREDENTIALS.txt`)

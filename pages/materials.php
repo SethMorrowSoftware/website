@@ -105,13 +105,13 @@ $categories = getCategories();
             <div class="fade-in">
                 <h2>Delivery Available</h2>
                 <p style="color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                    All of our materials are available for delivery throughout the Hudson Valley region. We offer prompt, reliable delivery service with our fleet of trucks. Whether you need a single yard of mulch or a full truckload of stone, we'll get it to you on time.
+                    All of our materials are available for delivery throughout our service area. We offer prompt, reliable delivery service with our fleet of trucks. Whether you need a single yard of mulch or a full truckload of stone, we'll get it to you on time.
                 </p>
                 <ul style="list-style: none; margin: var(--space-xl) 0;">
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Same-day delivery available (call early!)</li>
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Accurate, on-time scheduling</li>
                     <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Bulk discounts for large orders</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving all of Orange, Dutchess, Ulster &amp; Rockland Counties</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community and surrounding areas</li>
                 </ul>
                 <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary">Order Materials</a>
             </div>

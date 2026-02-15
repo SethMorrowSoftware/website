@@ -58,7 +58,7 @@ $csrfToken = generateCSRFToken();
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Open Sans', sans-serif;
-            background: linear-gradient(135deg, #1B4D3E 0%, #133829 100%);
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -79,12 +79,12 @@ $csrfToken = generateCSRFToken();
         }
         .login-logo i {
             font-size: 3rem;
-            color: #1B4D3E;
+            color: #2563EB;
         }
         .login-logo h1 {
             font-family: 'Montserrat', sans-serif;
             font-size: 1.25rem;
-            color: #1B4D3E;
+            color: #2563EB;
             margin-top: 10px;
         }
         .login-logo p {
@@ -113,8 +113,8 @@ $csrfToken = generateCSRFToken();
         }
         .form-control:focus {
             outline: none;
-            border-color: #1B4D3E;
-            box-shadow: 0 0 0 3px rgba(27,77,62,0.1);
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
         .btn-login {
             width: 100%;
@@ -124,7 +124,7 @@ $csrfToken = generateCSRFToken();
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: #1B4D3E;
+            background: #2563EB;
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -132,7 +132,7 @@ $csrfToken = generateCSRFToken();
             transition: background 0.2s;
         }
         .btn-login:hover {
-            background: #2a7a62;
+            background: #3B82F6;
         }
         .error-msg {
             background: #f8d7da;
@@ -151,15 +151,15 @@ $csrfToken = generateCSRFToken();
             font-size: 0.875rem;
             text-decoration: none;
         }
-        .back-link:hover { color: #1B4D3E; }
+        .back-link:hover { color: #2563EB; }
     </style>
 </head>
 <body>
     <div class="login-card">
         <div class="login-logo">
-            <i class="fas fa-recycle"></i>
+            <i class="fas fa-cog"></i>
             <h1>Admin Panel</h1>
-            <p>Hudson Valley Supply &amp; Recycling</p>
+            <p><?php echo e(getSetting('company_name', SITE_NAME)); ?></p>
         </div>
 
         <?php if ($error): ?>

@@ -32,8 +32,8 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
 <aside class="admin-sidebar" id="adminSidebar">
     <div class="sidebar-header">
         <a href="<?php echo url('admin/'); ?>" class="sidebar-logo">
-            <i class="fas fa-recycle"></i>
-            <span>HV Supply Admin</span>
+            <i class="fas fa-cog"></i>
+            <span>Site Admin</span>
         </a>
         <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
     </div>
