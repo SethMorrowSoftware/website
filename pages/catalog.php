@@ -71,6 +71,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                     <?php foreach ($products as $product): ?>
                         <?php $productType = $product['product_type'] ?? 'physical'; ?>
                         <div class="card fade-in">
+                            <a href="<?php echo url('index.php?page=product&slug=' . e($product['slug'])); ?>" class="card-image-link">
                             <div class="card-image">
                                 <?php if ($productType !== 'physical'): ?>
                                     <span class="product-type-badge badge-<?php echo e($productType); ?>" style="position: absolute; top: var(--space-sm); right: var(--space-sm); z-index: 2;">
@@ -83,7 +84,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                                     </span>
                                 <?php endif; ?>
                                 <?php if ($product['image']): ?>
-                                    <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>">
+                                    <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>" loading="lazy">
                                 <?php else: ?>
                                     <div class="placeholder-icon">
                                         <?php if ($productType === 'digital'): ?>
@@ -96,9 +97,10 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                                     </div>
                                 <?php endif; ?>
                             </div>
+                            </a>
                             <div class="card-body">
-                                <h4><?php echo e($product['name']); ?></h4>
-                                <p><?php echo e($product['description']); ?></p>
+                                <h4><a href="<?php echo url('index.php?page=product&slug=' . e($product['slug'])); ?>"><?php echo e($product['name']); ?></a></h4>
+                                <p><?php echo e(substr($product['description'], 0, 120)); ?><?php if (strlen($product['description']) > 120) echo '...'; ?></p>
                                 <?php if ($product['specifications']): ?>
                                     <span class="dimensions"><i class="fas fa-ruler-combined"></i> <?php echo e($product['specifications']); ?></span>
                                 <?php endif; ?>

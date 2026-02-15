@@ -33,6 +33,7 @@ $pendingOrders = $db->query("SELECT COUNT(*) FROM orders WHERE order_status IN (
 $recentContacts = $_contactFormEnabled ? $db->query('SELECT * FROM contact_submissions ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
 $recentOrders = $_orderInquiryEnabled ? $db->query('SELECT * FROM order_inquiries ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
 $recentPurchases = $_cartEnabled ? $db->query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
+$lowStockProducts = getLowStockProducts();
 
 // Store type info for display
 $storeTypeLabels = [
@@ -106,6 +107,37 @@ require_once __DIR__ . '/header.php';
         </div>
     </div>
 </div>
+
+<!-- Low Stock Alert -->
+<?php if (!empty($lowStockProducts)): ?>
+<div class="admin-section" style="margin-bottom: var(--space-xl);">
+    <h2><i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> Low Stock Alert</h2>
+    <div class="admin-card" style="margin-top: var(--space-md);">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Threshold</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($lowStockProducts as $lsp): ?>
+                <tr>
+                    <td><strong><?php echo e($lsp['name']); ?></strong></td>
+                    <td><?php echo e($lsp['category_name']); ?></td>
+                    <td><span style="color: <?php echo $lsp['stock_quantity'] == 0 ? '#ef4444' : '#f59e0b'; ?>; font-weight: bold;"><?php echo $lsp['stock_quantity']; ?></span></td>
+                    <td><?php echo $lsp['low_stock_threshold']; ?></td>
+                    <td><a href="<?php echo url('admin/product-edit.php?id=' . $lsp['id']); ?>" class="btn-admin btn-sm btn-edit"><i class="fas fa-edit"></i> Restock</a></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Quick Actions -->
 <div class="admin-section">

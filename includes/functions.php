@@ -1,9 +1,14 @@
 <?php
 /**
  * Helper functions
+ * Loads domain-specific modules for customers, inventory, coupons, search.
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/customers.php';
+require_once __DIR__ . '/inventory.php';
+require_once __DIR__ . '/coupons.php';
+require_once __DIR__ . '/search.php';
 
 // ============================================================
 // Store Configuration Helpers
@@ -1386,4 +1391,226 @@ function getProduct(int $id): ?array {
 function formatCurrency(float $amount): string {
     $symbol = getSetting('currency_symbol', '$');
     return $symbol . number_format($amount, 2);
+}
+
+// ============================================================
+// Rate Limiting for Public Forms
+// ============================================================
+
+/**
+ * Check if a form submission is rate-limited
+ * Returns true if the submission should be blocked
+ */
+function isFormRateLimited(string $formType, int $maxPerWindow = 5, int $windowSeconds = 300): bool {
+    $db = getDB();
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+    try {
+        $cutoff = date('Y-m-d H:i:s', time() - $windowSeconds);
+        $stmt = $db->prepare('SELECT COUNT(*) FROM form_submissions WHERE ip_address = ? AND form_type = ? AND created_at > ?');
+        $stmt->execute([$ip, $formType, $cutoff]);
+        return (int)$stmt->fetchColumn() >= $maxPerWindow;
+    } catch (Exception $e) {
+        return false; // Don't block on table-not-found
+    }
+}
+
+/**
+ * Record a form submission for rate limiting
+ */
+function recordFormSubmission(string $formType): void {
+    $db = getDB();
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+    try {
+        $stmt = $db->prepare('INSERT INTO form_submissions (ip_address, form_type) VALUES (?, ?)');
+        $stmt->execute([$ip, $formType]);
+        // Cleanup old entries
+        $db->exec("DELETE FROM form_submissions WHERE created_at < datetime('now', '-1 hour')");
+    } catch (Exception $e) {
+        // Silently fail if table doesn't exist yet
+    }
+}
+
+// ============================================================
+// Product Detail & Variant Functions
+// ============================================================
+
+/**
+ * Get a product by slug (for product detail pages)
+ */
+function getProductBySlug(string $slug): ?array {
+    $db = getDB();
+    $stmt = $db->prepare('SELECT p.*, pc.name as category_name, pc.slug as category_slug, pc.icon as category_icon FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.slug = ? AND p.is_visible = 1');
+    $stmt->execute([$slug]);
+    $product = $stmt->fetch();
+    return $product ?: null;
+}
+
+/**
+ * Get product images
+ */
+function getProductImages(int $productId): array {
+    $db = getDB();
+    try {
+        $stmt = $db->prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC');
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll();
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+/**
+ * Get product options (variants)
+ */
+function getProductOptions(int $productId): array {
+    $db = getDB();
+    try {
+        $stmt = $db->prepare('SELECT * FROM product_options WHERE product_id = ? ORDER BY sort_order ASC');
+        $stmt->execute([$productId]);
+        $options = $stmt->fetchAll();
+
+        foreach ($options as &$option) {
+            $valStmt = $db->prepare('SELECT * FROM product_option_values WHERE option_id = ? ORDER BY sort_order ASC');
+            $valStmt->execute([$option['id']]);
+            $option['values'] = $valStmt->fetchAll();
+        }
+
+        return $options;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+/**
+ * Get related products (same category, different product)
+ */
+function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): array {
+    $db = getDB();
+    $stmt = $db->prepare('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.category_id = ? AND p.id != ? AND p.is_visible = 1 ORDER BY p.sort_order LIMIT ?');
+    $stmt->execute([$categoryId, $productId, $limit]);
+    return $stmt->fetchAll();
+}
+
+// ============================================================
+// Wishlist Functions
+// ============================================================
+
+/**
+ * Add product to wishlist
+ */
+function addToWishlist(int $productId): bool {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $db = getDB();
+    $customerId = getCustomerId();
+    $sessionId = session_id();
+
+    try {
+        // Check if already in wishlist
+        if ($customerId) {
+            $stmt = $db->prepare('SELECT id FROM wishlists WHERE customer_id = ? AND product_id = ?');
+            $stmt->execute([$customerId, $productId]);
+        } else {
+            $stmt = $db->prepare('SELECT id FROM wishlists WHERE session_id = ? AND product_id = ?');
+            $stmt->execute([$sessionId, $productId]);
+        }
+        if ($stmt->fetch()) return true; // Already in wishlist
+
+        $stmt = $db->prepare('INSERT INTO wishlists (customer_id, session_id, product_id) VALUES (?, ?, ?)');
+        return $stmt->execute([$customerId, $sessionId, $productId]);
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+/**
+ * Remove product from wishlist
+ */
+function removeFromWishlist(int $productId): bool {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $db = getDB();
+    $customerId = getCustomerId();
+    $sessionId = session_id();
+
+    try {
+        if ($customerId) {
+            $stmt = $db->prepare('DELETE FROM wishlists WHERE customer_id = ? AND product_id = ?');
+            return $stmt->execute([$customerId, $productId]);
+        } else {
+            $stmt = $db->prepare('DELETE FROM wishlists WHERE session_id = ? AND product_id = ?');
+            return $stmt->execute([$sessionId, $productId]);
+        }
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+/**
+ * Get wishlist items
+ */
+function getWishlistItems(): array {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $db = getDB();
+    $customerId = getCustomerId();
+    $sessionId = session_id();
+
+    try {
+        if ($customerId) {
+            $stmt = $db->prepare('SELECT p.*, pc.name as category_name, w.id as wishlist_id FROM wishlists w JOIN products p ON w.product_id = p.id JOIN product_categories pc ON p.category_id = pc.id WHERE w.customer_id = ? AND p.is_visible = 1 ORDER BY w.created_at DESC');
+            $stmt->execute([$customerId]);
+        } else {
+            $stmt = $db->prepare('SELECT p.*, pc.name as category_name, w.id as wishlist_id FROM wishlists w JOIN products p ON w.product_id = p.id JOIN product_categories pc ON p.category_id = pc.id WHERE w.session_id = ? AND p.is_visible = 1 ORDER BY w.created_at DESC');
+            $stmt->execute([$sessionId]);
+        }
+        return $stmt->fetchAll();
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+/**
+ * Get wishlist count
+ */
+function getWishlistCount(): int {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $db = getDB();
+    $customerId = getCustomerId();
+    $sessionId = session_id();
+
+    try {
+        if ($customerId) {
+            $stmt = $db->prepare('SELECT COUNT(*) FROM wishlists WHERE customer_id = ?');
+            $stmt->execute([$customerId]);
+        } else {
+            $stmt = $db->prepare('SELECT COUNT(*) FROM wishlists WHERE session_id = ?');
+            $stmt->execute([$sessionId]);
+        }
+        return (int)$stmt->fetchColumn();
+    } catch (Exception $e) {
+        return 0;
+    }
+}
+
+/**
+ * Check if product is in wishlist
+ */
+function isInWishlist(int $productId): bool {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $db = getDB();
+    $customerId = getCustomerId();
+    $sessionId = session_id();
+
+    try {
+        if ($customerId) {
+            $stmt = $db->prepare('SELECT id FROM wishlists WHERE customer_id = ? AND product_id = ?');
+            $stmt->execute([$customerId, $productId]);
+        } else {
+            $stmt = $db->prepare('SELECT id FROM wishlists WHERE session_id = ? AND product_id = ?');
+            $stmt->execute([$sessionId, $productId]);
+        }
+        return (bool)$stmt->fetch();
+    } catch (Exception $e) {
+        return false;
+    }
 }
