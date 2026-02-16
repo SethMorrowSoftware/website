@@ -61,83 +61,97 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-folder-open"></i> Blog Categories</h1>
-    <a href="<?php echo url('admin/blog-posts.php'); ?>" class="btn-admin btn-outline"><i class="fas fa-arrow-left"></i> Back to Posts</a>
+    <a href="<?php echo url('admin/blog-posts.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Posts</a>
 </div>
 
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px; align-items:start;">
+<div class="blog-categories-grid">
     <!-- Category Form -->
-    <div class="editor-panel">
-        <h3><?php echo $editCat ? 'Edit Category' : 'Add Category'; ?></h3>
+    <div class="admin-section">
+        <div class="section-head" style="padding:18px 24px;">
+            <h2><?php echo $editCat ? 'Edit Category' : 'Add Category'; ?></h2>
+        </div>
         <form method="POST">
-            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-            <input type="hidden" name="save" value="1">
-            <input type="hidden" name="id" value="<?php echo $editCat['id'] ?? 0; ?>">
+            <div class="form-section">
+                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                <input type="hidden" name="save" value="1">
+                <input type="hidden" name="id" value="<?php echo $editCat['id'] ?? 0; ?>">
 
-            <div class="form-group">
-                <label>Name *</label>
-                <input type="text" name="name" value="<?php echo e($editCat['name'] ?? ''); ?>" class="admin-input" required>
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" name="name" value="<?php echo e($editCat['name'] ?? ''); ?>" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" class="form-control"><?php echo e($editCat['description'] ?? ''); ?></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" name="image" value="<?php echo e($editCat['image'] ?? ''); ?>" class="form-control" placeholder="/uploads/images/...">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Sort Order</label>
+                        <input type="number" name="sort_order" value="<?php echo $editCat['sort_order'] ?? 0; ?>" class="form-control">
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:flex-end; padding-bottom:2px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_visible" value="1" <?php echo ($editCat['is_visible'] ?? 1) ? 'checked' : ''; ?>>
+                            <span>Visible on site</span>
+                        </label>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea name="description" rows="3" class="admin-input"><?php echo e($editCat['description'] ?? ''); ?></textarea>
+            <div class="form-actions">
+                <button type="submit" class="btn-admin btn-save"><i class="fas fa-save"></i> Save Category</button>
+                <?php if ($editCat): ?>
+                    <a href="<?php echo url('admin/blog-categories.php'); ?>" class="btn-admin btn-outline">Cancel</a>
+                <?php endif; ?>
             </div>
-            <div class="form-group">
-                <label>Image URL</label>
-                <input type="text" name="image" value="<?php echo e($editCat['image'] ?? ''); ?>" class="admin-input" placeholder="/uploads/images/...">
-            </div>
-            <div class="form-group">
-                <label>Sort Order</label>
-                <input type="number" name="sort_order" value="<?php echo $editCat['sort_order'] ?? 0; ?>" class="admin-input">
-            </div>
-            <div class="form-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="is_visible" value="1" <?php echo ($editCat['is_visible'] ?? 1) ? 'checked' : ''; ?>>
-                    <span>Visible</span>
-                </label>
-            </div>
-            <button type="submit" class="btn-admin btn-primary"><i class="fas fa-save"></i> Save Category</button>
-            <?php if ($editCat): ?>
-                <a href="<?php echo url('admin/blog-categories.php'); ?>" class="btn-admin btn-outline">Cancel</a>
-            <?php endif; ?>
         </form>
     </div>
 
     <!-- Categories List -->
-    <div>
-        <div class="admin-table-wrap">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Posts</th>
-                        <th>Visible</th>
-                        <th>Actions</th>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Posts</th>
+                    <th>Visible</th>
+                    <th>Order</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($categories)): ?>
+                    <tr><td colspan="6" class="empty-state"><p>No categories yet. Add one using the form.</p></td></tr>
+                <?php endif; ?>
+                <?php foreach ($categories as $cat): ?>
+                    <tr<?php echo ($editCat && $editCat['id'] === $cat['id']) ? ' style="background:rgba(37,99,235,0.04);"' : ''; ?>>
+                        <td><strong><?php echo e($cat['name']); ?></strong></td>
+                        <td><code style="font-size:12px; background:var(--color-gray-100); padding:2px 6px; border-radius:4px;"><?php echo e($cat['slug']); ?></code></td>
+                        <td><?php echo (int)$cat['post_count']; ?></td>
+                        <td>
+                            <?php if ($cat['is_visible']): ?>
+                                <span class="badge-status badge-active">Visible</span>
+                            <?php else: ?>
+                                <span class="badge-status badge-inactive">Hidden</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo (int)$cat['sort_order']; ?></td>
+                        <td class="actions">
+                            <a href="<?php echo url('admin/blog-categories.php?edit=' . $cat['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this category? Posts will be uncategorized.')">
+                                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                                <input type="hidden" name="delete" value="<?php echo $cat['id']; ?>">
+                                <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($categories)): ?>
-                        <tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">No categories yet.</td></tr>
-                    <?php endif; ?>
-                    <?php foreach ($categories as $cat): ?>
-                        <tr>
-                            <td><strong><?php echo e($cat['name']); ?></strong></td>
-                            <td><code><?php echo e($cat['slug']); ?></code></td>
-                            <td><?php echo (int)$cat['post_count']; ?></td>
-                            <td><?php echo $cat['is_visible'] ? '<i class="fas fa-check text-success"></i>' : '<i class="fas fa-times text-muted"></i>'; ?></td>
-                            <td class="actions">
-                                <a href="<?php echo url('admin/blog-categories.php?edit=' . $cat['id']); ?>" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
-                                <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this category? Posts will be uncategorized.')">
-                                    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                                    <input type="hidden" name="delete" value="<?php echo $cat['id']; ?>">
-                                    <button type="submit" class="btn-icon btn-danger" title="Delete"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

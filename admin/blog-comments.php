@@ -58,40 +58,37 @@ $comments = $result['comments'];
 $totalPages = $result['pages'];
 $pendingCount = getPendingCommentCount();
 $csrfToken = generateCSRFToken();
+$activeStatus = $_GET['status'] ?? '';
 
 require_once __DIR__ . '/header.php';
 ?>
 
 <div class="admin-page-header">
     <h1><i class="fas fa-comments"></i> Blog Comments</h1>
-    <div>
-        <?php if ($pendingCount > 0): ?>
-            <span class="badge" style="background:#f59e0b; color:#fff; padding:4px 12px; border-radius:12px; font-size:0.9rem;">
-                <?php echo $pendingCount; ?> Pending
-            </span>
-        <?php endif; ?>
-    </div>
 </div>
 
 <!-- Status Tabs -->
-<div style="display:flex; gap:10px; margin-bottom:20px;">
-    <a href="<?php echo url('admin/blog-comments.php'); ?>" class="btn-admin btn-small <?php echo !isset($_GET['status']) ? 'btn-primary' : 'btn-outline'; ?>">All</a>
-    <a href="<?php echo url('admin/blog-comments.php?status=pending'); ?>" class="btn-admin btn-small <?php echo ($_GET['status'] ?? '') === 'pending' ? 'btn-primary' : 'btn-outline'; ?>">
-        Pending <?php if ($pendingCount > 0) echo "($pendingCount)"; ?>
+<div class="blog-admin-tabs">
+    <a href="<?php echo url('admin/blog-comments.php'); ?>" class="<?php echo !$activeStatus ? 'active' : ''; ?>">All</a>
+    <a href="<?php echo url('admin/blog-comments.php?status=pending'); ?>" class="<?php echo $activeStatus === 'pending' ? 'active' : ''; ?>">
+        Pending
+        <?php if ($pendingCount > 0): ?>
+            <span class="tab-badge"><?php echo $pendingCount; ?></span>
+        <?php endif; ?>
     </a>
-    <a href="<?php echo url('admin/blog-comments.php?status=approved'); ?>" class="btn-admin btn-small <?php echo ($_GET['status'] ?? '') === 'approved' ? 'btn-primary' : 'btn-outline'; ?>">Approved</a>
+    <a href="<?php echo url('admin/blog-comments.php?status=approved'); ?>" class="<?php echo $activeStatus === 'approved' ? 'active' : ''; ?>">Approved</a>
 </div>
 
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-    <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <select name="bulk_action" class="admin-select" style="max-width:180px;">
+    <div class="blog-bulk-bar">
+        <select name="bulk_action" class="admin-select">
             <option value="">Bulk Actions</option>
             <option value="approve">Approve</option>
             <option value="reject">Reject</option>
             <option value="delete">Delete</option>
         </select>
-        <button type="submit" class="btn-admin btn-small" onclick="return confirm('Apply action to selected comments?')">Apply</button>
+        <button type="submit" class="btn-admin btn-small btn-outline" onclick="return confirm('Apply action to selected comments?')">Apply</button>
     </div>
 
     <div class="admin-table-wrap">
@@ -109,22 +106,20 @@ require_once __DIR__ . '/header.php';
             </thead>
             <tbody>
                 <?php if (empty($comments)): ?>
-                    <tr><td colspan="7" style="text-align:center; padding:40px; color:#666;">No comments found.</td></tr>
+                    <tr><td colspan="7" class="empty-state"><p>No comments found.</p></td></tr>
                 <?php endif; ?>
                 <?php foreach ($comments as $c): ?>
-                    <tr style="<?php echo !$c['is_approved'] ? 'background:#fffbeb;' : ''; ?>">
+                    <tr<?php echo !$c['is_approved'] ? ' class="row-unread"' : ''; ?>>
                         <td><input type="checkbox" name="comment_ids[]" value="<?php echo $c['id']; ?>"></td>
-                        <td>
+                        <td class="comment-author-cell">
                             <strong><?php echo e($c['author_name']); ?></strong>
-                            <br><small style="color:#666;"><?php echo e($c['author_email']); ?></small>
-                        </td>
-                        <td style="max-width:300px;">
-                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                <?php echo e(mb_substr($c['content'], 0, 120)); ?>
-                            </div>
+                            <span class="comment-email"><?php echo e($c['author_email']); ?></span>
                         </td>
                         <td>
-                            <a href="<?php echo url('admin/blog-post-edit.php?id=' . $c['post_id']); ?>" style="font-size:0.85rem;">
+                            <div class="comment-content-preview"><?php echo e(mb_substr($c['content'], 0, 120)); ?></div>
+                        </td>
+                        <td>
+                            <a href="<?php echo url('admin/blog-post-edit.php?id=' . $c['post_id']); ?>" style="font-size:0.85rem; color:var(--color-primary); text-decoration:none; font-weight:500;">
                                 <?php echo e(mb_substr($c['post_title'], 0, 40)); ?>
                             </a>
                         </td>
@@ -132,24 +127,24 @@ require_once __DIR__ . '/header.php';
                             <?php if ($c['is_approved']): ?>
                                 <span class="badge-status badge-active">Approved</span>
                             <?php else: ?>
-                                <span class="badge-status badge-inactive">Pending</span>
+                                <span class="badge-status badge-unread">Pending</span>
                             <?php endif; ?>
                         </td>
                         <td style="white-space:nowrap;"><?php echo date('M j, Y', strtotime($c['created_at'])); ?></td>
-                        <td class="actions" style="white-space:nowrap;">
+                        <td class="actions">
                             <?php if (!$c['is_approved']): ?>
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                                     <input type="hidden" name="comment_id" value="<?php echo $c['id']; ?>">
                                     <input type="hidden" name="action" value="approve">
-                                    <button type="submit" class="btn-icon" title="Approve" style="color:#22c55e;"><i class="fas fa-check"></i></button>
+                                    <button type="submit" class="btn-icon" title="Approve" style="color:var(--color-success);"><i class="fas fa-check"></i></button>
                                 </form>
                             <?php else: ?>
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                                     <input type="hidden" name="comment_id" value="<?php echo $c['id']; ?>">
                                     <input type="hidden" name="action" value="reject">
-                                    <button type="submit" class="btn-icon" title="Reject" style="color:#f59e0b;"><i class="fas fa-times"></i></button>
+                                    <button type="submit" class="btn-icon" title="Reject" style="color:var(--color-secondary);"><i class="fas fa-times"></i></button>
                                 </form>
                             <?php endif; ?>
                             <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this comment?')">
@@ -167,26 +162,27 @@ require_once __DIR__ . '/header.php';
 </form>
 
 <?php if ($totalPages > 1): ?>
-<nav style="display:flex; justify-content:center; gap:6px; margin-top:20px;">
+<nav class="blog-pagination">
     <?php
     $baseParams = $_GET;
     unset($baseParams['p']);
     $baseQuery = http_build_query($baseParams);
+    $baseHref = 'admin/blog-comments.php' . ($baseQuery ? '?' . $baseQuery . '&' : '?');
     ?>
     <?php if ($currentPage > 1): ?>
-        <a href="<?php echo url('admin/blog-comments.php?' . $baseQuery . '&p=' . ($currentPage - 1)); ?>" class="btn-admin btn-small btn-outline">&laquo; Prev</a>
+        <a href="<?php echo url($baseHref . 'p=' . ($currentPage - 1)); ?>">&laquo; Prev</a>
     <?php endif; ?>
     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
         <?php if ($i === $currentPage): ?>
-            <span class="btn-admin btn-small btn-primary"><?php echo $i; ?></span>
+            <span class="page-current"><?php echo $i; ?></span>
         <?php elseif ($i <= 2 || $i > $totalPages - 2 || abs($i - $currentPage) <= 1): ?>
-            <a href="<?php echo url('admin/blog-comments.php?' . $baseQuery . '&p=' . $i); ?>" class="btn-admin btn-small btn-outline"><?php echo $i; ?></a>
+            <a href="<?php echo url($baseHref . 'p=' . $i); ?>"><?php echo $i; ?></a>
         <?php elseif ($i === 3 || $i === $totalPages - 2): ?>
-            <span style="padding:4px;">&hellip;</span>
+            <span class="page-dots">&hellip;</span>
         <?php endif; ?>
     <?php endfor; ?>
     <?php if ($currentPage < $totalPages): ?>
-        <a href="<?php echo url('admin/blog-comments.php?' . $baseQuery . '&p=' . ($currentPage + 1)); ?>" class="btn-admin btn-small btn-outline">Next &raquo;</a>
+        <a href="<?php echo url($baseHref . 'p=' . ($currentPage + 1)); ?>">Next &raquo;</a>
     <?php endif; ?>
 </nav>
 <?php endif; ?>

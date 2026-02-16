@@ -48,6 +48,7 @@ $currentPage = max(1, (int)($_GET['p'] ?? 1));
 $result = getAdminBlogPosts($filters, $currentPage);
 $posts = $result['posts'];
 $totalPages = $result['pages'];
+$totalPosts = $result['total'];
 $categories = getBlogCategories(true);
 $csrfToken = generateCSRFToken();
 
@@ -60,38 +61,37 @@ require_once __DIR__ . '/header.php';
 </div>
 
 <!-- Filters -->
-<div class="admin-filters" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center;">
-    <form method="GET" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <select name="status" onchange="this.form.submit()" class="admin-select">
-            <option value="">All Statuses</option>
-            <option value="published" <?php echo ($_GET['status'] ?? '') === 'published' ? 'selected' : ''; ?>>Published</option>
-            <option value="draft" <?php echo ($_GET['status'] ?? '') === 'draft' ? 'selected' : ''; ?>>Draft</option>
-            <option value="scheduled" <?php echo ($_GET['status'] ?? '') === 'scheduled' ? 'selected' : ''; ?>>Scheduled</option>
-        </select>
-        <select name="category_id" onchange="this.form.submit()" class="admin-select">
-            <option value="">All Categories</option>
-            <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo $cat['id']; ?>" <?php echo ((int)($_GET['category_id'] ?? 0)) === $cat['id'] ? 'selected' : ''; ?>><?php echo e($cat['name']); ?></option>
-            <?php endforeach; ?>
-        </select>
-        <input type="text" name="search" placeholder="Search posts..." value="<?php echo e($_GET['search'] ?? ''); ?>" class="admin-input" style="max-width:200px;">
-        <button type="submit" class="btn-admin btn-small"><i class="fas fa-search"></i></button>
-        <?php if (!empty($filters)): ?>
-            <a href="<?php echo url('admin/blog-posts.php'); ?>" class="btn-admin btn-small btn-outline">Clear</a>
-        <?php endif; ?>
-    </form>
-</div>
+<form method="GET" class="blog-filter-bar">
+    <select name="status" onchange="this.form.submit()" class="admin-select">
+        <option value="">All Statuses</option>
+        <option value="published" <?php echo ($_GET['status'] ?? '') === 'published' ? 'selected' : ''; ?>>Published</option>
+        <option value="draft" <?php echo ($_GET['status'] ?? '') === 'draft' ? 'selected' : ''; ?>>Draft</option>
+        <option value="scheduled" <?php echo ($_GET['status'] ?? '') === 'scheduled' ? 'selected' : ''; ?>>Scheduled</option>
+    </select>
+    <select name="category_id" onchange="this.form.submit()" class="admin-select">
+        <option value="">All Categories</option>
+        <?php foreach ($categories as $cat): ?>
+            <option value="<?php echo $cat['id']; ?>" <?php echo ((int)($_GET['category_id'] ?? 0)) === $cat['id'] ? 'selected' : ''; ?>><?php echo e($cat['name']); ?></option>
+        <?php endforeach; ?>
+    </select>
+    <input type="text" name="search" placeholder="Search posts..." value="<?php echo e($_GET['search'] ?? ''); ?>" class="admin-input">
+    <button type="submit" class="btn-admin btn-small btn-save"><i class="fas fa-search"></i></button>
+    <?php if (!empty($filters)): ?>
+        <a href="<?php echo url('admin/blog-posts.php'); ?>" class="btn-admin btn-small btn-outline">Clear</a>
+    <?php endif; ?>
+    <span style="margin-left:auto; font-size:12px; color:var(--color-gray-500);"><?php echo $totalPosts; ?> post<?php echo $totalPosts !== 1 ? 's' : ''; ?></span>
+</form>
 
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-    <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center;">
-        <select name="bulk_action" class="admin-select" style="max-width:180px;">
+    <div class="blog-bulk-bar">
+        <select name="bulk_action" class="admin-select">
             <option value="">Bulk Actions</option>
             <option value="publish">Publish</option>
             <option value="draft">Move to Draft</option>
             <option value="delete">Delete</option>
         </select>
-        <button type="submit" class="btn-admin btn-small" onclick="return confirm('Apply this action to selected posts?')">Apply</button>
+        <button type="submit" class="btn-admin btn-small btn-outline" onclick="return confirm('Apply this action to selected posts?')">Apply</button>
     </div>
 
     <div class="admin-table-wrap">
@@ -110,35 +110,44 @@ require_once __DIR__ . '/header.php';
             </thead>
             <tbody>
                 <?php if (empty($posts)): ?>
-                    <tr><td colspan="8" style="text-align:center; padding:40px; color:#666;">No blog posts found. <a href="<?php echo url('admin/blog-post-edit.php'); ?>">Create your first post</a></td></tr>
+                    <tr><td colspan="8" class="empty-state"><p>No blog posts found. <a href="<?php echo url('admin/blog-post-edit.php'); ?>">Create your first post</a></p></td></tr>
                 <?php endif; ?>
                 <?php foreach ($posts as $p): ?>
                     <tr>
                         <td><input type="checkbox" name="post_ids[]" value="<?php echo $p['id']; ?>"></td>
                         <td>
-                            <strong><a href="<?php echo url('admin/blog-post-edit.php?id=' . $p['id']); ?>"><?php echo e($p['title']); ?></a></strong>
-                            <?php if ($p['is_featured']): ?>
-                                <span class="badge-small" style="background:#f59e0b;color:#fff;">Featured</span>
-                            <?php endif; ?>
-                            <?php if ($p['featured_image']): ?>
-                                <br><img src="<?php echo e($p['featured_image']); ?>" style="max-width:60px;max-height:40px;margin-top:4px;border-radius:4px;">
-                            <?php endif; ?>
+                            <div class="post-title-cell">
+                                <?php if ($p['featured_image']): ?>
+                                    <img src="<?php echo e($p['featured_image']); ?>" class="post-thumb" alt="">
+                                <?php else: ?>
+                                    <div class="post-thumb-placeholder"><i class="fas fa-file-alt"></i></div>
+                                <?php endif; ?>
+                                <div class="post-title-text">
+                                    <a href="<?php echo url('admin/blog-post-edit.php?id=' . $p['id']); ?>"><?php echo e($p['title']); ?></a>
+                                    <?php if ($p['is_featured']): ?>
+                                        <span class="badge-featured"><i class="fas fa-star"></i> Featured</span>
+                                    <?php endif; ?>
+                                    <?php if ($p['author_name']): ?>
+                                        <div class="post-author"><?php echo e($p['author_name']); ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </td>
                         <td><?php echo e($p['category_name'] ?? '—'); ?></td>
                         <td>
                             <?php if ($p['status'] === 'published'): ?>
                                 <span class="badge-status badge-active">Published</span>
                             <?php elseif ($p['status'] === 'scheduled'): ?>
-                                <span class="badge-status" style="background:#dbeafe;color:#2563eb;">Scheduled</span>
+                                <span class="badge-status badge-scheduled">Scheduled</span>
                             <?php else: ?>
                                 <span class="badge-status badge-inactive">Draft</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td style="white-space:nowrap;">
                             <?php if ($p['published_at']): ?>
                                 <?php echo date('M j, Y', strtotime($p['published_at'])); ?>
                             <?php else: ?>
-                                <span style="color:#999;">—</span>
+                                <span style="color:var(--color-gray-400);">—</span>
                             <?php endif; ?>
                         </td>
                         <td><?php echo number_format($p['view_count']); ?></td>
@@ -162,26 +171,27 @@ require_once __DIR__ . '/header.php';
 </form>
 
 <?php if ($totalPages > 1): ?>
-<nav style="display:flex; justify-content:center; gap:6px; margin-top:20px;">
+<nav class="blog-pagination">
     <?php
     $baseParams = $_GET;
     unset($baseParams['p']);
     $baseQuery = http_build_query($baseParams);
+    $baseHref = 'admin/blog-posts.php' . ($baseQuery ? '?' . $baseQuery . '&' : '?');
     ?>
     <?php if ($currentPage > 1): ?>
-        <a href="<?php echo url('admin/blog-posts.php?' . $baseQuery . '&p=' . ($currentPage - 1)); ?>" class="btn-admin btn-small btn-outline">&laquo; Prev</a>
+        <a href="<?php echo url($baseHref . 'p=' . ($currentPage - 1)); ?>">&laquo; Prev</a>
     <?php endif; ?>
     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
         <?php if ($i === $currentPage): ?>
-            <span class="btn-admin btn-small btn-primary"><?php echo $i; ?></span>
+            <span class="page-current"><?php echo $i; ?></span>
         <?php elseif ($i <= 2 || $i > $totalPages - 2 || abs($i - $currentPage) <= 1): ?>
-            <a href="<?php echo url('admin/blog-posts.php?' . $baseQuery . '&p=' . $i); ?>" class="btn-admin btn-small btn-outline"><?php echo $i; ?></a>
+            <a href="<?php echo url($baseHref . 'p=' . $i); ?>"><?php echo $i; ?></a>
         <?php elseif ($i === 3 || $i === $totalPages - 2): ?>
-            <span style="padding:4px;">&hellip;</span>
+            <span class="page-dots">&hellip;</span>
         <?php endif; ?>
     <?php endfor; ?>
     <?php if ($currentPage < $totalPages): ?>
-        <a href="<?php echo url('admin/blog-posts.php?' . $baseQuery . '&p=' . ($currentPage + 1)); ?>" class="btn-admin btn-small btn-outline">Next &raquo;</a>
+        <a href="<?php echo url($baseHref . 'p=' . ($currentPage + 1)); ?>">Next &raquo;</a>
     <?php endif; ?>
 </nav>
 <?php endif; ?>
