@@ -723,3 +723,4 @@ ob_start();
 require_once __DIR__ . '/includes/header.php';
 require_once $template;
 require_once __DIR__ . '/includes/footer.php';
+ob_end_flush();

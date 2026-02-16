@@ -31,7 +31,7 @@ if (!empty($_GET['search'])) {
     $filterLabel = 'Search: "' . e($_GET['search']) . '"';
 }
 
-if (!empty($_GET['archive'])) {
+if (!empty($_GET['archive']) && preg_match('/^\d{4}-\d{2}$/', $_GET['archive'])) {
     $filters['archive'] = $_GET['archive'];
     $filterLabel = 'Archive: ' . date('F Y', strtotime($_GET['archive'] . '-01'));
 }

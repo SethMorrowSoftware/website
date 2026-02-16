@@ -11,12 +11,29 @@ RewriteEngine On
 # Clean URLs: /about -> index.php?page=about
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout|search|login|register|account|wishlist|forgot-password|reset-password|order-status)/?$ index.php?page=$1 [L,QSA]
+RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout|search|login|register|account|wishlist|forgot-password|reset-password|order-status|blog|blog-post)/?$ index.php?page=$1 [L,QSA]
 
 # Product detail pages: /product/slug -> index.php?page=product&slug=slug
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^product/([a-zA-Z0-9_-]+)/?$ index.php?page=product&slug=$1 [L,QSA]
+
+# Blog clean URLs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^blog/?$ index.php?page=blog [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^blog/category/([a-zA-Z0-9_-]+)/?$ index.php?page=blog&category=$1 [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^blog/tag/([a-zA-Z0-9_-]+)/?$ index.php?page=blog&tag=$1 [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ index.php?page=blog-post&slug=$1 [L,QSA]
 
 # Protect downloads directory (digital product files served via PHP)
 <IfModule mod_rewrite.c>
