@@ -316,10 +316,20 @@ function e(string $str): string {
 function sanitizeHtml(string $html): string {
     $allowed = '<p><br><strong><b><em><i><u><ul><ol><li><h1><h2><h3><h4><h5><h6><a><img><blockquote><hr><span><div><table><thead><tbody><tr><th><td><figure><figcaption><pre><code>';
     $clean = strip_tags($html, $allowed);
-    // Strip event handlers (onclick, onerror, onload, etc.) from remaining tags
-    $clean = preg_replace('/\s+on\w+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);
-    // Strip javascript: and data: URIs from href/src/action attributes
-    $clean = preg_replace('/(<[^>]+\s)(href|src|action)\s*=\s*(?:"(?:javascript|data):[^"]*"|\'(?:javascript|data):[^\']*\')/i', '$1$2=""', $clean);
+    // Strip event handlers — match on + any whitespace/control chars + word chars + =
+    // Handles bypass attempts with tabs/newlines between "on" and the event name
+    $clean = preg_replace('/\s+on[\s\x00-\x1f]*\w+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);
+    // Strip javascript:, data:, and vbscript: URIs from href/src/action attributes
+    // Handles whitespace padding and entity-encoded variations
+    $clean = preg_replace_callback('/(href|src|action)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', function($m) {
+        $val = trim($m[2], '"\'');
+        $decoded = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
+        $stripped = preg_replace('/[\s\x00-\x1f]+/', '', $decoded);
+        if (preg_match('/^(javascript|data|vbscript):/i', $stripped)) {
+            return $m[1] . '=""';
+        }
+        return $m[0];
+    }, $clean);
     return $clean;
 }
 

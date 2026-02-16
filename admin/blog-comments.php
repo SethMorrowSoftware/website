@@ -52,7 +52,10 @@ if (!empty($_GET['post_id'])) {
     $filters['post_id'] = (int)$_GET['post_id'];
 }
 
-$comments = getAdminBlogComments($filters);
+$currentPage = max(1, (int)($_GET['p'] ?? 1));
+$result = getAdminBlogComments($filters, $currentPage);
+$comments = $result['comments'];
+$totalPages = $result['pages'];
 $pendingCount = getPendingCommentCount();
 $csrfToken = generateCSRFToken();
 
@@ -162,6 +165,31 @@ require_once __DIR__ . '/header.php';
         </table>
     </div>
 </form>
+
+<?php if ($totalPages > 1): ?>
+<nav style="display:flex; justify-content:center; gap:6px; margin-top:20px;">
+    <?php
+    $baseParams = $_GET;
+    unset($baseParams['p']);
+    $baseQuery = http_build_query($baseParams);
+    ?>
+    <?php if ($currentPage > 1): ?>
+        <a href="<?php echo url('admin/blog-comments.php?' . $baseQuery . '&p=' . ($currentPage - 1)); ?>" class="btn-admin btn-small btn-outline">&laquo; Prev</a>
+    <?php endif; ?>
+    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+        <?php if ($i === $currentPage): ?>
+            <span class="btn-admin btn-small btn-primary"><?php echo $i; ?></span>
+        <?php elseif ($i <= 2 || $i > $totalPages - 2 || abs($i - $currentPage) <= 1): ?>
+            <a href="<?php echo url('admin/blog-comments.php?' . $baseQuery . '&p=' . $i); ?>" class="btn-admin btn-small btn-outline"><?php echo $i; ?></a>
+        <?php elseif ($i === 3 || $i === $totalPages - 2): ?>
+            <span style="padding:4px;">&hellip;</span>
+        <?php endif; ?>
+    <?php endfor; ?>
+    <?php if ($currentPage < $totalPages): ?>
+        <a href="<?php echo url('admin/blog-comments.php?' . $baseQuery . '&p=' . ($currentPage + 1)); ?>" class="btn-admin btn-small btn-outline">Next &raquo;</a>
+    <?php endif; ?>
+</nav>
+<?php endif; ?>
 
 <script>
 document.getElementById('selectAll')?.addEventListener('change', function() {

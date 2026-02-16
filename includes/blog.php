@@ -81,10 +81,12 @@ function getBlogPosts(int $page = 1, int $perPage = 9, array $filters = []): arr
 }
 
 /**
- * Get all blog posts for admin (no status filter).
+ * Get paginated blog posts for admin (no status filter).
  */
-function getAdminBlogPosts(array $filters = []): array {
+function getAdminBlogPosts(array $filters = [], int $page = 1, int $perPage = 25): array {
     $db = getDB();
+    $page = max(1, $page);
+    $perPage = max(1, min(100, $perPage));
     $where = ['1=1'];
     $params = [];
 
@@ -106,16 +108,33 @@ function getAdminBlogPosts(array $filters = []): array {
     }
 
     $whereClause = implode(' AND ', $where);
+
+    // Count total
+    $countSql = "SELECT COUNT(*) FROM blog_posts bp LEFT JOIN blog_categories bc ON bc.id = bp.category_id WHERE $whereClause";
+    $countStmt = $db->prepare($countSql);
+    $countStmt->execute($params);
+    $total = (int)$countStmt->fetchColumn();
+
+    $offset = ($page - 1) * $perPage;
     $sql = "SELECT bp.*, bc.name AS category_name, u.username AS author_name,
                    (SELECT COUNT(*) FROM blog_comments WHERE post_id = bp.id) AS comment_count
             FROM blog_posts bp
             LEFT JOIN blog_categories bc ON bc.id = bp.category_id
             LEFT JOIN users u ON u.id = bp.author_id
             WHERE $whereClause
-            ORDER BY bp.updated_at DESC";
+            ORDER BY bp.updated_at DESC
+            LIMIT ? OFFSET ?";
+    $params[] = $perPage;
+    $params[] = $offset;
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
-    return $stmt->fetchAll();
+
+    return [
+        'posts' => $stmt->fetchAll(),
+        'total' => $total,
+        'pages' => (int)ceil($total / $perPage),
+        'current_page' => $page,
+    ];
 }
 
 /**
@@ -153,9 +172,15 @@ function getBlogPostById(int $id): ?array {
 }
 
 /**
- * Increment view count for a blog post.
+ * Increment view count for a blog post (once per session per post).
  */
 function incrementBlogPostViews(int $id): void {
+    $key = 'blog_viewed_' . $id;
+    if (!empty($_SESSION[$key])) {
+        return;
+    }
+    $_SESSION[$key] = true;
+
     $db = getDB();
     $db->prepare('UPDATE blog_posts SET view_count = view_count + 1 WHERE id = ?')->execute([$id]);
 }
@@ -356,14 +381,33 @@ function getAdjacentPosts(int $postId, string $publishedAt): array {
 /**
  * Process product shortcodes in blog content.
  * Converts [product id=X] to product card HTML.
+ * Batch-fetches all referenced products in a single query to avoid N+1.
  */
 function processBlogShortcodes(string $content): string {
-    return preg_replace_callback('/\[product\s+id=(\d+)\]/', function ($matches) {
+    // Collect all product IDs referenced in shortcodes
+    if (!preg_match_all('/\[product\s+id=(\d+)\]/', $content, $allMatches)) {
+        return $content;
+    }
+
+    $ids = array_unique(array_map('intval', $allMatches[1]));
+    if (empty($ids)) {
+        return $content;
+    }
+
+    // Batch-fetch all products in one query
+    $db = getDB();
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $db->prepare("SELECT * FROM products WHERE id IN ($placeholders) AND is_visible = 1");
+    $stmt->execute($ids);
+    $products = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $products[$row['id']] = $row;
+    }
+
+    // Replace shortcodes using the pre-fetched data
+    return preg_replace_callback('/\[product\s+id=(\d+)\]/', function ($matches) use ($products) {
         $productId = (int)$matches[1];
-        $db = getDB();
-        $stmt = $db->prepare('SELECT * FROM products WHERE id = ? AND is_visible = 1');
-        $stmt->execute([$productId]);
-        $product = $stmt->fetch();
+        $product = $products[$productId] ?? null;
         if (!$product) return '';
 
         $name = htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8');
@@ -471,10 +515,12 @@ function saveBlogCategory(array $data): int {
 }
 
 /**
- * Delete a blog category.
+ * Delete a blog category. Explicitly nullifies posts' category_id
+ * to be safe regardless of SQLite foreign_keys pragma state.
  */
 function deleteBlogCategory(int $id): bool {
     $db = getDB();
+    $db->prepare('UPDATE blog_posts SET category_id = NULL WHERE category_id = ?')->execute([$id]);
     return $db->prepare('DELETE FROM blog_categories WHERE id = ?')->execute([$id]);
 }
 
@@ -618,10 +664,12 @@ function getPendingComments(): array {
 }
 
 /**
- * Get all comments for admin (with filters).
+ * Get paginated comments for admin (with filters).
  */
-function getAdminBlogComments(array $filters = []): array {
+function getAdminBlogComments(array $filters = [], int $page = 1, int $perPage = 30): array {
     $db = getDB();
+    $page = max(1, $page);
+    $perPage = max(1, min(100, $perPage));
     $where = ['1=1'];
     $params = [];
 
@@ -636,15 +684,31 @@ function getAdminBlogComments(array $filters = []): array {
     }
 
     $whereClause = implode(' AND ', $where);
+
+    // Count total
+    $countStmt = $db->prepare("SELECT COUNT(*) FROM blog_comments bc JOIN blog_posts bp ON bp.id = bc.post_id WHERE $whereClause");
+    $countStmt->execute($params);
+    $total = (int)$countStmt->fetchColumn();
+
+    $offset = ($page - 1) * $perPage;
+    $params[] = $perPage;
+    $params[] = $offset;
     $stmt = $db->prepare(
         "SELECT bc.*, bp.title AS post_title, bp.slug AS post_slug
          FROM blog_comments bc
          JOIN blog_posts bp ON bp.id = bc.post_id
          WHERE $whereClause
-         ORDER BY bc.created_at DESC"
+         ORDER BY bc.created_at DESC
+         LIMIT ? OFFSET ?"
     );
     $stmt->execute($params);
-    return $stmt->fetchAll();
+
+    return [
+        'comments' => $stmt->fetchAll(),
+        'total' => $total,
+        'pages' => (int)ceil($total / $perPage),
+        'current_page' => $page,
+    ];
 }
 
 /**
