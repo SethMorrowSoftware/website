@@ -14,6 +14,9 @@
  */
 function getBlogPosts(int $page = 1, int $perPage = 9, array $filters = []): array {
     $db = getDB();
+    $page = max(1, $page);
+    $perPage = max(1, min(50, $perPage));
+
     $where = ['bp.status = ?'];
     $params = ['published'];
     $where[] = 'bp.published_at <= datetime(\'now\')';
@@ -540,11 +543,14 @@ function syncPostTags(int $postId, array $tagNames): void {
  */
 function getPopularTags(int $limit = 20): array {
     $db = getDB();
+    $limit = max(1, min(100, $limit));
     $stmt = $db->prepare(
         "SELECT bt.*, COUNT(bpt.post_id) AS post_count
          FROM blog_tags bt
          JOIN blog_post_tags bpt ON bpt.tag_id = bt.id
-         JOIN blog_posts bp ON bp.id = bpt.post_id AND bp.status = 'published'
+         JOIN blog_posts bp ON bp.id = bpt.post_id
+            AND bp.status = 'published'
+            AND bp.published_at <= datetime('now')
          GROUP BY bt.id
          ORDER BY post_count DESC
          LIMIT ?"
@@ -636,6 +642,29 @@ function getAdminBlogComments(array $filters = []): array {
  */
 function submitBlogComment(int $postId, array $data): int {
     $db = getDB();
+
+    $postStmt = $db->prepare(
+        "SELECT id, allow_comments
+         FROM blog_posts
+         WHERE id = ?
+           AND status = 'published'
+           AND published_at <= datetime('now')"
+    );
+    $postStmt->execute([$postId]);
+    $post = $postStmt->fetch();
+    if (!$post || (int)$post['allow_comments'] !== 1) {
+        return 0;
+    }
+
+    $parentId = isset($data['parent_id']) ? (int)$data['parent_id'] : 0;
+    if ($parentId > 0) {
+        $parentStmt = $db->prepare('SELECT id FROM blog_comments WHERE id = ? AND post_id = ?');
+        $parentStmt->execute([$parentId, $postId]);
+        if (!$parentStmt->fetch()) {
+            $parentId = 0;
+        }
+    }
+
     $autoApprove = getSetting('blog_comment_moderation', '1') !== '1';
 
     $stmt = $db->prepare(
@@ -644,7 +673,7 @@ function submitBlogComment(int $postId, array $data): int {
     );
     $stmt->execute([
         $postId,
-        $data['parent_id'] ?: null,
+        $parentId ?: null,
         $data['customer_id'] ?: null,
         $data['author_name'],
         $data['author_email'],

@@ -464,14 +464,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!filter_var($commentData['author_email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
             if (!$commentData['content'] || strlen($commentData['content']) < 3) $errors[] = 'Comment must be at least 3 characters.';
 
-            if (empty($errors) && $postId) {
+            if (empty($errors) && $postId && getSetting('blog_allow_comments', '1') === '1') {
                 recordFormSubmission('blog_comment');
-                submitBlogComment($postId, $commentData);
-                $moderation = getSetting('blog_comment_moderation', '1') === '1';
-                $_SESSION['flash_message'] = $moderation
-                    ? 'Thank you! Your comment will appear after approval.'
-                    : 'Comment posted successfully!';
-                $_SESSION['flash_type'] = 'success';
+                $commentId = submitBlogComment($postId, $commentData);
+                if ($commentId > 0) {
+                    $moderation = getSetting('blog_comment_moderation', '1') === '1';
+                    $_SESSION['flash_message'] = $moderation
+                        ? 'Thank you! Your comment will appear after approval.'
+                        : 'Comment posted successfully!';
+                    $_SESSION['flash_type'] = 'success';
+                } else {
+                    $_SESSION['flash_message'] = 'Comments are closed for this post.';
+                    $_SESSION['flash_type'] = 'error';
+                }
             } else {
                 $_SESSION['flash_message'] = !empty($errors) ? implode(' ', $errors) : 'Could not submit comment.';
                 $_SESSION['flash_type'] = 'error';
