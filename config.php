@@ -305,8 +305,8 @@ function verifyCSRFToken(string $token): bool {
 /**
  * Sanitize output
  */
-function e(string $str): string {
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+function e(?string $str): string {
+    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
 }
 
 /**

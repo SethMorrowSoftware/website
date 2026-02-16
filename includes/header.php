@@ -18,8 +18,8 @@ $showEmailHeader = isFeatureEnabled('email_header');
 
 // Get page meta
 $pageData = getPage($currentPage);
-$pageTitle = $pageData ? $pageData['title'] . ' | ' . $companyName : $companyName;
-$metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagline');
+$pageTitle = $pageData ? ($pageData['title'] ?? '') . ' | ' . $companyName : $companyName;
+$metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagline')) ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
