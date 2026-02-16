@@ -88,7 +88,7 @@ function seedDatabase(PDO $db): void {
         ['enable_reviews', '0', 'text'],
     ];
 
-    $stmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');
+    $stmt = $db->prepare('INSERT INTO settings (`key`, `value`, `type`) VALUES (?, ?, ?)');
     foreach ($settings as $setting) {
         $stmt->execute($setting);
     }

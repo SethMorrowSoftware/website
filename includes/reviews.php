@@ -46,7 +46,7 @@ function submitReview(int $productId, array $data): bool {
         $isVerified = (int)$stmt->fetchColumn() > 0 ? 1 : 0;
     }
 
-    $stmt = $db->prepare('INSERT INTO reviews (product_id, customer_id, customer_name, customer_email, rating, title, body, is_verified_purchase, is_approved, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, datetime("now"))');
+    $stmt = $db->prepare('INSERT INTO reviews (product_id, customer_id, customer_name, customer_email, rating, title, body, is_verified_purchase, is_approved, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())');
     return $stmt->execute([
         $productId,
         $customerId,

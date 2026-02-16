@@ -47,7 +47,7 @@ function requireLogin(): void {
 function checkLoginThrottle(string $ip): int {
     $db = getDB();
     // Ensure table exists (for existing DBs before migration)
-    $db->exec('CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, ip_address TEXT NOT NULL, username TEXT NOT NULL, attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $db->exec('CREATE TABLE IF NOT EXISTS login_attempts (id INT AUTO_INCREMENT PRIMARY KEY, ip_address VARCHAR(45) NOT NULL, username VARCHAR(255) NOT NULL, attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 
     $window = 15 * 60; // 15 minute window
     $maxAttempts = 5;
@@ -75,7 +75,7 @@ function recordLoginAttempt(string $ip, string $username): void {
     $stmt = $db->prepare('INSERT INTO login_attempts (ip_address, username) VALUES (?, ?)');
     $stmt->execute([$ip, $username]);
     // Cleanup old entries (older than 1 hour)
-    $db->exec("DELETE FROM login_attempts WHERE attempted_at < datetime('now', '-1 hour')");
+    $db->exec("DELETE FROM login_attempts WHERE attempted_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
 }
 
 /**

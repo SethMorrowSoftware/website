@@ -14,7 +14,7 @@ function logAudit(string $action, string $entityType = '', int $entityId = 0, ar
 
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
-        $stmt = $db->prepare('INSERT INTO audit_log (user_id, action, entity_type, entity_id, details, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
+        $stmt = $db->prepare('INSERT INTO audit_log (user_id, action, entity_type, entity_id, details, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())');
         $stmt->execute([
             $userId,
             $action,

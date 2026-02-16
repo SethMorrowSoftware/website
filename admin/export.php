@@ -70,14 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 
     if ($exportType === 'database_backup') {
-        $dbFile = DB_PATH;
-        if (file_exists($dbFile)) {
-            header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename="database_backup_' . date('Y-m-d_His') . '.sqlite"');
-            header('Content-Length: ' . filesize($dbFile));
-            readfile($dbFile);
-            exit;
-        }
+        // MySQL databases cannot be downloaded as a single file.
+        // Use mysqldump from the command line to create backups.
+        $_SESSION['admin_flash'] = ['type' => 'warning', 'message' => 'MySQL database backups should be created using mysqldump from the command line.'];
+        redirect('admin/export.php');
     }
 }
 
@@ -145,8 +141,8 @@ require_once __DIR__ . '/header.php';
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                 <input type="hidden" name="export_type" value="database_backup">
-                <p style="margin-bottom: var(--space-md); color: var(--color-gray-500);">Download the entire SQLite database file. This includes all data, settings, and configurations.</p>
-                <button type="submit" class="btn-admin btn-warning"><i class="fas fa-download"></i> Download Database Backup</button>
+                <p style="margin-bottom: var(--space-md); color: var(--color-gray-500);">MySQL database backups should be created using <code>mysqldump</code> from the command line or your hosting provider's backup tools.</p>
+                <button type="submit" class="btn-admin btn-warning" disabled><i class="fas fa-download"></i> Database Backup (Use mysqldump)</button>
             </form>
         </div>
     </div>

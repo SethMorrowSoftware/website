@@ -1437,7 +1437,7 @@ function recordFormSubmission(string $formType): void {
         $stmt = $db->prepare('INSERT INTO form_submissions (ip_address, form_type) VALUES (?, ?)');
         $stmt->execute([$ip, $formType]);
         // Cleanup old entries
-        $db->exec("DELETE FROM form_submissions WHERE created_at < datetime('now', '-1 hour')");
+        $db->exec("DELETE FROM form_submissions WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
     } catch (Exception $e) {
         // Silently fail if table doesn't exist yet
     }

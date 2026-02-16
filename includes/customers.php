@@ -165,7 +165,7 @@ function createPasswordResetToken(int $customerId): string {
  */
 function validatePasswordResetToken(string $token): ?int {
     $db = getDB();
-    $stmt = $db->prepare('SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > datetime("now")');
+    $stmt = $db->prepare('SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()');
     $stmt->execute([$token]);
     $reset = $stmt->fetch();
 
