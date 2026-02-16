@@ -7,10 +7,10 @@
 function runMigrations(PDO $db): void {
     // Create migrations tracking table
     $db->exec('CREATE TABLE IF NOT EXISTS migrations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        filename TEXT UNIQUE NOT NULL,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        filename VARCHAR(255) UNIQUE NOT NULL,
         executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )');
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 
     $migrationsDir = BASE_PATH . '/database/migrations';
     if (!is_dir($migrationsDir)) return;
@@ -58,9 +58,9 @@ function runMigrations(PDO $db): void {
         } catch (Exception $e) {
             $msg = $e->getMessage();
             // Tolerate idempotent operations (table/column already exists)
-            if (str_contains($msg, 'already exists') || str_contains($msg, 'duplicate column')) {
+            if (str_contains($msg, 'already exists') || str_contains($msg, 'Duplicate column') || str_contains($msg, 'Duplicate entry')) {
                 try {
-                    $db->prepare('INSERT OR IGNORE INTO migrations (filename) VALUES (?)')->execute([$filename]);
+                    $db->prepare('INSERT IGNORE INTO migrations (filename) VALUES (?)')->execute([$filename]);
                 } catch (Exception $ex) {}
             } else {
                 // Log genuine errors; do NOT mark as executed so they can be retried

@@ -14,7 +14,7 @@ $csrfToken = generateCSRFToken();
 $validToken = false;
 if ($token) {
     $db = getDB();
-    $stmt = $db->prepare('SELECT id FROM password_resets WHERE token = ? AND used = 0 AND expires_at > datetime("now")');
+    $stmt = $db->prepare('SELECT id FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()');
     $stmt->execute([$token]);
     $validToken = (bool)$stmt->fetch();
 }

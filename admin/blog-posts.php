@@ -27,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['bulk_action']) && ve
     foreach ($ids as $id) {
         $id = (int)$id;
         if ($action === 'publish') {
-            $db->prepare("UPDATE blog_posts SET status = 'published', published_at = COALESCE(published_at, datetime('now')), updated_at = datetime('now') WHERE id = ?")->execute([$id]);
+            $db->prepare("UPDATE blog_posts SET status = 'published', published_at = COALESCE(published_at, NOW()), updated_at = NOW() WHERE id = ?")->execute([$id]);
         } elseif ($action === 'draft') {
-            $db->prepare("UPDATE blog_posts SET status = 'draft', updated_at = datetime('now') WHERE id = ?")->execute([$id]);
+            $db->prepare("UPDATE blog_posts SET status = 'draft', updated_at = NOW() WHERE id = ?")->execute([$id]);
         } elseif ($action === 'delete') {
             deleteBlogPost($id);
         }

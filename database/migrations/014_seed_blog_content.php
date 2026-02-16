@@ -230,7 +230,7 @@ return function (PDO $db): void {
          is_featured, allow_comments, meta_description, published_at, created_at, updated_at, view_count)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)'
     );
-    $postTagStmt = $db->prepare('INSERT OR IGNORE INTO blog_post_tags (post_id, tag_id) VALUES (?, ?)');
+    $postTagStmt = $db->prepare('INSERT IGNORE INTO blog_post_tags (post_id, tag_id) VALUES (?, ?)');
 
     foreach ($posts as $post) {
         $catId = $catIds[$post['category']] ?? null;

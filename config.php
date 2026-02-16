@@ -19,8 +19,14 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 
 // Base path configuration
 define('BASE_PATH', __DIR__);
-define('DB_PATH', BASE_PATH . '/database/database.sqlite');
 define('UPLOADS_PATH', BASE_PATH . '/uploads');
+
+// MySQL Database Configuration
+define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_NAME', getenv('DB_NAME') ?: 'business_cms');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 
 // Base URL — auto-detect the subdirectory this site lives in.
 // Override manually if auto-detection doesn't work for your setup:
@@ -45,14 +51,22 @@ define('ADMIN_SESSION_TIMEOUT', 3600); // 1 hour
 function getDB(): PDO {
     static $db = null;
     if ($db === null) {
-        $dbExists = file_exists(DB_PATH);
-        $db = new PDO('sqlite:' . DB_PATH);
+        $dsn = 'mysql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+        $db = new PDO($dsn, DB_USER, DB_PASS);
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        $db->exec('PRAGMA journal_mode=WAL');
-        $db->exec('PRAGMA foreign_keys=ON');
+        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
-        if (!$dbExists) {
+        // Check if database has been initialized (settings table exists)
+        $initialized = false;
+        try {
+            $db->query('SELECT 1 FROM settings LIMIT 1');
+            $initialized = true;
+        } catch (PDOException $e) {
+            // Table doesn't exist — needs initialization
+        }
+
+        if (!$initialized) {
             initializeDatabase($db);
         } else {
             migrateDatabase($db);
@@ -70,7 +84,13 @@ function getDB(): PDO {
  */
 function initializeDatabase(PDO $db): void {
     $schema = file_get_contents(BASE_PATH . '/database/schema.sql');
-    $db->exec($schema);
+    // Execute each statement separately for MySQL
+    $statements = array_filter(array_map('trim', explode(';', $schema)));
+    foreach ($statements as $statement) {
+        if ($statement) {
+            $db->exec($statement);
+        }
+    }
 
     // Run seeder
     require_once BASE_PATH . '/database/seed.php';
@@ -83,8 +103,8 @@ function initializeDatabase(PDO $db): void {
  */
 function migrateDatabase(PDO $db): void {
     // Check if products table has the new columns
-    $cols = $db->query("PRAGMA table_info(products)")->fetchAll();
-    $colNames = array_column($cols, 'name');
+    $cols = $db->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products'")->fetchAll();
+    $colNames = array_column($cols, 'COLUMN_NAME');
 
     if (!in_array('specifications', $colNames)) {
         $db->exec('ALTER TABLE products ADD COLUMN specifications TEXT');
@@ -97,74 +117,74 @@ function migrateDatabase(PDO $db): void {
     }
 
     // Check if product_categories has icon column
-    $catCols = $db->query("PRAGMA table_info(product_categories)")->fetchAll();
-    $catColNames = array_column($catCols, 'name');
+    $catCols = $db->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'product_categories'")->fetchAll();
+    $catColNames = array_column($catCols, 'COLUMN_NAME');
 
     if (!in_array('icon', $catColNames)) {
-        $db->exec("ALTER TABLE product_categories ADD COLUMN icon TEXT DEFAULT 'fa-tag'");
+        $db->exec("ALTER TABLE product_categories ADD COLUMN icon VARCHAR(100) DEFAULT 'fa-tag'");
     }
 
     // Add e-commerce columns to products
     if (!in_array('product_type', $colNames)) {
-        $db->exec("ALTER TABLE products ADD COLUMN product_type TEXT DEFAULT 'physical'");
+        $db->exec("ALTER TABLE products ADD COLUMN product_type VARCHAR(50) DEFAULT 'physical'");
     }
     if (!in_array('download_file', $colNames)) {
         $db->exec('ALTER TABLE products ADD COLUMN download_file TEXT');
     }
     if (!in_array('download_limit', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN download_limit INTEGER DEFAULT 0');
+        $db->exec('ALTER TABLE products ADD COLUMN download_limit INT DEFAULT 0');
     }
     if (!in_array('download_expiry_hours', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN download_expiry_hours INTEGER DEFAULT 72');
+        $db->exec('ALTER TABLE products ADD COLUMN download_expiry_hours INT DEFAULT 72');
     }
 
     // Create orders table if it doesn't exist
     $db->exec("CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_number TEXT UNIQUE NOT NULL,
-        customer_name TEXT NOT NULL,
-        customer_email TEXT NOT NULL,
-        customer_phone TEXT,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_number VARCHAR(100) UNIQUE NOT NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_email VARCHAR(255) NOT NULL,
+        customer_phone VARCHAR(50),
         shipping_address TEXT,
-        subtotal REAL DEFAULT 0,
-        tax REAL DEFAULT 0,
-        total REAL DEFAULT 0,
-        payment_method TEXT,
-        payment_id TEXT,
-        payment_status TEXT DEFAULT 'pending',
-        order_status TEXT DEFAULT 'pending',
+        subtotal DECIMAL(10,2) DEFAULT 0,
+        tax DECIMAL(10,2) DEFAULT 0,
+        total DECIMAL(10,2) DEFAULT 0,
+        payment_method VARCHAR(100),
+        payment_id VARCHAR(255),
+        payment_status VARCHAR(50) DEFAULT 'pending',
+        order_status VARCHAR(50) DEFAULT 'pending',
         notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Create order_items table if it doesn't exist
     $db->exec("CREATE TABLE IF NOT EXISTS order_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER NOT NULL,
-        product_id INTEGER,
-        product_name TEXT NOT NULL,
-        product_type TEXT DEFAULT 'physical',
-        quantity INTEGER DEFAULT 1,
-        unit_price REAL DEFAULT 0,
-        total_price REAL DEFAULT 0,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        product_id INT,
+        product_name VARCHAR(255) NOT NULL,
+        product_type VARCHAR(50) DEFAULT 'physical',
+        quantity INT DEFAULT 1,
+        unit_price DECIMAL(10,2) DEFAULT 0,
+        total_price DECIMAL(10,2) DEFAULT 0,
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-    )");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Create download_tokens table if it doesn't exist
     $db->exec("CREATE TABLE IF NOT EXISTS download_tokens (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER NOT NULL,
-        order_item_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        token TEXT UNIQUE NOT NULL,
-        download_count INTEGER DEFAULT 0,
-        max_downloads INTEGER DEFAULT 0,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        order_item_id INT NOT NULL,
+        product_id INT NOT NULL,
+        token VARCHAR(255) UNIQUE NOT NULL,
+        download_count INT DEFAULT 0,
+        max_downloads INT DEFAULT 0,
         expires_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
         FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE
-    )");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // ---- Store Configuration settings ----
     // These are stored in the settings table; add defaults for existing installs.
@@ -196,8 +216,8 @@ function migrateDatabase(PDO $db): void {
         ['enable_wishlists',    '1'],
         ['enable_reviews',      '0'],
     ];
-    $checkStmt = $db->prepare('SELECT COUNT(*) FROM settings WHERE key = ?');
-    $insertStmt = $db->prepare('INSERT INTO settings (key, value, type) VALUES (?, ?, ?)');
+    $checkStmt = $db->prepare('SELECT COUNT(*) FROM settings WHERE `key` = ?');
+    $insertStmt = $db->prepare('INSERT INTO settings (`key`, `value`, `type`) VALUES (?, ?, ?)');
     foreach ($storeConfigDefaults as [$sKey, $sVal]) {
         $checkStmt->execute([$sKey]);
         if ((int)$checkStmt->fetchColumn() === 0) {
@@ -206,8 +226,8 @@ function migrateDatabase(PDO $db): void {
     }
 
     // Migrate containers into products if containers table still exists
-    $tables = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='containers'")->fetchColumn();
-    if ($tables) {
+    $tables = $db->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'containers'")->fetchColumn();
+    if ($tables > 0) {
         // Ensure a "Containers" category exists
         $catStmt = $db->prepare('SELECT id FROM product_categories WHERE slug = ?');
         $catStmt->execute(['containers']);
@@ -220,7 +240,7 @@ function migrateDatabase(PDO $db): void {
 
         // Migrate each container as a product
         $containers = $db->query('SELECT * FROM containers')->fetchAll();
-        $insertStmt = $db->prepare('INSERT OR IGNORE INTO products (category_id, name, slug, description, image, price, unit, specifications, features, price_note, is_visible, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
+        $insertStmt = $db->prepare('INSERT IGNORE INTO products (category_id, name, slug, description, image, price, unit, specifications, features, price_note, is_visible, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
         foreach ($containers as $c) {
             $slug = strtolower(trim(preg_replace('/[^a-z0-9-]/', '-', preg_replace('/-+/', '-', strtolower($c['name'])))));
             $specs = $c['dimensions'] ?? '';
@@ -256,7 +276,7 @@ function getSetting(string $key, string $default = ''): string {
     }
     try {
         $db = getDB();
-        $stmt = $db->prepare('SELECT value FROM settings WHERE key = ?');
+        $stmt = $db->prepare('SELECT `value` FROM settings WHERE `key` = ?');
         $stmt->execute([$key]);
         $result = $stmt->fetchColumn();
         $cache[$key] = $result !== false ? $result : $default;
@@ -272,7 +292,7 @@ function getSetting(string $key, string $default = ''): string {
 function updateSetting(string $key, string $value, string $type = 'text'): bool {
     try {
         $db = getDB();
-        $stmt = $db->prepare('INSERT OR REPLACE INTO settings (key, value, type) VALUES (?, ?, ?)');
+        $stmt = $db->prepare('INSERT INTO settings (`key`, `value`, `type`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `type` = VALUES(`type`)');
         return $stmt->execute([$key, $value, $type]);
     } catch (Exception $e) {
         return false;

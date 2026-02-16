@@ -1,5 +1,6 @@
 # Database
 database/database.sqlite
+*.sql.bak
 
 # Auto-generated credentials (created on first run)
 ADMIN_CREDENTIALS.txt
