@@ -9,7 +9,7 @@ if (!$slug) {
     redirect('index.php?page=blog');
 }
 
-$post = getBlogPost($slug);
+$post = $GLOBALS['_cached_blog_post'] ?? getBlogPost($slug);
 if (!$post) {
     http_response_code(404);
     ?>

@@ -314,7 +314,7 @@ function e(string $str): string {
  * Used for admin-authored content (custom pages, footer text, embeds).
  */
 function sanitizeHtml(string $html): string {
-    $allowed = '<p><br><strong><b><em><i><u><ul><ol><li><h1><h2><h3><h4><h5><h6><a><img><blockquote><hr><span><div><table><thead><tbody><tr><th><td><iframe><figure><figcaption><pre><code>';
+    $allowed = '<p><br><strong><b><em><i><u><ul><ol><li><h1><h2><h3><h4><h5><h6><a><img><blockquote><hr><span><div><table><thead><tbody><tr><th><td><figure><figcaption><pre><code>';
     $clean = strip_tags($html, $allowed);
     // Strip event handlers (onclick, onerror, onload, etc.) from remaining tags
     $clean = preg_replace('/\s+on\w+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);

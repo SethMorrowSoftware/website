@@ -34,9 +34,10 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
     <?php
     $ogType = 'website';
     $ogImage = '';
-    // Blog post specific OG tags
+    // Blog post specific OG tags — cache the result so blog-post.php can reuse it
     if ($currentPage === 'blog-post' && !empty($_GET['slug'])) {
-        $ogBlogPost = getBlogPost($_GET['slug']);
+        $GLOBALS['_cached_blog_post'] = getBlogPost($_GET['slug']);
+        $ogBlogPost = $GLOBALS['_cached_blog_post'];
         if ($ogBlogPost) {
             $ogType = 'article';
             $pageTitle = e($ogBlogPost['title']) . ' | ' . $companyName;
