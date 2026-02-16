@@ -1,6 +1,6 @@
 # Business Website CMS
 
-A self-contained PHP/SQLite content management system template for service businesses. Manages roll-off containers, landscaping materials, trucking services, customer inquiries, and online payments. Everything runs on vanilla PHP with no framework dependencies. Designed as a blank starting point — customize the company name, contact info, colors, and content through the admin panel.
+A self-contained PHP/SQLite content management system for small businesses. Manages products, services, blog content, customer accounts, orders, and online payments. Everything runs on vanilla PHP with no framework dependencies. Customize the company name, contact info, colors, and content through the admin panel.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ A self-contained PHP/SQLite content management system template for service busin
 - SQLite3 PHP extension (`php-sqlite3`)
 - Apache with `mod_rewrite` enabled
 - PHP extensions: `fileinfo`, `mbstring`, `session`
-- Optional: `mod_headers`, `mod_expires`, `mod_deflate` (for security headers, caching, and compression — handled in `.htaccess`)
+- Optional: `mod_headers`, `mod_expires`, `mod_deflate` (for security headers, caching, and compression via `.htaccess`)
 
 ## Installation
 
@@ -30,7 +30,7 @@ The web server user (e.g., `www-data`) needs write access to `uploads/` and `dat
 
 3. Visit the site in a browser. On first load, the database is automatically created at `database/database.sqlite`, the schema is applied, and seed data is inserted.
 
-4. Admin credentials are generated randomly and written to `ADMIN_CREDENTIALS.txt` in the project root. This file is restricted to owner-read-only (`chmod 0600`) and is blocked from web access by `.htaccess`. Read the credentials, log in, change your password at `/admin/profile.php`, then delete the file.
+4. Admin credentials are generated randomly and written to `ADMIN_CREDENTIALS.txt` in the project root. This file is restricted to owner-read-only (`chmod 0600`) and blocked from web access by `.htaccess`. Read the credentials, log in, change your password at `/admin/profile.php`, then delete the file.
 
 5. If deploying to a subdirectory (e.g., `/mysite/`), the `BASE_URL` is auto-detected. If auto-detection fails, set it manually in `config.php`:
 
@@ -42,68 +42,109 @@ define('BASE_URL', '/mysite');
 
 ```
 .
-├── admin/                  # Admin panel
-│   ├── api/                # AJAX endpoints (upload, delete, reorder)
-│   ├── index.php           # Dashboard
-│   ├── login.php           # Login page
-│   ├── settings.php        # Global site settings
-│   ├── pages.php           # Page manager
-│   ├── page-edit.php       # WYSIWYG page editor
-│   ├── products.php        # Product list manager
-│   ├── product-edit.php    # Product editor
-│   ├── categories.php      # Product category manager
-│   ├── category-edit.php   # Category editor
-│   ├── containers.php      # Roll-off container manager
-│   ├── container-edit.php  # Container editor
-│   ├── testimonials.php    # Testimonial manager
-│   ├── testimonial-edit.php# Testimonial editor
-│   ├── hero.php            # Hero section editor
-│   ├── navigation.php      # Navigation menu manager
-│   ├── media.php           # Media library (upload/browse/delete)
-│   ├── inquiries.php       # Contact & order inquiry viewer
-│   ├── inquiry-view.php    # Single inquiry detail view
-│   ├── profile.php         # Change password
-│   ├── header.php          # Admin layout header
-│   └── footer.php          # Admin layout footer
+├── admin/                     # Admin panel
+│   ├── api/                   # AJAX endpoints
+│   │   ├── upload.php         #   Media file upload
+│   │   ├── delete.php         #   Media file deletion
+│   │   ├── reorder.php        #   Drag-and-drop reordering
+│   │   ├── paypal-create.php  #   PayPal order creation
+│   │   ├── paypal-capture.php #   PayPal payment capture
+│   │   └── btcpay-webhook.php #   BTCPay Server webhook
+│   ├── index.php              # Dashboard
+│   ├── login.php              # Login page
+│   ├── settings.php           # Global site settings
+│   ├── pages.php              # Page manager
+│   ├── page-edit.php          # WYSIWYG page editor
+│   ├── products.php           # Product list manager
+│   ├── product-edit.php       # Product editor (variants, images, options)
+│   ├── categories.php         # Product category manager
+│   ├── category-edit.php      # Category editor
+│   ├── orders.php             # Order management
+│   ├── order-view.php         # Order detail view
+│   ├── coupons.php            # Discount code management
+│   ├── shipping.php           # Shipping zone and method config
+│   ├── blog-posts.php         # Blog post manager
+│   ├── blog-post-edit.php     # Blog post editor
+│   ├── blog-categories.php    # Blog category manager
+│   ├── blog-comments.php      # Comment moderation
+│   ├── testimonials.php       # Testimonial manager
+│   ├── testimonial-edit.php   # Testimonial editor
+│   ├── reviews.php            # Product review moderation
+│   ├── inquiries.php          # Contact & order inquiry viewer
+│   ├── inquiry-view.php       # Single inquiry detail
+│   ├── hero.php               # Hero section editor
+│   ├── navigation.php         # Navigation menu builder
+│   ├── media.php              # Media library
+│   ├── export.php             # Data export (CSV)
+│   ├── audit-log.php          # Admin activity log
+│   ├── profile.php            # Change admin password
+│   ├── header.php             # Admin layout header/sidebar
+│   └── footer.php             # Admin layout footer
 ├── assets/
 │   ├── css/
-│   │   ├── variables.css   # Design tokens (colors, spacing, fonts)
-│   │   ├── style.css       # Main stylesheet
-│   │   ├── responsive.css  # Mobile/tablet breakpoints
-│   │   └── admin.css       # Admin panel styles
+│   │   ├── variables.css      # Design tokens (colors, spacing, fonts)
+│   │   ├── style.css          # Main stylesheet
+│   │   ├── responsive.css     # Mobile/tablet breakpoints
+│   │   ├── blog.css           # Blog-specific styles
+│   │   └── admin.css          # Admin panel styles
 │   ├── js/
-│   │   ├── main.js         # Frontend JS (nav, scroll, sliders)
-│   │   ├── forms.js        # Form validation and multi-step order form
-│   │   ├── editor.js       # WYSIWYG editor for admin page editing
-│   │   └── admin.js        # Admin panel JS (CSRF injection, media picker)
+│   │   ├── main.js            # Frontend (nav, scroll, sliders)
+│   │   ├── forms.js           # Form validation, multi-step checkout
+│   │   ├── ajax-cart.js       # AJAX add-to-cart
+│   │   ├── lightbox.js        # Image lightbox/gallery
+│   │   ├── editor.js          # WYSIWYG editor for pages
+│   │   ├── blog-editor.js     # Blog post editor enhancements
+│   │   └── admin.js           # Admin panel (CSRF injection, media picker)
 │   └── images/
-│       └── placeholders/   # Default placeholder images
-├── database/
-│   ├── schema.sql          # Full database schema
-│   └── seed.php            # Initial data seeder
+│       └── placeholders/      # Default placeholder images
 ├── includes/
-│   ├── functions.php       # Shared helper functions
-│   ├── auth.php            # Authentication and rate limiting
-│   ├── header.php          # Public site header/nav
-│   └── footer.php          # Public site footer
-├── pages/                  # Public page templates
-│   ├── home.php            # Homepage (hero, services, testimonials, CTA)
-│   ├── about.php           # About page
-│   ├── containers.php      # Roll-off container listings
-│   ├── materials.php       # Materials/products catalog with category tabs
-│   ├── trucking.php        # Trucking services
-│   ├── contact.php         # Contact form + map + business info
-│   ├── order.php           # Multi-step order inquiry form
-│   ├── payment.php         # SwipeSimple payment embed
-│   └── custom.php          # Template for admin-created custom pages
-├── uploads/                # User-uploaded media (gitignored)
+│   ├── functions.php          # Core helper functions
+│   ├── auth.php               # Authentication and rate limiting
+│   ├── customers.php          # Customer account management
+│   ├── blog.php               # Blog platform functions
+│   ├── search.php             # Full-text search
+│   ├── reviews.php            # Product review functions
+│   ├── inventory.php          # Stock/availability tracking
+│   ├── coupons.php            # Discount code logic
+│   ├── shipping.php           # Shipping calculation
+│   ├── email.php              # Email notification templates
+│   ├── audit.php              # Activity logging
+│   ├── migrations.php         # Database migration system
+│   ├── header.php             # Public site header/nav
+│   └── footer.php             # Public site footer
+├── pages/                     # Public page templates
+│   ├── home.php               # Homepage (hero, categories, featured products, testimonials)
+│   ├── about.php              # About page
+│   ├── catalog.php            # Product/service catalog with category tabs
+│   ├── product.php            # Product detail (images, variants, reviews)
+│   ├── cart.php               # Shopping cart
+│   ├── checkout.php           # Multi-step checkout
+│   ├── order.php              # Order inquiry form
+│   ├── order-complete.php     # Order confirmation
+│   ├── order-status.php       # Order tracking
+│   ├── payment.php            # Payment methods page
+│   ├── paypal-checkout.php    # PayPal integration
+│   ├── blog.php               # Blog listing (category, tag, archive, search filters)
+│   ├── blog-post.php          # Blog post detail with comments
+│   ├── contact.php            # Contact form + map + business info
+│   ├── search.php             # Search results
+│   ├── account.php            # Customer account dashboard
+│   ├── wishlist.php           # Product wishlist
+│   ├── login.php              # Customer login
+│   ├── register.php           # Customer registration
+│   ├── forgot-password.php    # Password reset request
+│   ├── reset-password.php     # Password reset form
+│   ├── download.php           # Digital product downloads
+│   └── custom.php             # Template for admin-created pages
+├── uploads/                   # User-uploaded media (gitignored)
 │   ├── images/
 │   └── videos/
-├── config.php              # Database connection, settings, helpers
-├── index.php               # Front controller / router
-├── sitemap.php             # Dynamic XML sitemap generator
-├── robots.txt              # Crawler directives
-└── .htaccess               # URL rewrites, security headers, caching
+├── config.php                 # Database connection, constants, helpers
+├── index.php                  # Front controller / router
+├── sitemap.php                # Dynamic XML sitemap
+├── rss.php                    # Blog RSS feed
+├── robots.txt                 # Crawler directives
+└── .htaccess                  # URL rewrites, security headers, caching
 ```
 
 ## Configuration
@@ -120,177 +161,163 @@ All runtime configuration is in `config.php`:
 
 Error display is off by default (`display_errors = 0`). Errors are written to the PHP error log (`log_errors = 1`).
 
+## Feature Flags
+
+Features are toggled via admin settings. Each flag maps to a setting key:
+
+| Feature | Setting Key | Controls |
+|---|---|---|
+| `catalog` | `enable_catalog` | Product catalog visibility |
+| `cart` | `enable_cart` | Shopping cart and checkout |
+| `order_inquiry` | `enable_order_inquiry` | Service inquiry form |
+| `contact_form` | `enable_contact_form` | Contact form |
+| `testimonials` | `enable_testimonials` | Testimonials section |
+| `about_page` | `enable_about_page` | About page |
+| `reviews` | `enable_reviews` | Product review system |
+| `customer_accounts` | `enable_customer_accounts` | Customer registration/login |
+| `search` | `enable_search` | Site-wide search |
+| `wishlists` | `enable_wishlists` | Product wishlists |
+| `blog` | `enable_blog` | Blog platform |
+| `phone_header` | `show_phone_header` | Phone number in header |
+| `email_header` | `show_email_header` | Email in header |
+| `address` | `show_address` | Address in footer |
+| `business_hours` | `show_business_hours` | Business hours display |
+| `map` | `show_map` | Google Maps embed |
+
+The store type setting (`store_type`) controls the overall business model: `products_and_services`, `products_only`, `services_only`, `digital_only`, or `informational`.
+
 ## Admin Panel
 
-Access the admin panel at `/admin/`. Login is required for all admin pages.
+Access at `/admin/`. Login required for all pages.
 
-### Dashboard (`/admin/index.php`)
+### Dashboard
 
-Shows counts for products, containers, testimonials, pages, and media. Displays unread contact and order inquiry counts with links to view them.
+Overview counts for products, orders, blog posts, testimonials, and media. Displays unread inquiry and pending comment counts with links.
 
-### Site Settings (`/admin/settings.php`)
+### Site Settings
 
-All settings are stored as key-value pairs in the `settings` table. Configurable fields:
+Key-value configuration for:
 
 - **Company Info**: name, phone, email, address, business hours
-- **Branding**: logo upload, favicon upload, primary color, secondary color, tagline
-- **Content**: about text, service area description, footer text (HTML)
+- **Branding**: logo, favicon, primary/secondary colors, tagline
 - **Social Media**: Facebook, Instagram, Twitter URLs
-- **Integrations**: Google Maps embed URL, SwipeSimple payment link and embed code
-- **Contact**: notification email address (receives form submissions)
+- **Payment Gateways**: Stripe, PayPal, Square, BTCPay Server configuration
+- **Email**: notification address, SMTP settings
+- **Features**: toggle individual features on/off
 
-### Pages (`/admin/pages.php`)
+### Content Management
 
-Lists all pages. System pages (home, about, containers, etc.) cannot be deleted. Custom pages can be created, edited, published/unpublished, and deleted. Each page has:
+- **Pages**: create, edit, publish/unpublish custom pages with a WYSIWYG editor. System pages (home, about, etc.) cannot be deleted.
+- **Hero Sections**: per-page hero banners with title, subtitle, CTA button, background image/video, and overlay opacity.
+- **Navigation**: drag-and-drop menu builder with parent-child nesting.
 
-- Title, URL slug, meta description
-- Rich content via WYSIWYG editor (TinyMCE-style toolbar built with `editor.js`)
-- Published/draft status
-- Navigation visibility toggle
+### Catalog
 
-### Products (`/admin/products.php`)
+- **Categories**: name, slug, description, icon, image, sort order, visibility.
+- **Products**: name, slug, category, description, images (multiple), price, unit, specifications, features. Supports product types: physical, digital, and service. Product options/variants with independent pricing and stock.
 
-Manage material products (mulch, stone, topsoil, sand, salt). Each product has:
+### E-commerce
 
-- Name, slug, category assignment
-- Description, image, price, unit (per yard, per ton, etc.)
-- Visibility toggle, sort order
+- **Orders**: view and manage customer orders with status tracking (pending, processing, shipped, delivered, cancelled). Supports multiple payment providers.
+- **Coupons**: percentage or fixed-amount discounts, minimum order amounts, usage limits, expiration dates. Can be restricted to specific products or categories.
+- **Shipping**: zone-based shipping with configurable methods (flat rate, free shipping thresholds).
 
-### Categories (`/admin/categories.php`)
+### Blog
 
-Manage product categories. Each has a name, slug, description, image, sort order, and visibility toggle. Deleting a category cascades to its products.
+- **Posts**: rich content editor with featured images, excerpts, SEO metadata (meta description, OG image), categories, tags, and scheduling. Supports draft/published/scheduled states. Posts can link to related products.
+- **Categories**: organize posts by topic.
+- **Comments**: moderation queue with approve/reject/delete. Auto-approval or manual moderation via settings.
 
-### Containers (`/admin/containers.php`)
+### Engagement
 
-Manage roll-off container listings. Each container has:
+- **Testimonials**: customer name, quote, optional photo. Displayed in a homepage slider.
+- **Reviews**: moderate customer product reviews.
+- **Inquiries**: view contact form submissions and order inquiries. Mark as read or delete.
 
-- Name, size (numeric), unit
-- Dimensions, description, use cases
-- Image, price, price note
-- Visibility and sort order
+### System
 
-### Testimonials (`/admin/testimonials.php`)
-
-Manage customer testimonials. Each has a customer name, quote, optional photo, visibility toggle, and sort order. Displayed in a slider on the homepage.
-
-### Hero Sections (`/admin/hero.php`)
-
-Each page can have a hero banner with:
-
-- Title, subtitle
-- Call-to-action text and link
-- Background image or video upload
-- Overlay opacity slider
-
-### Navigation (`/admin/navigation.php`)
-
-Drag-and-drop reordering of navigation menu items. Add custom links or link to existing pages. Items can be shown/hidden. Supports parent-child nesting. Reorder is saved via AJAX (`/admin/api/reorder.php`).
-
-### Media Library (`/admin/media.php`)
-
-Upload and manage images and videos. Supports drag-and-drop upload. Accepted formats: JPG, PNG, GIF, WebP, MP4, WebM (max 50MB per file). Files are stored in `uploads/images/` or `uploads/videos/`. Copy URL to clipboard for use in content editors.
-
-### Inquiries (`/admin/inquiries.php`)
-
-View contact form submissions and order inquiries in tabbed interface. Mark individual items as read, mark all as read, or delete. Click into individual inquiries for full detail view.
-
-### Profile (`/admin/profile.php`)
-
-Change the admin password. Requires current password for verification.
+- **Media Library**: upload images and videos (JPG, PNG, GIF, WebP, MP4, WebM, max 50MB). Drag-and-drop support. Copy URL for use in editors.
+- **Export**: download site data as CSV.
+- **Audit Log**: tracks all admin actions with user, action type, entity, and timestamp.
+- **Profile**: change admin password.
 
 ## Public Pages
 
-### Home (`/?page=home` or `/`)
+### Homepage
 
-Hero banner, three service cards (containers, materials, trucking), about preview, testimonials slider, call-to-action section.
+Hero banner, category/service cards, featured products grid with add-to-cart, "Why Choose Us" section, testimonials slider, and latest blog posts.
 
-### About (`/?page=about`)
+### Catalog
 
-Company description, service area, business hours, and info pulled from site settings.
+Category tab navigation, product cards with images, descriptions, pricing, specifications, features, and add-to-cart or inquiry buttons.
 
-### Containers (`/?page=containers`)
+### Product Detail
 
-Lists all visible containers with size, dimensions, description, use cases, pricing, and images. Each has a "Request This Container" link to the order form.
+Image gallery with lightbox, product options/variants, pricing, add-to-cart, specifications, features, customer reviews, and related products.
 
-### Materials (`/?page=materials`)
+### Blog
 
-Tabbed category interface. Clicking a category tab filters the product grid. Shows product cards with image, name, description, price, and unit.
+Post listing with category, tag, search, and archive filters. Sidebar with categories, popular posts, tags, and archive months. Individual posts with comments.
 
-### Trucking (`/?page=trucking`)
+### Shopping Cart & Checkout
 
-Static service page with trucking capabilities, service list, and CTA.
+AJAX add-to-cart, quantity adjustment, coupon code application, multi-step checkout with shipping address, shipping method selection, and payment.
 
-### Contact (`/?page=contact`)
+### Customer Accounts
 
-Contact form (name, email, phone, message), embedded Google Map, business hours, phone/email links. Submissions are stored in the database and trigger an email notification to the configured contact address.
+Registration, login, password reset, order history, and account management.
 
-### Order Inquiry (`/?page=order`)
+### Other Pages
 
-Multi-step form:
-1. Select service type (containers, materials, trucking)
-2. Select specific products/containers
-3. Enter delivery address and preferred date
-4. Enter contact information and notes
+- **About**: company description, service area, business hours
+- **Contact**: form with email notification, embedded map, business info
+- **Order Inquiry**: multi-step form for service/product inquiries
+- **Search**: full-text search across products, pages, and blog posts
+- **Wishlist**: save products for later (requires account)
 
-Submissions are stored in `order_inquiries` and trigger an email notification.
+## Payment Gateways
 
-### Payment (`/?page=payment`)
+| Provider | Type | Configuration |
+|---|---|---|
+| Stripe | Credit/debit cards | `stripe_publishable_key`, `stripe_secret_key` |
+| PayPal | PayPal + cards | `paypal_client_id`, `paypal_secret`, `paypal_sandbox` |
+| Square | Credit/debit cards | `square_application_id` |
+| BTCPay Server | Bitcoin (on-chain + Lightning) | `btcpay_url`, `btcpay_api_key`, `btcpay_store_id`, `btcpay_webhook_secret` |
 
-Displays a SwipeSimple payment widget if configured in settings. Otherwise shows a message to contact the business.
+Each gateway is enabled individually via admin settings. Multiple gateways can be active simultaneously.
 
-### Custom Pages
+## Database
 
-Pages created through the admin panel are served at `/?page=<slug>` (or `/<slug>` with clean URLs). Content is rendered through `pages/custom.php` with HTML sanitization applied.
+SQLite database with 30+ tables, automatically created on first request. Key table groups:
 
-## URL Routing
+- **Core**: `settings`, `users`, `pages`, `navigation`, `hero_sections`, `media`
+- **Catalog**: `product_categories`, `products`, `product_images`, `product_options`, `product_option_values`
+- **E-commerce**: `orders`, `order_items`, `coupons`, `coupon_products`, `coupon_categories`, `shipping_zones`, `shipping_methods`, `download_tokens`
+- **Customers**: `customers`, `wishlists`, `password_resets`
+- **Blog**: `blog_posts`, `blog_categories`, `blog_tags`, `blog_post_tags`, `blog_comments`, `blog_post_products`
+- **Engagement**: `testimonials`, `contact_submissions`, `order_inquiries`, `reviews`
+- **System**: `login_attempts`, `form_submissions`, `audit_log`, `migrations`
 
-The `.htaccess` file provides clean URLs:
-
-- `/about` rewrites to `index.php?page=about`
-- Same for: `home`, `containers`, `materials`, `trucking`, `contact`, `order`, `payment`
-
-Custom page slugs are not in the rewrite rules — they use the query string format (`?page=slug`) or need manual addition to `.htaccess`.
-
-The `index.php` front controller checks the `page` parameter against an allowlist of system pages, then falls back to a database lookup for custom pages, then falls back to the homepage with a 404 status.
-
-## Database Schema
-
-SQLite database with 13 tables:
-
-| Table | Purpose |
-|---|---|
-| `settings` | Key-value site configuration |
-| `users` | Admin accounts (bcrypt password hashes) |
-| `pages` | CMS pages (system and custom) |
-| `product_categories` | Material categories |
-| `products` | Individual products with category FK |
-| `containers` | Roll-off container listings |
-| `testimonials` | Customer testimonials |
-| `contact_submissions` | Contact form entries |
-| `order_inquiries` | Order form entries |
-| `navigation` | Menu items with parent-child support |
-| `media` | Uploaded file metadata |
-| `hero_sections` | Per-page hero banner config |
-| `login_attempts` | Failed login tracking for rate limiting |
-
-The database is created automatically on first request. Schema is in `database/schema.sql`, seed data in `database/seed.php`.
+The database migration system (`includes/migrations.php`) handles schema evolution. Migrations run automatically on each request.
 
 ## Security
 
 ### Authentication
-- Passwords hashed with `password_hash()` (bcrypt)
-- Sessions regenerated on login (`session_regenerate_id`)
-- 1-hour inactivity timeout
+- Admin passwords hashed with `password_hash()` (bcrypt)
+- Customer passwords hashed with bcrypt
+- Sessions regenerated on login
+- 1-hour admin inactivity timeout
 - Rate limiting: 5 failed login attempts per IP per 15-minute window
+- Form submission rate limiting (anti-spam)
 
 ### CSRF Protection
-- All forms include a CSRF token (session-bound, verified server-side)
+- All POST forms include a session-bound CSRF token
 - AJAX requests send the token via `X-CSRF-Token` header (auto-injected by `admin.js`)
 - All state-changing operations require POST method
 
 ### Output Encoding
-- User-controlled strings escaped with `htmlspecialchars()` via `e()` helper
-- Admin-authored HTML content sanitized with `sanitizeHtml()` — allows safe formatting tags, strips event handlers and `javascript:`/`data:` URIs
+- User-controlled strings escaped with `htmlspecialchars()` via `e()` helper (null-safe)
+- Admin-authored HTML sanitized with `sanitizeHtml()` — allows safe formatting tags, strips event handlers and `javascript:`/`data:` URIs
 
 ### File Uploads
 - MIME type validated via `finfo` (not file extension)
@@ -300,7 +327,7 @@ The database is created automatically on first request. Schema is in `database/s
 - Files stored with generated filenames (no user-controlled paths)
 
 ### HTTP Headers (via `.htaccess`)
-- `Content-Security-Policy`: restricts scripts, styles, fonts, frames to self and specific CDNs
+- `Content-Security-Policy`: restricts scripts, styles, fonts, frames
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: SAMEORIGIN`
 - `Referrer-Policy: strict-origin-when-cross-origin`
@@ -310,21 +337,21 @@ The database is created automatically on first request. Schema is in `database/s
 ### Access Control
 - `database/` and `includes/` directories blocked from direct web access
 - `.sqlite`, `.sql`, `.md`, `.log`, `.txt` files blocked from download
-- Directory listing disabled (`Options -Indexes`)
+- Directory listing disabled
 
 ### Session Cookies
 - `HttpOnly`, `SameSite=Lax`
-- `Secure` flag set automatically when serving over HTTPS
+- `Secure` flag set automatically over HTTPS
 
 ## Email Notifications
 
-Contact form and order inquiry submissions send email to the address configured in `contact_email` setting. Uses PHP `mail()` function. Failures are logged to the PHP error log rather than silently suppressed.
+Contact and order inquiry submissions send email to the configured `contact_email` address. Order confirmation and password reset emails are sent to customers. Uses PHP `mail()` by default. Failures are logged to the PHP error log.
 
-If `mail()` is not configured on your server, submissions are still saved to the database. Configure a local MTA (Postfix, msmtp) or use an SMTP wrapper if outbound email is needed.
+If `mail()` is not configured on your server, submissions and orders are still saved to the database. Configure a local MTA (Postfix, msmtp) or use an SMTP wrapper.
 
 ## Theming
 
-Colors are controlled by CSS custom properties defined in `assets/css/variables.css`. The admin panel allows overriding the primary and secondary colors, which are injected as inline `<style>` overrides in the header.
+Colors are controlled by CSS custom properties in `assets/css/variables.css`. The admin panel allows overriding primary and secondary colors, which are injected as inline `<style>` overrides in the header.
 
 Default palette:
 - Primary: `#2563EB` (blue)
@@ -332,34 +359,38 @@ Default palette:
 
 Font stack uses system fonts with Google Fonts loaded for headings.
 
+## SEO
+
+- Dynamic XML sitemap (`sitemap.php`) including all public pages, products, blog posts, and categories
+- Blog RSS feed (`rss.php`)
+- Canonical tags on blog pages (listing and individual posts)
+- Open Graph meta tags (title, description, image, article metadata)
+- Configurable meta descriptions per page and blog post
+- `robots.txt` with sitemap reference
+
 ## Frontend JavaScript
 
 All frontend JS is vanilla (no jQuery, no build step):
 
-- `main.js`: Mobile nav toggle, sticky header on scroll, scroll-reveal animations, testimonials auto-slider
-- `forms.js`: Client-side form validation, multi-step order form with step navigation and progress indicator
-- `editor.js`: Simple WYSIWYG content editor for admin page editing (bold, italic, lists, links, images, headings, HTML source view)
-- `admin.js`: CSRF token auto-injection for XHR/fetch, media picker integration, drag-and-drop upload area, admin UI interactions
-
-## Sitemap
-
-`sitemap.php` generates a dynamic XML sitemap including all system pages and published custom pages from the database. Referenced in `robots.txt`.
+- `main.js`: mobile nav, sticky header, scroll-reveal animations, testimonials slider
+- `forms.js`: client-side validation, multi-step checkout with progress indicator
+- `ajax-cart.js`: add-to-cart without page reload, cart count badge updates
+- `lightbox.js`: product image gallery with zoom
+- `editor.js`: WYSIWYG content editor (bold, italic, lists, links, images, headings, HTML source)
+- `blog-editor.js`: blog post editor with tag management and scheduling
+- `admin.js`: CSRF token injection, media picker, drag-and-drop upload, admin UI
 
 ## Backup
 
 The entire site state is in two locations:
 
-1. `database/database.sqlite` — all content, settings, user accounts
+1. `database/database.sqlite` — all content, settings, user accounts, orders
 2. `uploads/` — uploaded images and videos
-
-To back up:
 
 ```bash
 cp database/database.sqlite database/database.sqlite.bak
 tar -czf uploads-backup.tar.gz uploads/
 ```
-
-To restore, replace the files and ensure permissions are correct.
 
 ## Resetting the Database
 
@@ -367,7 +398,7 @@ Delete `database/database.sqlite` and reload the site. A fresh database will be 
 
 ## HTTPS
 
-The `.htaccess` file includes a commented-out HTTPS redirect rule. To enforce HTTPS in production, uncomment lines 8-9 in `.htaccess`:
+The `.htaccess` file includes a commented-out HTTPS redirect rule. To enforce HTTPS in production, uncomment the redirect lines in `.htaccess`:
 
 ```apache
 RewriteCond %{HTTPS} !=on
@@ -380,12 +411,12 @@ The `Strict-Transport-Security` header is automatically applied when HTTPS is ac
 
 **Blank page or 500 error**: Check PHP error log. Common causes: missing `php-sqlite3` extension, incorrect file permissions on `database/` or `uploads/`.
 
-**Clean URLs not working**: Ensure `mod_rewrite` is enabled (`a2enmod rewrite`) and `AllowOverride All` is set for the site directory in your Apache config.
+**Clean URLs not working**: Ensure `mod_rewrite` is enabled (`a2enmod rewrite`) and `AllowOverride All` is set in your Apache config.
 
-**Database locked errors**: SQLite uses file-level locking. The schema enables WAL mode (`journal_mode=WAL`) for better concurrent read performance. If you get persistent lock errors, check that no long-running process is holding the database open.
+**Database locked errors**: SQLite uses file-level locking. WAL mode is enabled for better concurrent reads. If persistent, check that no long-running process is holding the database open.
 
-**Uploads failing**: Check that `uploads/` is writable by the web server user. Check PHP `upload_max_filesize` and `post_max_size` (set to 50M/55M in `.htaccess` but may be overridden by `php.ini`).
+**Uploads failing**: Check that `uploads/` is writable by the web server user. Check PHP `upload_max_filesize` and `post_max_size` settings.
 
-**Email not sending**: Check PHP error log for `[MAIL FAILURE]` entries. Ensure a mail transfer agent is installed and configured on the server.
+**Email not sending**: Check PHP error log for `[MAIL FAILURE]` entries. Ensure a mail transfer agent is installed.
 
 **Admin credentials file not found**: If you deleted `ADMIN_CREDENTIALS.txt` before saving the password, delete `database/database.sqlite` to regenerate everything.
