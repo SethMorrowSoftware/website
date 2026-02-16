@@ -444,6 +444,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?page=product&slug=' . urlencode($slug) . '#reviews');
     }
 
+    // ---- Blog Comment Submission ----
+    if ($action === 'submit_blog_comment' && isFeatureEnabled('blog') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        if (isFormRateLimited('blog_comment', 5, 300)) {
+            $_SESSION['flash_message'] = 'Too many comments. Please try again later.';
+            $_SESSION['flash_type'] = 'error';
+        } else {
+            $postId = (int)($_POST['post_id'] ?? 0);
+            $commentData = [
+                'parent_id' => (int)($_POST['parent_id'] ?? 0) ?: null,
+                'customer_id' => isCustomerLoggedIn() ? getCustomerId() : null,
+                'author_name' => trim($_POST['commenter_name'] ?? ''),
+                'author_email' => trim($_POST['commenter_email'] ?? ''),
+                'content' => trim($_POST['comment_content'] ?? ''),
+            ];
+
+            $errors = [];
+            if (!$commentData['author_name']) $errors[] = 'Name is required.';
+            if (!filter_var($commentData['author_email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required.';
+            if (!$commentData['content'] || strlen($commentData['content']) < 3) $errors[] = 'Comment must be at least 3 characters.';
+
+            if (empty($errors) && $postId) {
+                recordFormSubmission('blog_comment');
+                submitBlogComment($postId, $commentData);
+                $moderation = getSetting('blog_comment_moderation', '1') === '1';
+                $_SESSION['flash_message'] = $moderation
+                    ? 'Thank you! Your comment will appear after approval.'
+                    : 'Comment posted successfully!';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = !empty($errors) ? implode(' ', $errors) : 'Could not submit comment.';
+                $_SESSION['flash_type'] = 'error';
+            }
+        }
+        $commentPostSlug = $_POST['post_slug'] ?? '';
+        redirect('index.php?page=blog-post&slug=' . urlencode($commentPostSlug) . '#comments');
+    }
+
     // ---- Customer Account Actions ----
     if ($action === 'customer_login' && isFeatureEnabled('customer_accounts') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $email = trim($_POST['email'] ?? '');
@@ -623,6 +660,8 @@ $allowedPages = [
     // New pages
     'product', 'search', 'login', 'register', 'account', 'wishlist',
     'forgot-password', 'reset-password', 'order-status',
+    // Blog pages
+    'blog', 'blog-post',
 ];
 
 // Redirect away from disabled feature pages
@@ -640,6 +679,8 @@ $featurePageMap = [
     'forgot-password' => 'customer_accounts',
     'reset-password'  => 'customer_accounts',
     'wishlist'        => 'wishlists',
+    'blog'            => 'blog',
+    'blog-post'       => 'blog',
 ];
 if (isset($featurePageMap[$page]) && !isFeatureEnabled($featurePageMap[$page])) {
     if (!in_array($page, ['order-complete', 'download'])) {

@@ -128,6 +128,25 @@ require_once __DIR__ . '/header.php';
             <div class="stat-label">Pages</div>
         </div>
     </div>
+    <?php if (isFeatureEnabled('blog')): ?>
+    <?php $blogStats = getBlogStats(); ?>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#8b5cf6;color:#fff;"><i class="fas fa-blog"></i></div>
+        <div class="stat-info">
+            <div class="stat-number"><?php echo $blogStats['published_posts']; ?> / <?php echo $blogStats['total_posts']; ?></div>
+            <div class="stat-label">Published / Total Posts</div>
+        </div>
+    </div>
+    <?php if ($blogStats['pending_comments'] > 0): ?>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#f59e0b;color:#fff;"><i class="fas fa-comments"></i></div>
+        <div class="stat-info">
+            <div class="stat-number"><?php echo $blogStats['pending_comments']; ?></div>
+            <div class="stat-label">Pending Comments</div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php endif; ?>
 </div>
 
 <!-- Low Stock Alert -->

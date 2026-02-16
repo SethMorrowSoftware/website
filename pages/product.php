@@ -583,6 +583,42 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
 </script>
 <?php endif; ?>
 
+<?php
+// Related Blog Articles for this product
+if (isFeatureEnabled('blog') && $product):
+    $relatedArticles = getProductBlogPosts($product['id'], 3);
+    if (!empty($relatedArticles)):
+?>
+<link rel="stylesheet" href="<?php echo asset('css/blog.css'); ?>">
+<section class="section blog-product-articles">
+    <div class="container">
+        <h2><i class="fas fa-newspaper"></i> Related Articles</h2>
+        <div class="blog-product-articles-grid">
+            <?php foreach ($relatedArticles as $article): ?>
+                <article class="blog-card">
+                    <?php if ($article['featured_image']): ?>
+                        <a href="<?php echo url('index.php?page=blog-post&slug=' . e($article['slug'])); ?>" class="blog-card-image">
+                            <img src="<?php echo e($article['featured_image']); ?>" alt="<?php echo e($article['title']); ?>" loading="lazy">
+                        </a>
+                    <?php endif; ?>
+                    <div class="blog-card-body">
+                        <h3 class="blog-card-title">
+                            <a href="<?php echo url('index.php?page=blog-post&slug=' . e($article['slug'])); ?>"><?php echo e($article['title']); ?></a>
+                        </h3>
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y', strtotime($article['published_at'])); ?></span>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php
+    endif;
+endif;
+?>
+
 <script>
 // Collect variant info into hidden field before submit
 document.querySelectorAll('.product-add-form').forEach(function(form) {

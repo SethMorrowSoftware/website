@@ -198,3 +198,46 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     </div>
 </section>
 <?php endif; ?>
+
+<?php
+// Blog section on homepage
+if (isFeatureEnabled('blog')):
+    $latestBlogPosts = getRecentPosts(3);
+    if (!empty($latestBlogPosts)):
+?>
+<link rel="stylesheet" href="<?php echo asset('css/blog.css'); ?>">
+<section class="blog-home-section">
+    <div class="container">
+        <h2 class="fade-in">Latest from the Blog</h2>
+        <p class="section-subtitle fade-in">News, insights, and stories</p>
+        <div class="blog-home-grid">
+            <?php foreach ($latestBlogPosts as $bp): ?>
+                <article class="blog-card fade-in">
+                    <?php if ($bp['featured_image']): ?>
+                        <a href="<?php echo url('index.php?page=blog-post&slug=' . e($bp['slug'])); ?>" class="blog-card-image">
+                            <img src="<?php echo e($bp['featured_image']); ?>" alt="<?php echo e($bp['title']); ?>" loading="lazy">
+                        </a>
+                    <?php endif; ?>
+                    <div class="blog-card-body">
+                        <?php if ($bp['category_name']): ?>
+                            <a href="<?php echo url('index.php?page=blog&category=' . e($bp['category_slug'])); ?>" class="blog-card-category"><?php echo e($bp['category_name']); ?></a>
+                        <?php endif; ?>
+                        <h3 class="blog-card-title">
+                            <a href="<?php echo url('index.php?page=blog-post&slug=' . e($bp['slug'])); ?>"><?php echo e($bp['title']); ?></a>
+                        </h3>
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y', strtotime($bp['published_at'])); ?></span>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+        <div class="blog-home-more">
+            <a href="<?php echo url('index.php?page=blog'); ?>" class="btn btn-primary">View All Posts</a>
+        </div>
+    </div>
+</section>
+<?php
+    endif;
+endif;
+?>
