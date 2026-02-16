@@ -75,6 +75,22 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         </a>
         <?php endif; ?>
 
+        <?php if (isFeatureEnabled('blog')): ?>
+        <div class="nav-section">Blog</div>
+        <a href="<?php echo url('admin/blog-posts.php'); ?>" class="<?php echo $adminPage === 'blog-posts' || $adminPage === 'blog-post-edit' ? 'active' : ''; ?>">
+            <i class="fas fa-blog"></i> Blog Posts
+        </a>
+        <a href="<?php echo url('admin/blog-categories.php'); ?>" class="<?php echo $adminPage === 'blog-categories' ? 'active' : ''; ?>">
+            <i class="fas fa-folder-open"></i> Blog Categories
+        </a>
+        <a href="<?php echo url('admin/blog-comments.php'); ?>" class="<?php echo $adminPage === 'blog-comments' ? 'active' : ''; ?>">
+            <i class="fas fa-comments"></i> Comments
+            <?php $pendingBlogComments = getPendingCommentCount(); if ($pendingBlogComments > 0): ?>
+                <span class="badge"><?php echo $pendingBlogComments; ?></span>
+            <?php endif; ?>
+        </a>
+        <?php endif; ?>
+
         <div class="nav-section">Engagement</div>
         <?php if (isFeatureEnabled('testimonials')): ?>
         <a href="<?php echo url('admin/testimonials.php'); ?>" class="<?php echo $adminPage === 'testimonials' || $adminPage === 'testimonial-edit' ? 'active' : ''; ?>">

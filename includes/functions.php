@@ -13,6 +13,7 @@ require_once __DIR__ . '/reviews.php';
 require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/audit.php';
 require_once __DIR__ . '/shipping.php';
+require_once __DIR__ . '/blog.php';
 
 // ============================================================
 // Store Configuration Helpers
@@ -42,6 +43,7 @@ function isFeatureEnabled(string $feature): bool {
         'customer_accounts' => 'enable_customer_accounts',
         'search'            => 'enable_search',
         'wishlists'         => 'enable_wishlists',
+        'blog'              => 'enable_blog',
     ];
 
     $key = $map[$feature] ?? $feature;

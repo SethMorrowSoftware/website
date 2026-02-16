@@ -31,10 +31,36 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
     <title><?php echo e($pageTitle); ?></title>
 
     <!-- Open Graph -->
+    <?php
+    $ogType = 'website';
+    $ogImage = '';
+    // Blog post specific OG tags
+    if ($currentPage === 'blog-post' && !empty($_GET['slug'])) {
+        $ogBlogPost = getBlogPost($_GET['slug']);
+        if ($ogBlogPost) {
+            $ogType = 'article';
+            $pageTitle = e($ogBlogPost['title']) . ' | ' . $companyName;
+            $metaDescription = $ogBlogPost['meta_description'] ?: $ogBlogPost['excerpt'] ?: $metaDescription;
+            $ogImage = $ogBlogPost['og_image'] ?: $ogBlogPost['featured_image'];
+        }
+    }
+    ?>
     <meta property="og:title" content="<?php echo e($pageTitle); ?>">
     <meta property="og:description" content="<?php echo e($metaDescription); ?>">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="<?php echo $ogType; ?>">
     <meta property="og:site_name" content="<?php echo e($companyName); ?>">
+    <?php if ($ogImage): ?>
+        <meta property="og:image" content="<?php echo e($ogImage); ?>">
+    <?php endif; ?>
+    <?php if ($ogType === 'article' && isset($ogBlogPost)): ?>
+        <meta property="article:published_time" content="<?php echo e($ogBlogPost['published_at']); ?>">
+        <meta property="article:modified_time" content="<?php echo e($ogBlogPost['updated_at']); ?>">
+    <?php endif; ?>
+
+    <!-- RSS Feed -->
+    <?php if (isFeatureEnabled('blog')): ?>
+        <link rel="alternate" type="application/rss+xml" title="<?php echo e($companyName); ?> Blog RSS" href="<?php echo url('rss.php'); ?>">
+    <?php endif; ?>
 
     <!-- Favicon -->
     <?php $faviconUrl = getSetting('favicon'); if ($faviconUrl): ?>
@@ -50,6 +76,9 @@ $metaDescription = $pageData ? $pageData['meta_description'] : getSetting('tagli
     <link rel="stylesheet" href="<?php echo asset('css/variables.css'); ?>">
     <link rel="stylesheet" href="<?php echo asset('css/style.css'); ?>">
     <link rel="stylesheet" href="<?php echo asset('css/responsive.css'); ?>">
+    <?php if ($currentPage === 'blog' || $currentPage === 'blog-post'): ?>
+        <link rel="stylesheet" href="<?php echo asset('css/blog.css'); ?>">
+    <?php endif; ?>
 
     <?php
     // Dynamic theme colors from admin settings

@@ -66,4 +66,28 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
         <priority>0.6</priority>
     </url>
 <?php endforeach; ?>
+<?php
+// Blog pages
+if (isFeatureEnabled('blog')):
+    $blogPosts = $db->query("SELECT slug, updated_at, published_at FROM blog_posts WHERE status = 'published' AND published_at <= datetime('now') ORDER BY published_at DESC")->fetchAll();
+    $blogCategories = $db->query("SELECT slug FROM blog_categories WHERE is_visible = 1")->fetchAll();
+?>
+    <url>
+        <loc><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog'); ?></loc>
+        <priority>0.8</priority>
+    </url>
+<?php foreach ($blogCategories as $bc): ?>
+    <url>
+        <loc><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog&category=' . urlencode($bc['slug'])); ?></loc>
+        <priority>0.6</priority>
+    </url>
+<?php endforeach; ?>
+<?php foreach ($blogPosts as $bp): ?>
+    <url>
+        <loc><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog-post&slug=' . urlencode($bp['slug'])); ?></loc>
+        <lastmod><?php echo date('Y-m-d', strtotime($bp['updated_at'] ?: $bp['published_at'])); ?></lastmod>
+        <priority>0.7</priority>
+    </url>
+<?php endforeach; ?>
+<?php endif; ?>
 </urlset>

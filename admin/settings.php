@@ -56,6 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_encryption', 'smtp_from_email', 'smtp_from_name',
         // Maintenance
         'maintenance_message',
+        // Blog settings
+        'blog_page_title', 'blog_posts_per_page',
     ];
 
     foreach ($fields as $field) {
@@ -72,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'show_phone_header', 'show_email_header', 'show_address', 'show_business_hours', 'show_map',
         'stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled',
         'enable_maintenance', 'maintenance_mode',
+        'enable_blog', 'blog_allow_comments', 'blog_comment_moderation', 'blog_show_author', 'blog_show_sidebar',
     ];
     foreach ($checkboxes as $cb) {
         updateSetting($cb, isset($_POST[$cb]) ? '1' : '0');
@@ -630,6 +633,73 @@ require_once __DIR__ . '/header.php';
                 </div>
                 <button type="submit" class="btn-admin btn-primary"><i class="fas fa-paper-plane"></i> Send Test</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Blog Settings -->
+    <div class="admin-section" id="blog">
+        <h2><i class="fas fa-blog"></i> Blog</h2>
+        <div class="admin-card">
+            <div class="toggle-group">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="enable_blog" value="1" <?php echo getSetting('enable_blog', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Enable Blog</strong>
+                    <small>Show blog section with posts, categories, and comments.</small>
+                </div>
+            </div>
+            <div class="form-row" style="margin-top: var(--space-md);">
+                <div class="form-group">
+                    <label>Blog Page Title</label>
+                    <input type="text" name="blog_page_title" class="form-control" value="<?php echo e(getSetting('blog_page_title', 'Blog')); ?>">
+                </div>
+                <div class="form-group">
+                    <label>Posts Per Page</label>
+                    <input type="number" name="blog_posts_per_page" class="form-control" min="1" max="50" value="<?php echo e(getSetting('blog_posts_per_page', '9')); ?>">
+                </div>
+            </div>
+            <div class="toggle-group" style="margin-top: var(--space-sm);">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="blog_allow_comments" value="1" <?php echo getSetting('blog_allow_comments', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Allow Comments</strong>
+                    <small>Enable the comment system on blog posts.</small>
+                </div>
+            </div>
+            <div class="toggle-group" style="margin-top: var(--space-sm);">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="blog_comment_moderation" value="1" <?php echo getSetting('blog_comment_moderation', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Comment Moderation</strong>
+                    <small>Require admin approval before comments are published.</small>
+                </div>
+            </div>
+            <div class="toggle-group" style="margin-top: var(--space-sm);">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="blog_show_author" value="1" <?php echo getSetting('blog_show_author', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Show Author</strong>
+                    <small>Display author name on blog posts.</small>
+                </div>
+            </div>
+            <div class="toggle-group" style="margin-top: var(--space-sm);">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="blog_show_sidebar" value="1" <?php echo getSetting('blog_show_sidebar', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Show Sidebar</strong>
+                    <small>Display sidebar with categories, tags, and popular posts on the blog listing page.</small>
+                </div>
+            </div>
         </div>
     </div>
 
