@@ -1149,3 +1149,559 @@ textarea.form-control {
         position: static;
     }
 }
+
+/* ============================================================
+   Blog Admin UI Enhancements
+   ============================================================ */
+
+/* -- Filter Bar -- */
+.blog-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: var(--color-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.blog-filter-bar .admin-select,
+.blog-filter-bar .admin-input {
+    font-size: 13px;
+}
+
+.blog-filter-bar .admin-input {
+    max-width: 200px;
+}
+
+/* -- Admin Tabs (proper component) -- */
+.blog-admin-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--color-white);
+    border-radius: var(--radius);
+    padding: 4px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.blog-admin-tabs a {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gray-600);
+    text-decoration: none;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.blog-admin-tabs a:hover {
+    color: var(--color-dark);
+    background: var(--color-gray-100);
+}
+
+.blog-admin-tabs a.active {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.blog-admin-tabs .tab-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.25);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: 4px;
+    font-weight: 700;
+}
+
+.blog-admin-tabs a:not(.active) .tab-badge {
+    background: var(--color-secondary);
+    color: var(--color-white);
+}
+
+/* -- Bulk Action Bar -- */
+.blog-bulk-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.blog-bulk-bar .admin-select {
+    max-width: 180px;
+    font-size: 13px;
+}
+
+/* -- Table Enhancements -- */
+.admin-table-wrap {
+    background: var(--color-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.admin-table .post-title-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-table .post-thumb {
+    width: 48px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.admin-table .post-thumb-placeholder {
+    width: 48px;
+    height: 36px;
+    border-radius: 5px;
+    background: var(--color-gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-gray-400);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.admin-table .post-title-text a {
+    font-weight: 600;
+    color: var(--color-dark);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.admin-table .post-title-text a:hover {
+    color: var(--color-primary);
+}
+
+.admin-table .post-author {
+    font-size: 12px;
+    color: var(--color-gray-500);
+    margin-top: 2px;
+}
+
+/* Featured Badge */
+.badge-featured {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* Scheduled Badge */
+.badge-status.badge-scheduled {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+/* -- Comment Author Cell -- */
+.comment-author-cell strong {
+    font-size: 13px;
+    display: block;
+}
+
+.comment-author-cell .comment-email {
+    font-size: 12px;
+    color: var(--color-gray-500);
+}
+
+.comment-content-preview {
+    max-width: 300px;
+    font-size: 13px;
+    color: var(--color-gray-700);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* -- Pagination -- */
+.blog-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-top: 20px;
+    padding: 16px 0;
+}
+
+.blog-pagination a,
+.blog-pagination .page-current {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition);
+}
+
+.blog-pagination a {
+    color: var(--color-gray-600);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+}
+
+.blog-pagination a:hover {
+    background: var(--color-gray-100);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.blog-pagination .page-current {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: 1px solid var(--color-primary);
+}
+
+.blog-pagination .page-dots {
+    color: var(--color-gray-400);
+    padding: 0 4px;
+}
+
+/* -- Editor Panels Enhancements -- */
+.editor-panel h3 i {
+    color: var(--color-primary);
+    margin-right: 6px;
+    font-size: 0.85rem;
+}
+
+.editor-panel .panel-meta {
+    font-size: 12px;
+    color: var(--color-gray-500);
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-gray-100);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.editor-panel .panel-meta i {
+    width: 16px;
+    text-align: center;
+    color: var(--color-gray-400);
+    margin-right: 4px;
+}
+
+/* -- Tag Chips -- */
+.tag-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.tag-chip {
+    cursor: pointer;
+    display: inline-block;
+    background: var(--color-gray-100);
+    color: var(--color-gray-600);
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+}
+
+.tag-chip:hover {
+    background: #dbeafe;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+/* -- SEO Panel -- */
+.seo-panel {
+    background: #f8fafc;
+    padding: 18px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.seo-panel .seo-header {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--color-dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.seo-panel .seo-header i {
+    color: var(--color-primary);
+}
+
+.seo-panel .meta-counter {
+    display: block;
+    font-size: 12px;
+    color: var(--color-gray-500);
+    text-align: right;
+    margin-top: 4px;
+}
+
+/* -- Product Picker -- */
+.product-picker {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--color-gray-100);
+    border-radius: 6px;
+}
+
+.product-pick-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px !important;
+    border-bottom: 1px solid var(--color-gray-100);
+    transition: background var(--transition);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.product-pick-item:last-child {
+    border-bottom: none;
+}
+
+.product-pick-item:hover {
+    background: #f8fafc;
+}
+
+.product-pick-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+/* -- Modal Overlay -- */
+.blog-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.blog-modal {
+    background: var(--color-white);
+    border-radius: 12px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: blogModalIn 200ms ease-out;
+}
+
+@keyframes blogModalIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.blog-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--color-gray-100);
+}
+
+.blog-modal-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.blog-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--color-gray-500);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all var(--transition);
+}
+
+.blog-modal-close:hover {
+    background: var(--color-gray-100);
+    color: var(--color-dark);
+}
+
+.blog-modal-body {
+    padding: 22px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Media Picker Grid */
+.media-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.media-picker-item {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    transition: all var(--transition);
+}
+
+.media-picker-item:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+.media-picker-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Product Embed List */
+.product-embed-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--color-gray-200);
+    margin-bottom: 8px;
+    transition: all var(--transition);
+}
+
+.product-embed-item:hover {
+    background: #f1f5f9;
+    border-color: var(--color-primary);
+}
+
+.product-embed-item img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.product-embed-item .product-embed-name {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.product-embed-item .product-embed-price {
+    font-size: 12px;
+    color: var(--color-gray-500);
+}
+
+/* -- Categories Page Grid -- */
+.blog-categories-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .blog-categories-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* -- Publish Button Group -- */
+.publish-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.publish-actions .btn-admin {
+    flex: 1;
+}
+
+/* -- Featured Image Preview -- */
+.featured-image-preview {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.featured-image-preview img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+}
+
+.featured-image-preview .remove-featured {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: background var(--transition);
+}
+
+.featured-image-preview .remove-featured:hover {
+    background: var(--color-error);
+}
+
+/* -- Manage link -- */
+.editor-panel .panel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-primary);
+    text-decoration: none;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.editor-panel .panel-link:hover {
+    text-decoration: underline;
+}

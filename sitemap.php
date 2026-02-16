@@ -69,7 +69,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <?php
 // Blog pages
 if (isFeatureEnabled('blog')):
-    $blogPosts = $db->query("SELECT slug, updated_at, published_at FROM blog_posts WHERE status = 'published' AND published_at <= datetime('now') ORDER BY published_at DESC")->fetchAll();
+    $blogPosts = $db->query("SELECT slug, updated_at, published_at FROM blog_posts WHERE " . BLOG_PUBLISHED_CONDITION . " AND published_at <= datetime('now') ORDER BY published_at DESC")->fetchAll();
     $blogCategories = $db->query("SELECT slug FROM blog_categories WHERE is_visible = 1")->fetchAll();
 ?>
     <url>

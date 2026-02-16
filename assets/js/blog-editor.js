@@ -207,37 +207,33 @@
     }
 
     // ============================
-    // Auto-save Draft (every 60s)
+    // Periodic content sync (every 60s)
+    // Keeps the hidden form field in sync with the contenteditable area
+    // so unsaved changes are not lost if the user clicks Save.
+    // NOTE: This does NOT persist to the server — use the Save button.
     // ============================
-    var autoSaveTimer = null;
-    var lastSavedContent = '';
-
-    function startAutoSave() {
+    function startPeriodicSync() {
         if (!form || !document.getElementById('postTitle')) return;
 
-        autoSaveTimer = setInterval(function() {
-            var status = document.getElementById('status');
-            if (status && status.value !== 'draft') return;
-
+        setInterval(function() {
             syncContent();
-            var content = document.getElementById('contentField');
-            if (content && content.value !== lastSavedContent && content.value.length > 10) {
-                lastSavedContent = content.value;
-                // Visual indicator
-                var saveIndicator = document.querySelector('.auto-save-indicator');
-                if (!saveIndicator) {
-                    saveIndicator = document.createElement('span');
-                    saveIndicator.className = 'auto-save-indicator';
-                    saveIndicator.style.cssText = 'font-size:0.75rem;color:#22c55e;margin-left:10px;';
-                    var header = document.querySelector('.admin-page-header h1');
-                    if (header) header.appendChild(saveIndicator);
-                }
-                saveIndicator.textContent = 'Draft auto-saved at ' + new Date().toLocaleTimeString();
-            }
         }, 60000);
     }
 
-    startAutoSave();
+    startPeriodicSync();
+
+    // Warn user before leaving with unsaved changes
+    var formDirty = false;
+    if (form) {
+        form.addEventListener('input', function() { formDirty = true; });
+        form.addEventListener('submit', function() { formDirty = false; });
+        window.addEventListener('beforeunload', function(e) {
+            if (formDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    }
 
     // ============================
     // Word Count

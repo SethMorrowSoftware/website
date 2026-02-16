@@ -37,8 +37,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
         <?php foreach ($posts as $post): ?>
         <item>
             <title><?php echo htmlspecialchars($post['title'], ENT_XML1, 'UTF-8'); ?></title>
-            <link><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog-post&amp;slug=' . urlencode($post['slug']), ENT_XML1, 'UTF-8'); ?></link>
-            <guid isPermaLink="true"><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog-post&amp;slug=' . urlencode($post['slug']), ENT_XML1, 'UTF-8'); ?></guid>
+            <link><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog-post&slug=' . urlencode($post['slug']), ENT_XML1, 'UTF-8'); ?></link>
+            <guid isPermaLink="true"><?php echo htmlspecialchars($baseUrl . '/index.php?page=blog-post&slug=' . urlencode($post['slug']), ENT_XML1, 'UTF-8'); ?></guid>
             <description><?php echo htmlspecialchars($post['excerpt'] ?: mb_substr(strip_tags($post['content']), 0, 300), ENT_XML1, 'UTF-8'); ?></description>
             <pubDate><?php echo date('r', strtotime($post['published_at'])); ?></pubDate>
             <?php if ($post['author_name']): ?>

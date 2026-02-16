@@ -4,6 +4,10 @@
  * Handles blog posts, categories, tags, comments, and product integration.
  */
 
+// SQL fragment: treat 'scheduled' posts with past published_at as visible
+define('BLOG_PUBLISHED_CONDITION', "(status = 'published' OR (status = 'scheduled' AND published_at <= datetime('now')))");
+define('BLOG_PUBLISHED_CONDITION_PREFIXED', "(bp.status = 'published' OR (bp.status = 'scheduled' AND bp.published_at <= datetime('now')))");
+
 // ============================================================
 // Blog Post Functions
 // ============================================================
@@ -17,8 +21,8 @@ function getBlogPosts(int $page = 1, int $perPage = 9, array $filters = []): arr
     $page = max(1, $page);
     $perPage = max(1, min(50, $perPage));
 
-    $where = ['bp.status = ?'];
-    $params = ['published'];
+    $where = [BLOG_PUBLISHED_CONDITION_PREFIXED];
+    $params = [];
     $where[] = 'bp.published_at <= datetime(\'now\')';
 
     if (!empty($filters['category'])) {
@@ -77,10 +81,12 @@ function getBlogPosts(int $page = 1, int $perPage = 9, array $filters = []): arr
 }
 
 /**
- * Get all blog posts for admin (no status filter).
+ * Get paginated blog posts for admin (no status filter).
  */
-function getAdminBlogPosts(array $filters = []): array {
+function getAdminBlogPosts(array $filters = [], int $page = 1, int $perPage = 25): array {
     $db = getDB();
+    $page = max(1, $page);
+    $perPage = max(1, min(100, $perPage));
     $where = ['1=1'];
     $params = [];
 
@@ -102,16 +108,33 @@ function getAdminBlogPosts(array $filters = []): array {
     }
 
     $whereClause = implode(' AND ', $where);
+
+    // Count total
+    $countSql = "SELECT COUNT(*) FROM blog_posts bp LEFT JOIN blog_categories bc ON bc.id = bp.category_id WHERE $whereClause";
+    $countStmt = $db->prepare($countSql);
+    $countStmt->execute($params);
+    $total = (int)$countStmt->fetchColumn();
+
+    $offset = ($page - 1) * $perPage;
     $sql = "SELECT bp.*, bc.name AS category_name, u.username AS author_name,
                    (SELECT COUNT(*) FROM blog_comments WHERE post_id = bp.id) AS comment_count
             FROM blog_posts bp
             LEFT JOIN blog_categories bc ON bc.id = bp.category_id
             LEFT JOIN users u ON u.id = bp.author_id
             WHERE $whereClause
-            ORDER BY bp.updated_at DESC";
+            ORDER BY bp.updated_at DESC
+            LIMIT ? OFFSET ?";
+    $params[] = $perPage;
+    $params[] = $offset;
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
-    return $stmt->fetchAll();
+
+    return [
+        'posts' => $stmt->fetchAll(),
+        'total' => $total,
+        'pages' => (int)ceil($total / $perPage),
+        'current_page' => $page,
+    ];
 }
 
 /**
@@ -124,7 +147,7 @@ function getBlogPost(string $slug): ?array {
          FROM blog_posts bp
          LEFT JOIN blog_categories bc ON bc.id = bp.category_id
          LEFT JOIN users u ON u.id = bp.author_id
-         WHERE bp.slug = ? AND bp.status = 'published' AND bp.published_at <= datetime('now')"
+         WHERE bp.slug = ? AND " . BLOG_PUBLISHED_CONDITION_PREFIXED . " AND bp.published_at <= datetime('now')"
     );
     $stmt->execute([$slug]);
     $post = $stmt->fetch();
@@ -149,9 +172,15 @@ function getBlogPostById(int $id): ?array {
 }
 
 /**
- * Increment view count for a blog post.
+ * Increment view count for a blog post (once per session per post).
  */
 function incrementBlogPostViews(int $id): void {
+    $key = 'blog_viewed_' . $id;
+    if (!empty($_SESSION[$key])) {
+        return;
+    }
+    $_SESSION[$key] = true;
+
     $db = getDB();
     $db->prepare('UPDATE blog_posts SET view_count = view_count + 1 WHERE id = ?')->execute([$id]);
 }
@@ -167,7 +196,7 @@ function getRelatedPosts(int $postId, int $limit = 3): array {
          LEFT JOIN blog_categories bc ON bc.id = bp.category_id
          WHERE bp.category_id = (SELECT category_id FROM blog_posts WHERE id = ?)
            AND bp.id != ?
-           AND bp.status = 'published'
+           AND " . BLOG_PUBLISHED_CONDITION_PREFIXED . "
            AND bp.published_at <= datetime('now')
          ORDER BY bp.published_at DESC
          LIMIT ?"
@@ -185,7 +214,7 @@ function getFeaturedPosts(int $limit = 3): array {
         "SELECT bp.*, bc.name AS category_name, bc.slug AS category_slug
          FROM blog_posts bp
          LEFT JOIN blog_categories bc ON bc.id = bp.category_id
-         WHERE bp.is_featured = 1 AND bp.status = 'published' AND bp.published_at <= datetime('now')
+         WHERE bp.is_featured = 1 AND " . BLOG_PUBLISHED_CONDITION_PREFIXED . " AND bp.published_at <= datetime('now')
          ORDER BY bp.published_at DESC
          LIMIT ?"
     );
@@ -202,7 +231,7 @@ function getRecentPosts(int $limit = 5): array {
         "SELECT bp.*, bc.name AS category_name, bc.slug AS category_slug
          FROM blog_posts bp
          LEFT JOIN blog_categories bc ON bc.id = bp.category_id
-         WHERE bp.status = 'published' AND bp.published_at <= datetime('now')
+         WHERE " . BLOG_PUBLISHED_CONDITION_PREFIXED . " AND bp.published_at <= datetime('now')
          ORDER BY bp.published_at DESC
          LIMIT ?"
     );
@@ -219,7 +248,7 @@ function getPopularPosts(int $limit = 5): array {
         "SELECT bp.*, bc.name AS category_name, bc.slug AS category_slug
          FROM blog_posts bp
          LEFT JOIN blog_categories bc ON bc.id = bp.category_id
-         WHERE bp.status = 'published' AND bp.published_at <= datetime('now')
+         WHERE " . BLOG_PUBLISHED_CONDITION_PREFIXED . " AND bp.published_at <= datetime('now')
          ORDER BY bp.view_count DESC
          LIMIT ?"
     );
@@ -233,6 +262,12 @@ function getPopularPosts(int $limit = 5): array {
 function saveBlogPost(array $data): int {
     $db = getDB();
     $id = (int)($data['id'] ?? 0);
+
+    // Validate status
+    $validStatuses = ['draft', 'published', 'scheduled'];
+    if (!in_array($data['status'] ?? 'draft', $validStatuses, true)) {
+        $data['status'] = 'draft';
+    }
 
     $slug = createSlug($data['title']);
     // Ensure unique slug
@@ -307,7 +342,7 @@ function getBlogArchiveMonths(): array {
         "SELECT strftime('%Y-%m', published_at) AS month,
                 COUNT(*) AS post_count
          FROM blog_posts
-         WHERE status = 'published' AND published_at <= datetime('now')
+         WHERE " . BLOG_PUBLISHED_CONDITION . " AND published_at <= datetime('now')
          GROUP BY month
          ORDER BY month DESC
          LIMIT 24"
@@ -323,7 +358,7 @@ function getAdjacentPosts(int $postId, string $publishedAt): array {
 
     $prev = $db->prepare(
         "SELECT slug, title FROM blog_posts
-         WHERE status = 'published' AND published_at <= datetime('now')
+         WHERE " . BLOG_PUBLISHED_CONDITION . " AND published_at <= datetime('now')
            AND published_at < ? AND id != ?
          ORDER BY published_at DESC LIMIT 1"
     );
@@ -331,7 +366,7 @@ function getAdjacentPosts(int $postId, string $publishedAt): array {
 
     $next = $db->prepare(
         "SELECT slug, title FROM blog_posts
-         WHERE status = 'published' AND published_at <= datetime('now')
+         WHERE " . BLOG_PUBLISHED_CONDITION . " AND published_at <= datetime('now')
            AND published_at > ? AND id != ?
          ORDER BY published_at ASC LIMIT 1"
     );
@@ -346,14 +381,33 @@ function getAdjacentPosts(int $postId, string $publishedAt): array {
 /**
  * Process product shortcodes in blog content.
  * Converts [product id=X] to product card HTML.
+ * Batch-fetches all referenced products in a single query to avoid N+1.
  */
 function processBlogShortcodes(string $content): string {
-    return preg_replace_callback('/\[product\s+id=(\d+)\]/', function ($matches) {
+    // Collect all product IDs referenced in shortcodes
+    if (!preg_match_all('/\[product\s+id=(\d+)\]/', $content, $allMatches)) {
+        return $content;
+    }
+
+    $ids = array_unique(array_map('intval', $allMatches[1]));
+    if (empty($ids)) {
+        return $content;
+    }
+
+    // Batch-fetch all products in one query
+    $db = getDB();
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $db->prepare("SELECT * FROM products WHERE id IN ($placeholders) AND is_visible = 1");
+    $stmt->execute($ids);
+    $products = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $products[$row['id']] = $row;
+    }
+
+    // Replace shortcodes using the pre-fetched data
+    return preg_replace_callback('/\[product\s+id=(\d+)\]/', function ($matches) use ($products) {
         $productId = (int)$matches[1];
-        $db = getDB();
-        $stmt = $db->prepare('SELECT * FROM products WHERE id = ? AND is_visible = 1');
-        $stmt->execute([$productId]);
-        $product = $stmt->fetch();
+        $product = $products[$productId] ?? null;
         if (!$product) return '';
 
         $name = htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8');
@@ -400,7 +454,7 @@ function getBlogCategoriesWithCounts(): array {
     return $db->query(
         "SELECT bc.*, COUNT(bp.id) AS post_count
          FROM blog_categories bc
-         LEFT JOIN blog_posts bp ON bp.category_id = bc.id AND bp.status = 'published' AND bp.published_at <= datetime('now')
+         LEFT JOIN blog_posts bp ON bp.category_id = bc.id AND " . BLOG_PUBLISHED_CONDITION_PREFIXED . " AND bp.published_at <= datetime('now')
          WHERE bc.is_visible = 1
          GROUP BY bc.id
          ORDER BY bc.sort_order ASC, bc.name ASC"
@@ -461,10 +515,12 @@ function saveBlogCategory(array $data): int {
 }
 
 /**
- * Delete a blog category.
+ * Delete a blog category. Explicitly nullifies posts' category_id
+ * to be safe regardless of SQLite foreign_keys pragma state.
  */
 function deleteBlogCategory(int $id): bool {
     $db = getDB();
+    $db->prepare('UPDATE blog_posts SET category_id = NULL WHERE category_id = ?')->execute([$id]);
     return $db->prepare('DELETE FROM blog_categories WHERE id = ?')->execute([$id]);
 }
 
@@ -549,7 +605,7 @@ function getPopularTags(int $limit = 20): array {
          FROM blog_tags bt
          JOIN blog_post_tags bpt ON bpt.tag_id = bt.id
          JOIN blog_posts bp ON bp.id = bpt.post_id
-            AND bp.status = 'published'
+            AND " . BLOG_PUBLISHED_CONDITION_PREFIXED . "
             AND bp.published_at <= datetime('now')
          GROUP BY bt.id
          ORDER BY post_count DESC
@@ -608,10 +664,12 @@ function getPendingComments(): array {
 }
 
 /**
- * Get all comments for admin (with filters).
+ * Get paginated comments for admin (with filters).
  */
-function getAdminBlogComments(array $filters = []): array {
+function getAdminBlogComments(array $filters = [], int $page = 1, int $perPage = 30): array {
     $db = getDB();
+    $page = max(1, $page);
+    $perPage = max(1, min(100, $perPage));
     $where = ['1=1'];
     $params = [];
 
@@ -626,15 +684,31 @@ function getAdminBlogComments(array $filters = []): array {
     }
 
     $whereClause = implode(' AND ', $where);
+
+    // Count total
+    $countStmt = $db->prepare("SELECT COUNT(*) FROM blog_comments bc JOIN blog_posts bp ON bp.id = bc.post_id WHERE $whereClause");
+    $countStmt->execute($params);
+    $total = (int)$countStmt->fetchColumn();
+
+    $offset = ($page - 1) * $perPage;
+    $params[] = $perPage;
+    $params[] = $offset;
     $stmt = $db->prepare(
         "SELECT bc.*, bp.title AS post_title, bp.slug AS post_slug
          FROM blog_comments bc
          JOIN blog_posts bp ON bp.id = bc.post_id
          WHERE $whereClause
-         ORDER BY bc.created_at DESC"
+         ORDER BY bc.created_at DESC
+         LIMIT ? OFFSET ?"
     );
     $stmt->execute($params);
-    return $stmt->fetchAll();
+
+    return [
+        'comments' => $stmt->fetchAll(),
+        'total' => $total,
+        'pages' => (int)ceil($total / $perPage),
+        'current_page' => $page,
+    ];
 }
 
 /**
@@ -647,7 +721,7 @@ function submitBlogComment(int $postId, array $data): int {
         "SELECT id, allow_comments
          FROM blog_posts
          WHERE id = ?
-           AND status = 'published'
+           AND " . BLOG_PUBLISHED_CONDITION . "
            AND published_at <= datetime('now')"
     );
     $postStmt->execute([$postId]);
@@ -658,7 +732,7 @@ function submitBlogComment(int $postId, array $data): int {
 
     $parentId = isset($data['parent_id']) ? (int)$data['parent_id'] : 0;
     if ($parentId > 0) {
-        $parentStmt = $db->prepare('SELECT id FROM blog_comments WHERE id = ? AND post_id = ?');
+        $parentStmt = $db->prepare('SELECT id FROM blog_comments WHERE id = ? AND post_id = ? AND is_approved = 1');
         $parentStmt->execute([$parentId, $postId]);
         if (!$parentStmt->fetch()) {
             $parentId = 0;
@@ -771,7 +845,7 @@ function getProductBlogPosts(int $productId, int $limit = 3): array {
          FROM blog_posts bp
          JOIN blog_post_products bpp ON bpp.post_id = bp.id
          LEFT JOIN blog_categories bc ON bc.id = bp.category_id
-         WHERE bpp.product_id = ? AND bp.status = 'published' AND bp.published_at <= datetime('now')
+         WHERE bpp.product_id = ? AND " . BLOG_PUBLISHED_CONDITION_PREFIXED . " AND bp.published_at <= datetime('now')
          ORDER BY bp.published_at DESC
          LIMIT ?"
     );

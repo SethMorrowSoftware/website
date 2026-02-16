@@ -83,7 +83,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="admin-page-header">
     <h1><i class="fas fa-edit"></i> <?php echo $id ? 'Edit Post' : 'New Post'; ?></h1>
-    <a href="<?php echo url('admin/blog-posts.php'); ?>" class="btn-admin btn-outline"><i class="fas fa-arrow-left"></i> All Posts</a>
+    <a href="<?php echo url('admin/blog-posts.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> All Posts</a>
 </div>
 
 <form method="POST" class="blog-editor-form" id="blogPostForm">
@@ -94,7 +94,7 @@ require_once __DIR__ . '/header.php';
         <div class="blog-editor-main">
             <!-- Title -->
             <div class="form-group">
-                <input type="text" name="title" id="postTitle" placeholder="Post title..." value="<?php echo e($post['title'] ?? ''); ?>" class="admin-input blog-title-input" required>
+                <input type="text" name="title" id="postTitle" placeholder="Post title..." value="<?php echo e($post['title'] ?? ''); ?>" class="form-control blog-title-input" required>
             </div>
 
             <!-- WYSIWYG Editor -->
@@ -130,22 +130,23 @@ require_once __DIR__ . '/header.php';
 
             <!-- Excerpt -->
             <div class="form-group">
-                <label for="excerpt">Excerpt <small>(optional — auto-generated from content if blank)</small></label>
-                <textarea name="excerpt" id="excerpt" rows="3" class="admin-input" placeholder="Brief summary for listing pages..."><?php echo e($post['excerpt'] ?? ''); ?></textarea>
+                <label for="excerpt">Excerpt <span class="form-help" style="display:inline; margin:0;">Auto-generated from content if blank</span></label>
+                <textarea name="excerpt" id="excerpt" rows="3" class="form-control" placeholder="Brief summary for listing pages..."><?php echo e($post['excerpt'] ?? ''); ?></textarea>
             </div>
 
             <!-- SEO Section -->
             <div class="form-group">
-                <label><i class="fas fa-search"></i> SEO Settings</label>
-                <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
-                    <div class="form-group" style="margin-bottom:10px;">
+                <div class="seo-panel">
+                    <div class="seo-header"><i class="fas fa-search"></i> SEO Settings</div>
+                    <div class="form-group">
                         <label for="meta_description">Meta Description</label>
-                        <textarea name="meta_description" id="meta_description" rows="2" class="admin-input" maxlength="160" placeholder="SEO description (max 160 chars)..."><?php echo e($post['meta_description'] ?? ''); ?></textarea>
-                        <small id="metaCount">0/160</small>
+                        <textarea name="meta_description" id="meta_description" rows="2" class="form-control" maxlength="160" placeholder="SEO description (max 160 chars)..."><?php echo e($post['meta_description'] ?? ''); ?></textarea>
+                        <span class="meta-counter" id="metaCount">0/160</span>
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
-                        <label for="og_image">Open Graph Image URL <small>(override)</small></label>
-                        <input type="text" name="og_image" id="og_image" value="<?php echo e($post['og_image'] ?? ''); ?>" class="admin-input" placeholder="/uploads/images/...">
+                        <label for="og_image">Open Graph Image URL</label>
+                        <input type="text" name="og_image" id="og_image" value="<?php echo e($post['og_image'] ?? ''); ?>" class="form-control" placeholder="/uploads/images/...">
+                        <span class="form-help">Override the default social sharing image</span>
                     </div>
                 </div>
             </div>
@@ -158,7 +159,7 @@ require_once __DIR__ . '/header.php';
                 <h3><i class="fas fa-paper-plane"></i> Publish</h3>
                 <div class="form-group">
                     <label for="status">Status</label>
-                    <select name="status" id="status" class="admin-select">
+                    <select name="status" id="status" class="form-control">
                         <option value="draft" <?php echo ($post['status'] ?? 'draft') === 'draft' ? 'selected' : ''; ?>>Draft</option>
                         <option value="published" <?php echo ($post['status'] ?? '') === 'published' ? 'selected' : ''; ?>>Published</option>
                         <option value="scheduled" <?php echo ($post['status'] ?? '') === 'scheduled' ? 'selected' : ''; ?>>Scheduled</option>
@@ -168,7 +169,7 @@ require_once __DIR__ . '/header.php';
                     <label for="published_at">Publish Date</label>
                     <input type="datetime-local" name="published_at" id="published_at"
                            value="<?php echo $post['published_at'] ? date('Y-m-d\TH:i', strtotime($post['published_at'])) : ''; ?>"
-                           class="admin-input">
+                           class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="checkbox-label">
@@ -182,17 +183,17 @@ require_once __DIR__ . '/header.php';
                         <span>Allow Comments</span>
                     </label>
                 </div>
-                <div style="display:flex;gap:8px;">
-                    <button type="submit" class="btn-admin btn-primary" style="flex:1;"><i class="fas fa-save"></i> Save</button>
+                <div class="publish-actions">
+                    <button type="submit" class="btn-admin btn-save"><i class="fas fa-save"></i> Save</button>
                     <?php if ($id && ($post['status'] ?? '') === 'published'): ?>
-                        <a href="<?php echo url('index.php?page=blog-post&slug=' . e($post['slug'])); ?>" target="_blank" class="btn-admin btn-outline"><i class="fas fa-eye"></i></a>
+                        <a href="<?php echo url('index.php?page=blog-post&slug=' . e($post['slug'])); ?>" target="_blank" class="btn-admin btn-outline" title="View live post"><i class="fas fa-external-link-alt"></i></a>
                     <?php endif; ?>
                 </div>
                 <?php if ($id): ?>
-                    <div style="margin-top:10px; font-size:0.8rem; color:#666;">
-                        <div>Views: <?php echo number_format($post['view_count']); ?></div>
-                        <div>Created: <?php echo date('M j, Y', strtotime($post['created_at'])); ?></div>
-                        <div>Updated: <?php echo date('M j, Y g:ia', strtotime($post['updated_at'])); ?></div>
+                    <div class="panel-meta">
+                        <span><i class="fas fa-eye"></i> <?php echo number_format($post['view_count']); ?> views</span>
+                        <span><i class="fas fa-calendar-plus"></i> Created <?php echo date('M j, Y', strtotime($post['created_at'])); ?></span>
+                        <span><i class="fas fa-clock"></i> Updated <?php echo date('M j, Y g:ia', strtotime($post['updated_at'])); ?></span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -200,24 +201,24 @@ require_once __DIR__ . '/header.php';
             <!-- Category -->
             <div class="editor-panel">
                 <h3><i class="fas fa-folder"></i> Category</h3>
-                <select name="category_id" class="admin-select">
+                <select name="category_id" class="form-control">
                     <option value="">— No Category —</option>
                     <?php foreach ($categories as $cat): ?>
                         <option value="<?php echo $cat['id']; ?>" <?php echo ((int)($post['category_id'] ?? 0)) === $cat['id'] ? 'selected' : ''; ?>><?php echo e($cat['name']); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <a href="<?php echo url('admin/blog-categories.php'); ?>" style="font-size:0.8rem;"><i class="fas fa-plus"></i> Manage Categories</a>
+                <a href="<?php echo url('admin/blog-categories.php'); ?>" class="panel-link"><i class="fas fa-plus"></i> Manage Categories</a>
             </div>
 
             <!-- Tags -->
             <div class="editor-panel">
                 <h3><i class="fas fa-tags"></i> Tags</h3>
-                <input type="text" name="tags" id="tagsInput" class="admin-input" placeholder="tag1, tag2, tag3..."
+                <input type="text" name="tags" id="tagsInput" class="form-control" placeholder="tag1, tag2, tag3..."
                        value="<?php echo e(implode(', ', array_column($postTags, 'name'))); ?>">
                 <?php if (!empty($allTags)): ?>
-                    <div class="tag-suggestions" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;">
+                    <div class="tag-suggestions">
                         <?php foreach (array_slice($allTags, 0, 15) as $tag): ?>
-                            <span class="tag-chip" onclick="addTag('<?php echo e($tag['name']); ?>')" style="cursor:pointer; background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:0.75rem;"><?php echo e($tag['name']); ?></span>
+                            <span class="tag-chip" onclick="addTag('<?php echo e($tag['name']); ?>')"><?php echo e($tag['name']); ?></span>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
@@ -226,17 +227,17 @@ require_once __DIR__ . '/header.php';
             <!-- Featured Image -->
             <div class="editor-panel">
                 <h3><i class="fas fa-image"></i> Featured Image</h3>
-                <div id="featuredImagePreview" style="margin-bottom:10px; <?php echo empty($post['featured_image']) ? 'display:none;' : ''; ?>">
-                    <img id="featuredImageImg" src="<?php echo e($post['featured_image'] ?? ''); ?>" style="max-width:100%; border-radius:8px;">
-                    <button type="button" onclick="removeFeaturedImage()" class="btn-admin btn-small btn-danger" style="margin-top:5px;">Remove</button>
+                <div id="featuredImagePreview" class="featured-image-preview" style="<?php echo empty($post['featured_image']) ? 'display:none;' : ''; ?>">
+                    <img id="featuredImageImg" src="<?php echo e($post['featured_image'] ?? ''); ?>" alt="">
+                    <button type="button" onclick="removeFeaturedImage()" class="remove-featured" title="Remove image"><i class="fas fa-times"></i></button>
                 </div>
                 <input type="hidden" name="featured_image" id="featuredImageInput" value="<?php echo e($post['featured_image'] ?? ''); ?>">
                 <input type="file" id="featuredImageUpload" accept="image/*" style="display:none;">
-                <button type="button" onclick="document.getElementById('featuredImageUpload').click();" class="btn-admin btn-outline btn-small" id="featuredImageBtn">
+                <button type="button" onclick="document.getElementById('featuredImageUpload').click();" class="btn-admin btn-outline btn-small" id="featuredImageBtn" style="width:100%;">
                     <i class="fas fa-upload"></i> Upload Image
                 </button>
-                <div class="form-group" style="margin-top:8px;">
-                    <input type="text" name="featured_image_alt" placeholder="Alt text..." value="<?php echo e($post['featured_image_alt'] ?? ''); ?>" class="admin-input">
+                <div class="form-group" style="margin-top:10px; margin-bottom:0;">
+                    <input type="text" name="featured_image_alt" placeholder="Alt text for accessibility..." value="<?php echo e($post['featured_image_alt'] ?? ''); ?>" class="form-control">
                 </div>
             </div>
 
@@ -244,15 +245,15 @@ require_once __DIR__ . '/header.php';
             <?php if (isFeatureEnabled('catalog')): ?>
             <div class="editor-panel">
                 <h3><i class="fas fa-shopping-bag"></i> Related Products</h3>
-                <div class="product-picker" style="max-height:250px; overflow-y:auto;">
+                <div class="product-picker">
                     <?php foreach ($allProducts as $product): ?>
-                        <label class="checkbox-label product-pick-item" style="display:flex; align-items:center; gap:8px; padding:4px 0;">
+                        <label class="product-pick-item">
                             <input type="checkbox" name="product_ids[]" value="<?php echo $product['id']; ?>"
                                    <?php echo in_array($product['id'], $postProductIds) ? 'checked' : ''; ?>>
                             <?php if ($product['image']): ?>
-                                <img src="<?php echo e($product['image']); ?>" style="width:30px; height:30px; object-fit:cover; border-radius:4px;">
+                                <img src="<?php echo e($product['image']); ?>" alt="">
                             <?php endif; ?>
-                            <span style="font-size:0.85rem;"><?php echo e($product['name']); ?></span>
+                            <span><?php echo e($product['name']); ?></span>
                         </label>
                     <?php endforeach; ?>
                 </div>
@@ -263,34 +264,35 @@ require_once __DIR__ . '/header.php';
 </form>
 
 <!-- Media Picker Modal -->
-<div id="mediaPickerModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:12px; max-width:800px; width:90%; max-height:80vh; overflow-y:auto; padding:25px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0;">Media Library</h3>
-            <button type="button" onclick="closeMediaPicker()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+<div id="mediaPickerModal" class="blog-modal-overlay">
+    <div class="blog-modal" style="max-width:800px;">
+        <div class="blog-modal-header">
+            <h3><i class="fas fa-photo-video"></i> Media Library</h3>
+            <button type="button" onclick="closeMediaPicker()" class="blog-modal-close">&times;</button>
         </div>
-        <div id="mediaPickerGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px;"></div>
+        <div class="blog-modal-body">
+            <div id="mediaPickerGrid" class="media-picker-grid"></div>
+        </div>
     </div>
 </div>
 
 <!-- Product Embed Modal -->
-<div id="productEmbedModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:12px; max-width:500px; width:90%; max-height:70vh; overflow-y:auto; padding:25px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0;">Embed Product</h3>
-            <button type="button" onclick="closeProductEmbed()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+<div id="productEmbedModal" class="blog-modal-overlay">
+    <div class="blog-modal" style="max-width:500px;">
+        <div class="blog-modal-header">
+            <h3><i class="fas fa-shopping-cart"></i> Embed Product</h3>
+            <button type="button" onclick="closeProductEmbed()" class="blog-modal-close">&times;</button>
         </div>
-        <div id="productEmbedList">
+        <div class="blog-modal-body">
             <?php foreach ($allProducts as $product): ?>
-                <div style="display:flex; align-items:center; gap:10px; padding:8px; cursor:pointer; border-radius:6px; border:1px solid #e2e8f0; margin-bottom:6px;"
-                     onclick="insertProductShortcode(<?php echo $product['id']; ?>)" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
+                <div class="product-embed-item" onclick="insertProductShortcode(<?php echo $product['id']; ?>)">
                     <?php if ($product['image']): ?>
-                        <img src="<?php echo e($product['image']); ?>" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
+                        <img src="<?php echo e($product['image']); ?>" alt="">
                     <?php endif; ?>
                     <div>
-                        <div style="font-weight:600;"><?php echo e($product['name']); ?></div>
+                        <div class="product-embed-name"><?php echo e($product['name']); ?></div>
                         <?php if ($product['price']): ?>
-                            <div style="font-size:0.85rem;color:#666;"><?php echo e($product['price']); ?></div>
+                            <div class="product-embed-price"><?php echo formatCurrency((float)$product['price']); ?></div>
                         <?php endif; ?>
                     </div>
                 </div>
