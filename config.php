@@ -313,7 +313,8 @@ function e(?string $str): string {
  * Sanitize stored HTML — allows safe formatting tags, strips everything else.
  * Used for admin-authored content (custom pages, footer text, embeds).
  */
-function sanitizeHtml(string $html): string {
+function sanitizeHtml(?string $html): string {
+    if ($html === null) return '';
     $allowed = '<p><br><strong><b><em><i><u><ul><ol><li><h1><h2><h3><h4><h5><h6><a><img><blockquote><hr><span><div><table><thead><tbody><tr><th><td><figure><figcaption><pre><code>';
     $clean = strip_tags($html, $allowed);
     // Strip event handlers — match on + any whitespace/control chars + word chars + =

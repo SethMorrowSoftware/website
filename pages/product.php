@@ -39,8 +39,10 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
         <span>/</span>
         <a href="<?php echo url('index.php?page=catalog'); ?>"><?php echo e(getSetting('catalog_page_title', 'Our Catalog')); ?></a>
         <span>/</span>
-        <a href="<?php echo url('index.php?page=catalog'); ?>#<?php echo e($product['category_slug']); ?>"><?php echo e($product['category_name']); ?></a>
-        <span>/</span>
+        <?php if ($product['category_name']): ?>
+            <a href="<?php echo url('index.php?page=catalog'); ?>#<?php echo e($product['category_slug']); ?>"><?php echo e($product['category_name']); ?></a>
+            <span>/</span>
+        <?php endif; ?>
         <span class="current"><?php echo e($product['name']); ?></span>
     </div>
 </div>
@@ -85,10 +87,12 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
 
             <!-- Product Info -->
             <div class="product-info">
+                <?php if ($product['category_name']): ?>
                 <div class="product-category-label">
                     <i class="fas <?php echo e($product['category_icon'] ?? 'fa-tag'); ?>"></i>
                     <?php echo e($product['category_name']); ?>
                 </div>
+                <?php endif; ?>
 
                 <h1 class="product-title"><?php echo e($product['name']); ?></h1>
 
@@ -239,7 +243,7 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
                     </div>
                     <div class="card-body">
                         <h4><?php echo e($rel['name']); ?></h4>
-                        <p><?php echo e(substr($rel['description'], 0, 80)); ?><?php if (strlen($rel['description']) > 80) echo '...'; ?></p>
+                        <p><?php echo e(substr($rel['description'] ?? '', 0, 80)); ?><?php if (strlen($rel['description'] ?? '') > 80) echo '...'; ?></p>
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo e($rel['price'] ?: 'Contact for Pricing'); ?></span>

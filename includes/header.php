@@ -58,6 +58,23 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
         <meta property="article:modified_time" content="<?php echo e($ogBlogPost['updated_at']); ?>">
     <?php endif; ?>
 
+    <!-- Canonical URL -->
+    <?php
+    $canonicalUrl = '';
+    $baseHost = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    if ($currentPage === 'blog') {
+        // Blog listing: canonical is the base blog URL (strip pagination/filter params)
+        $canonicalUrl = $baseHost . url('index.php?page=blog');
+        if (!empty($_GET['category'])) $canonicalUrl .= '&category=' . urlencode($_GET['category']);
+        elseif (!empty($_GET['tag'])) $canonicalUrl .= '&tag=' . urlencode($_GET['tag']);
+    } elseif ($currentPage === 'blog-post' && isset($ogBlogPost)) {
+        $canonicalUrl = $baseHost . url('index.php?page=blog-post&slug=' . urlencode($ogBlogPost['slug']));
+    }
+    if ($canonicalUrl):
+    ?>
+        <link rel="canonical" href="<?php echo e($canonicalUrl); ?>">
+    <?php endif; ?>
+
     <!-- RSS Feed -->
     <?php if (isFeatureEnabled('blog')): ?>
         <link rel="alternate" type="application/rss+xml" title="<?php echo e($companyName); ?> Blog RSS" href="<?php echo url('rss.php'); ?>">

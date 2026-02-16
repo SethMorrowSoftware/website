@@ -76,7 +76,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                 <div class="footer-logo">
                     <i class="fas fa-building"></i> <?php echo e($companyName); ?>
                 </div>
-                <p><?php echo e(getSetting('tagline')); ?></p>
+                <p><?php echo e(getSetting('tagline', '')); ?></p>
                 <div class="footer-social-links">
                     <?php if ($facebookUrl): ?>
                         <a href="<?php echo e($facebookUrl); ?>" target="_blank" rel="noopener" aria-label="Facebook">

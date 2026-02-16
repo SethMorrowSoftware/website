@@ -65,7 +65,9 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                     <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>" style="color: var(--color-secondary);"></i>
                     <?php echo e($cat['name']); ?>
                 </h3>
-                <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);"><?php echo e($cat['description']); ?></p>
+                <?php if ($cat['description']): ?>
+                    <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);"><?php echo e($cat['description']); ?></p>
+                <?php endif; ?>
 
                 <div class="grid grid-3">
                     <?php foreach ($products as $product): ?>
@@ -100,7 +102,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                             </a>
                             <div class="card-body">
                                 <h4><a href="<?php echo url('index.php?page=product&slug=' . e($product['slug'])); ?>"><?php echo e($product['name']); ?></a></h4>
-                                <p><?php echo e(substr($product['description'], 0, 120)); ?><?php if (strlen($product['description']) > 120) echo '...'; ?></p>
+                                <p><?php echo e(substr($product['description'] ?? '', 0, 120)); ?><?php if (strlen($product['description'] ?? '') > 120) echo '...'; ?></p>
                                 <?php if ($product['specifications']): ?>
                                     <span class="dimensions"><i class="fas fa-ruler-combined"></i> <?php echo e($product['specifications']); ?></span>
                                 <?php endif; ?>
