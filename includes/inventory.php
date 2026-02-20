@@ -34,12 +34,42 @@ function getStockQuantity(int $productId): ?int {
 }
 
 /**
- * Decrement stock after a successful order
+ * Decrement stock after a successful order.
+ *
+ * Uses an atomic guard to prevent overselling: for products that do NOT
+ * allow backorder, the UPDATE only succeeds when stock_quantity >= the
+ * requested quantity.  This eliminates the race condition where two
+ * concurrent checkouts both pass the pre-check and both decrement.
+ *
+ * Returns true if the product doesn't track inventory, allows backorder,
+ * or the guarded update affected a row.  Returns false if insufficient
+ * stock (non-backorder product).
  */
 function decrementStock(int $productId, int $quantity): bool {
     $db = getDB();
-    $stmt = $db->prepare('UPDATE products SET stock_quantity = MAX(0, stock_quantity - ?) WHERE id = ? AND track_inventory = 1');
-    return $stmt->execute([$quantity, $productId]);
+
+    // Check product inventory settings
+    $check = $db->prepare('SELECT track_inventory, allow_backorder FROM products WHERE id = ?');
+    $check->execute([$productId]);
+    $product = $check->fetch();
+
+    if (!$product || !$product['track_inventory']) {
+        return true; // Not tracking inventory — always OK
+    }
+
+    if ($product['allow_backorder']) {
+        // Backorders allowed — decrement without guard (negative stock is fine)
+        $stmt = $db->prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ? AND track_inventory = 1');
+        $stmt->execute([$quantity, $productId]);
+        return $stmt->rowCount() > 0;
+    }
+
+    // Atomic guard: only decrement if sufficient stock
+    $stmt = $db->prepare(
+        'UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ? AND track_inventory = 1 AND stock_quantity >= ?'
+    );
+    $stmt->execute([$quantity, $productId, $quantity]);
+    return $stmt->rowCount() > 0;
 }
 
 /**
@@ -70,19 +100,29 @@ function updateStockQuantity(int $productId, int $quantity): bool {
 }
 
 /**
- * Process stock decrements for an entire order
+ * Process stock decrements for an entire order.
+ *
+ * Returns true if all decrements succeeded.  Logs warnings for any
+ * products where stock was insufficient (oversell guard fired), but
+ * does NOT fail the entire order — payment may already be captured.
  */
-function processOrderInventory(int $orderId): void {
+function processOrderInventory(int $orderId): bool {
     $db = getDB();
     $stmt = $db->prepare('SELECT product_id, quantity FROM order_items WHERE order_id = ?');
     $stmt->execute([$orderId]);
     $items = $stmt->fetchAll();
 
+    $allOk = true;
     foreach ($items as $item) {
         if ($item['product_id']) {
-            decrementStock($item['product_id'], $item['quantity']);
+            if (!decrementStock($item['product_id'], $item['quantity'])) {
+                error_log('[INVENTORY WARNING] Failed to decrement stock for product #' . $item['product_id']
+                    . ' qty ' . $item['quantity'] . ' (order #' . $orderId . '): insufficient stock');
+                $allOk = false;
+            }
         }
     }
+    return $allOk;
 }
 
 /**

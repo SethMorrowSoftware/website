@@ -25,22 +25,12 @@ if ($orderNumber) {
         $items = getOrderItems($order['id']);
         $downloads = getDownloadTokens($order['id']);
 
-        // Verify Stripe payment if returning from Stripe Checkout
+        // Verify Stripe payment if returning from Stripe Checkout.
+        // Uses the shared idempotent finalizer — safe if webhook also fires.
         if ($paymentMethod === 'stripe' && isset($_GET['session_id']) && $order['payment_status'] !== 'completed') {
             $session = verifyStripePayment($_GET['session_id']);
             if ($session && $session['payment_status'] === 'paid') {
-                updateOrderPayment($order['id'], 'completed', $session['payment_intent'] ?? $session['id'], 'stripe');
-
-                // Decrement inventory now that payment is confirmed
-                processOrderInventory($order['id']);
-
-                // Generate download tokens for digital products
-                if (empty($downloads)) {
-                    generateDownloadTokens($order['id']);
-                }
-
-                // Send confirmation email
-                sendOrderConfirmation($order['id']);
+                finalizePaidOrder($order['id'], $session['payment_intent'] ?? $session['id'], 'stripe');
 
                 // Re-fetch order and downloads from DB to avoid stale data
                 $order = getOrderByNumber($orderNumber);
@@ -56,19 +46,17 @@ if ($orderNumber) {
             $order = getOrderByNumber($orderNumber);
         }
 
-        // For BTCPay, verify the invoice status via the API
+        // For BTCPay, verify the invoice status via the API.
+        // Uses the shared idempotent finalizer — safe if webhook also fires.
+        // This fixes the missing inventory decrement that existed in the
+        // original redirect-only path.
         if ($paymentMethod === 'btcpay' && $order['payment_id'] && $order['payment_status'] !== 'completed') {
             $invoice = verifyBTCPayInvoice($order['payment_id']);
             if ($invoice) {
                 $btcStatus = $invoice['status'] ?? '';
                 // BTCPay statuses: New, Processing, Expired, Invalid, Settled
                 if ($btcStatus === 'Settled') {
-                    updateOrderPayment($order['id'], 'completed', $order['payment_id'], 'btcpay');
-
-                    if (empty($downloads)) {
-                        generateDownloadTokens($order['id']);
-                    }
-                    sendOrderConfirmation($order['id']);
+                    finalizePaidOrder($order['id'], $order['payment_id'], 'btcpay');
 
                     // Re-fetch order and downloads from DB to avoid stale data
                     $order = getOrderByNumber($orderNumber);

@@ -888,6 +888,77 @@ function sendOrderConfirmation(int $orderId): void {
 }
 
 // ============================================================
+// Idempotent Order Finalization
+// ============================================================
+
+/**
+ * Shared idempotent order finalization service.
+ *
+ * Used by all payment providers (Stripe, PayPal, Square, BTCPay) to
+ * transition an order from pending/processing → completed exactly once.
+ * Safe to call multiple times (duplicate webhooks, user double-submit,
+ * redirect + webhook race).
+ *
+ * Performs inside a DB transaction with row-level locking:
+ *   1. Lock order row (SELECT … FOR UPDATE)
+ *   2. Gate on payment_status != 'completed' (idempotent bail-out)
+ *   3. Update payment status
+ *   4. Decrement inventory atomically
+ *   5. Generate download tokens (skip if already exist)
+ *   6. Commit
+ *   7. Send confirmation email (outside txn — non-critical)
+ *
+ * @return bool True if the order was finalized (or was already finalized).
+ */
+function finalizePaidOrder(int $orderId, string $paymentId, string $provider): bool {
+    $db = getDB();
+
+    try {
+        $db->beginTransaction();
+
+        // Lock the order row and check current status
+        $stmt = $db->prepare('SELECT id, payment_status, order_number FROM orders WHERE id = ? FOR UPDATE');
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch();
+
+        if (!$order) {
+            $db->rollBack();
+            return false;
+        }
+
+        // Idempotency: already completed — nothing to do
+        if ($order['payment_status'] === 'completed') {
+            $db->rollBack();
+            return true;
+        }
+
+        // Update payment status to completed
+        updateOrderPayment($orderId, 'completed', $paymentId, $provider);
+
+        // Decrement inventory atomically
+        processOrderInventory($orderId);
+
+        // Generate download tokens (idempotent — skip if already exist)
+        $existingTokens = getDownloadTokens($orderId);
+        if (empty($existingTokens)) {
+            generateDownloadTokens($orderId);
+        }
+
+        $db->commit();
+    } catch (Exception $e) {
+        $db->rollBack();
+        error_log('[FINALIZE ORDER ERROR] Order #' . $orderId . ': ' . $e->getMessage());
+        return false;
+    }
+
+    // Send confirmation email outside transaction (non-critical, should not
+    // roll back the DB on mail failure)
+    sendOrderConfirmation($orderId);
+
+    return true;
+}
+
+// ============================================================
 // Payment Gateway Functions
 // ============================================================
 

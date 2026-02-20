@@ -309,12 +309,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $db = getDB();
 
-        // Apply coupon discount BEFORE payment gateway sees the order
+        // Apply coupon discount BEFORE payment gateway sees the order.
+        // incrementCouponUsage() is atomic — if the usage limit was reached
+        // between validation and now (concurrent checkout race), the coupon
+        // is silently skipped rather than over-redeemed.
         $coupon = getAppliedCoupon();
         if ($coupon) {
-            $db->prepare('UPDATE orders SET coupon_id = ?, coupon_code = ?, discount_amount = ?, total = GREATEST(0, total - ?) WHERE id = ?')
-               ->execute([$coupon['id'], $coupon['code'], $coupon['discount'], $coupon['discount'], $orderId]);
-            incrementCouponUsage($coupon['id']);
+            if (incrementCouponUsage($coupon['id'])) {
+                $db->prepare('UPDATE orders SET coupon_id = ?, coupon_code = ?, discount_amount = ?, total = GREATEST(0, total - ?) WHERE id = ?')
+                   ->execute([$coupon['id'], $coupon['code'], $coupon['discount'], $coupon['discount'], $orderId]);
+            } else {
+                // Coupon hit its usage limit between validation and checkout
+                error_log('[COUPON] Usage limit reached for coupon #' . $coupon['id'] . ' during checkout (order #' . $orderId . ')');
+            }
             removeCouponFromCart();
         }
 
@@ -348,6 +355,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: ' . $stripeUrl);
                     exit;
                 } else {
+                    // Mark order as failed — gateway session could not be created.
+                    // Prevents orphaned pending orders from cluttering the system.
+                    updateOrderPayment($orderId, 'failed', '', 'stripe');
                     $_SESSION['flash_message'] = 'Could not connect to Stripe. Please try another payment method.';
                     $_SESSION['flash_type'] = 'error';
                     redirect('index.php?page=checkout');
@@ -367,6 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: ' . $squareUrl);
                     exit;
                 } else {
+                    updateOrderPayment($orderId, 'failed', '', 'square');
                     $_SESSION['flash_message'] = 'Could not connect to Square. Please try another payment method.';
                     $_SESSION['flash_type'] = 'error';
                     redirect('index.php?page=checkout');
@@ -380,6 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: ' . $btcpayUrl);
                     exit;
                 } else {
+                    updateOrderPayment($orderId, 'failed', '', 'btcpay');
                     $_SESSION['flash_message'] = 'Could not connect to BTCPay Server. Please try another payment method.';
                     $_SESSION['flash_type'] = 'error';
                     redirect('index.php?page=checkout');
