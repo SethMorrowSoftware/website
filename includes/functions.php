@@ -753,7 +753,11 @@ function processDownload(string $token): void {
         return;
     }
 
-    $filePath = BASE_PATH . '/' . $download['download_file'];
+    $filePath = realpath(BASE_PATH . '/' . $download['download_file']);
+    // Ensure the resolved path stays within the project directory (prevent path traversal)
+    if (!$filePath || !str_starts_with($filePath, BASE_PATH . DIRECTORY_SEPARATOR)) {
+        return;
+    }
     if (!file_exists($filePath)) {
         return;
     }

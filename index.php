@@ -179,12 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_message'] = 'Could not add item to cart.';
             $_SESSION['flash_type'] = 'error';
         }
-        $referrer = $_SERVER['HTTP_REFERER'] ?? '';
-        if ($referrer && str_contains($referrer, $_SERVER['HTTP_HOST'])) {
-            header('Location: ' . $referrer);
-            exit;
-        }
-        redirect('index.php?page=catalog');
+        redirectToReferrer('index.php?page=catalog');
     }
 
     if ($action === 'update_cart' && isFeatureEnabled('cart') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -396,12 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_message'] = 'Added to your wishlist!';
             $_SESSION['flash_type'] = 'success';
         }
-        $referrer = $_SERVER['HTTP_REFERER'] ?? '';
-        if ($referrer && str_contains($referrer, $_SERVER['HTTP_HOST'])) {
-            header('Location: ' . $referrer);
-            exit;
-        }
-        redirect('index.php?page=catalog');
+        redirectToReferrer('index.php?page=catalog');
     }
 
     if ($action === 'remove_wishlist' && isFeatureEnabled('wishlists') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -411,12 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_message'] = 'Removed from wishlist.';
             $_SESSION['flash_type'] = 'info';
         }
-        $referrer = $_SERVER['HTTP_REFERER'] ?? '';
-        if ($referrer && str_contains($referrer, $_SERVER['HTTP_HOST'])) {
-            header('Location: ' . $referrer);
-            exit;
-        }
-        redirect('index.php?page=wishlist');
+        redirectToReferrer('index.php?page=wishlist');
     }
 
     // ---- Review Submission ----

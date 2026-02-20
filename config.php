@@ -382,3 +382,21 @@ function redirect(string $path): void {
     header('Location: ' . url($path));
     exit;
 }
+
+/**
+ * Safely redirect to the HTTP referrer if it belongs to this site.
+ * Uses strict parse_url() host comparison to prevent open redirects.
+ * Falls back to $fallback if referrer is missing or from a different host.
+ */
+function redirectToReferrer(string $fallback): void {
+    $referrer = $_SERVER['HTTP_REFERER'] ?? '';
+    if ($referrer) {
+        $parsed = parse_url($referrer);
+        if (isset($parsed['host']) && $parsed['host'] === ($_SERVER['HTTP_HOST'] ?? '')) {
+            while (ob_get_level()) ob_end_clean();
+            header('Location: ' . $referrer);
+            exit;
+        }
+    }
+    redirect($fallback);
+}
