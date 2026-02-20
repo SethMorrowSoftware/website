@@ -275,14 +275,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('index.php?page=checkout');
         }
 
-        // Calculate shipping
+        // Calculate shipping — validate that submitted method is actually available
         $shippingMethodId = (int)($_POST['shipping_method_id'] ?? 0);
         $shippingCost = 0;
         $shippingMethodName = '';
         if ($shippingMethodId > 0) {
-            $shippingCost = calculateShipping($shippingMethodId);
-            $sm = getShippingMethod($shippingMethodId);
-            $shippingMethodName = $sm ? $sm['name'] : '';
+            $availableMethods = cartHasPhysicalItems() ? getAvailableShippingMethods() : [];
+            $validMethod = null;
+            foreach ($availableMethods as $method) {
+                if ((int)$method['id'] === $shippingMethodId) {
+                    $validMethod = $method;
+                    break;
+                }
+            }
+            if ($validMethod) {
+                $shippingCost = $validMethod['cost'];
+                $shippingMethodName = $validMethod['name'];
+            } else {
+                // Fall back to recalculating from DB (in case method exists but wasn't in available list)
+                $shippingCost = calculateShipping($shippingMethodId);
+                $sm = getShippingMethod($shippingMethodId);
+                $shippingMethodName = $sm ? $sm['name'] : '';
+            }
         }
 
         // Create order from cart

@@ -173,9 +173,15 @@ function getCartTotalsWithCoupon(): array {
     $totals['coupon_code'] = null;
 
     if ($coupon) {
-        $totals['discount'] = $coupon['discount'];
+        // Recalculate discount against current subtotal (not the stale cached amount)
+        // so that removing items from cart correctly reduces the discount
+        $recalculated = calculateDiscount($coupon, $totals['subtotal']);
+        $totals['discount'] = $recalculated;
         $totals['coupon_code'] = $coupon['code'];
         $totals['total'] = max(0, $totals['subtotal'] - $totals['discount'] + $totals['tax']);
+
+        // Update the session with the recalculated discount
+        $_SESSION['coupon']['discount'] = $recalculated;
     }
 
     return $totals;
