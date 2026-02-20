@@ -620,7 +620,10 @@ require_once __DIR__ . '/header.php';
         </div>
     </div>
 
-    <!-- Test Email -->
+    <!-- Close main settings form before test email (to avoid nested forms) -->
+    </form>
+
+    <!-- Test Email (separate form) -->
     <div class="admin-section">
         <h2><i class="fas fa-paper-plane"></i> Test Email</h2>
         <div class="admin-card">
@@ -635,6 +638,10 @@ require_once __DIR__ . '/header.php';
             </form>
         </div>
     </div>
+
+    <!-- Reopen main settings form for remaining sections -->
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
+    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
 
     <!-- Blog Settings -->
     <div class="admin-section" id="blog">

@@ -45,10 +45,11 @@
                 } else {
                     alert('Upload failed: ' + (data.error || 'Unknown error'));
                 }
-                if (btn) btn.innerHTML = '<i class="fas fa-upload"></i> Upload Image';
             })
             .catch(function() {
                 alert('Upload failed. Please try again.');
+            })
+            .finally(function() {
                 if (btn) btn.innerHTML = '<i class="fas fa-upload"></i> Upload Image';
             });
         });
@@ -117,12 +118,8 @@
             headers: { 'X-CSRF-TOKEN': csrfToken }
         })
         .then(function(r) { return r.json(); })
-        .catch(function() {
-            // Fallback: load from media library page
-            return { files: [] };
-        })
         .then(function(data) {
-            var files = data.files || [];
+            var files = (data && data.files) || [];
             if (files.length === 0) {
                 grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#666;">No media files found. Upload images using the upload button in the toolbar.</p>';
                 return;
@@ -145,6 +142,9 @@
                 item.addEventListener('mouseout', function() { this.style.borderColor = 'transparent'; });
                 grid.appendChild(item);
             });
+        })
+        .catch(function() {
+            grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#666;">Failed to load media. Please try again.</p>';
         });
     };
 

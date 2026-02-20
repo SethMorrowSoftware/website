@@ -702,9 +702,16 @@ function generateDownloadTokens(int $orderId): array {
         $product = $stmt->fetch();
         if (!$product || !$product['download_file']) continue;
 
+        // Verify the download file actually exists on disk
+        $downloadPath = BASE_PATH . '/' . $product['download_file'];
+        if (!file_exists($downloadPath)) {
+            error_log('Download token skipped: file not found for product #' . $item['product_id'] . ': ' . $product['download_file']);
+            continue;
+        }
+
         $token = bin2hex(random_bytes(32));
         $maxDownloads = $product['download_limit'] ?: 0; // 0 = unlimited
-        $expiryHours = $product['download_expiry_hours'] ?: 72;
+        $expiryHours = max(1, (int)($product['download_expiry_hours'] ?: 72));
         $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryHours} hours"));
 
         $stmt = $db->prepare('INSERT INTO download_tokens (order_id, order_item_id, product_id, token, max_downloads, expires_at) VALUES (?,?,?,?,?,?)');
@@ -753,7 +760,11 @@ function processDownload(string $token): void {
         return;
     }
 
-    $filePath = BASE_PATH . '/' . $download['download_file'];
+    $filePath = realpath(BASE_PATH . '/' . $download['download_file']);
+    // Ensure the resolved path stays within the project directory (prevent path traversal)
+    if (!$filePath || !str_starts_with($filePath, BASE_PATH . DIRECTORY_SEPARATOR)) {
+        return;
+    }
     if (!file_exists($filePath)) {
         return;
     }
@@ -812,7 +823,7 @@ function handleDownloadUpload(array $file): ?string {
         'image/gif' => 'gif',
         'image/webp' => 'webp',
         'image/svg+xml' => 'svg',
-        'application/octet-stream' => 'bin',
+        // 'application/octet-stream' removed — catch-all MIME type could allow executables
         'text/plain' => 'txt',
         'text/csv' => 'csv',
         'application/json' => 'json',
@@ -856,48 +867,23 @@ function handleDownloadUpload(array $file): ?string {
  * Send order confirmation email
  */
 function sendOrderConfirmation(int $orderId): void {
+    // Send styled HTML confirmation via SMTP (or mail() fallback) — defined in email.php
+    sendOrderEmail($orderId);
+
+    // Also notify the admin
     $order = getOrder($orderId);
     if (!$order) return;
 
-    $items = getOrderItems($orderId);
-    $downloads = getDownloadTokens($orderId);
-
-    // Email to customer
-    $subject = 'Order Confirmation - ' . $order['order_number'] . ' - ' . getSetting('company_name', SITE_NAME);
-    $body = "Thank you for your order!\n\n";
-    $body .= "Order Number: {$order['order_number']}\n";
-    $body .= "Date: " . formatDate($order['created_at']) . "\n\n";
-    $body .= "Items:\n";
-    foreach ($items as $item) {
-        $body .= "- {$item['product_name']} x{$item['quantity']} — $" . number_format($item['total_price'], 2) . "\n";
-    }
-    $body .= "\nSubtotal: $" . number_format($order['subtotal'], 2) . "\n";
-    if ($order['tax'] > 0) {
-        $body .= "Tax: $" . number_format($order['tax'], 2) . "\n";
-    }
-    $body .= "Total: $" . number_format($order['total'], 2) . "\n";
-
-    if (!empty($downloads)) {
-        $body .= "\nYour Downloads:\n";
-        foreach ($downloads as $dl) {
-            $downloadUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . url('index.php?page=download&token=' . $dl['token']);
-            $body .= "- {$dl['product_name']}: {$downloadUrl}\n";
-        }
-    }
-
-    $headers = "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost');
-    @mail($order['customer_email'], $subject, $body, $headers);
-
-    // Email to admin
     $notifyEmail = getSetting('contact_email');
     if ($notifyEmail) {
-        $adminSubject = 'New Order Received - ' . $order['order_number'] . ' - ' . SITE_NAME;
-        $adminBody = "A new order has been placed.\n\n";
-        $adminBody .= "Order Number: {$order['order_number']}\n";
-        $adminBody .= "Customer: {$order['customer_name']} ({$order['customer_email']})\n";
-        $adminBody .= "Total: $" . number_format($order['total'], 2) . "\n";
-        $adminBody .= "Payment: {$order['payment_method']} ({$order['payment_status']})\n";
-        sendNotificationEmail($notifyEmail, $adminSubject, $adminBody);
+        $adminSubject = 'New Order Received - ' . $order['order_number'] . ' - ' . getSetting('company_name', SITE_NAME);
+        $adminBody = '<p>A new order has been placed.</p>';
+        $adminBody .= '<p><strong>Order Number:</strong> ' . e($order['order_number']) . '<br>';
+        $adminBody .= '<strong>Customer:</strong> ' . e($order['customer_name']) . ' (' . e($order['customer_email']) . ')<br>';
+        $adminBody .= '<strong>Total:</strong> ' . formatCurrency($order['total']) . '<br>';
+        $adminBody .= '<strong>Payment:</strong> ' . e(ucfirst($order['payment_method'])) . ' (' . e($order['payment_status']) . ')</p>';
+        $html = buildEmailHtml('New Order Received', $adminBody);
+        sendEmail($notifyEmail, $adminSubject, $html);
     }
 }
 
@@ -963,6 +949,34 @@ function createStripeCheckoutSession(int $orderId): ?string {
             ],
             'quantity' => 1,
         ];
+    }
+
+    // Add shipping as a line item if present
+    $shippingCost = (float)($order['shipping_cost'] ?? 0);
+    if ($shippingCost > 0) {
+        $lineItems[] = [
+            'price_data' => [
+                'currency' => strtolower(getSetting('currency_code', 'usd')),
+                'product_data' => ['name' => 'Shipping' . ($order['shipping_method'] ? ' (' . $order['shipping_method'] . ')' : '')],
+                'unit_amount' => (int)round($shippingCost * 100),
+            ],
+            'quantity' => 1,
+        ];
+    }
+
+    // If a coupon discount is applied, Stripe doesn't support negative line items.
+    // Replace the itemized breakdown with a single line item at the correct total
+    // so the customer pays the discounted amount.
+    $discountAmount = (float)($order['discount_amount'] ?? 0);
+    if ($discountAmount > 0) {
+        $lineItems = [[
+            'price_data' => [
+                'currency' => strtolower(getSetting('currency_code', 'usd')),
+                'product_data' => ['name' => 'Order ' . $order['order_number'] . ' (Coupon: ' . ($order['coupon_code'] ?? '') . ')'],
+                'unit_amount' => (int)round($order['total'] * 100),
+            ],
+            'quantity' => 1,
+        ]];
     }
 
     $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
@@ -1078,6 +1092,35 @@ function createPayPalOrder(int $orderId): ?array {
         ];
     }
 
+    $breakdown = [
+        'item_total' => [
+            'currency_code' => $currency,
+            'value' => number_format($order['subtotal'], 2, '.', ''),
+        ],
+        'tax_total' => [
+            'currency_code' => $currency,
+            'value' => number_format($order['tax'], 2, '.', ''),
+        ],
+    ];
+
+    // Include discount in PayPal breakdown if present
+    $discountAmount = (float)($order['discount_amount'] ?? 0);
+    if ($discountAmount > 0) {
+        $breakdown['discount'] = [
+            'currency_code' => $currency,
+            'value' => number_format($discountAmount, 2, '.', ''),
+        ];
+    }
+
+    // Include shipping in PayPal breakdown if present
+    $shippingCost = (float)($order['shipping_cost'] ?? 0);
+    if ($shippingCost > 0) {
+        $breakdown['shipping'] = [
+            'currency_code' => $currency,
+            'value' => number_format($shippingCost, 2, '.', ''),
+        ];
+    }
+
     $payload = [
         'intent' => 'CAPTURE',
         'purchase_units' => [[
@@ -1085,16 +1128,7 @@ function createPayPalOrder(int $orderId): ?array {
             'amount' => [
                 'currency_code' => $currency,
                 'value' => number_format($order['total'], 2, '.', ''),
-                'breakdown' => [
-                    'item_total' => [
-                        'currency_code' => $currency,
-                        'value' => number_format($order['subtotal'], 2, '.', ''),
-                    ],
-                    'tax_total' => [
-                        'currency_code' => $currency,
-                        'value' => number_format($order['tax'], 2, '.', ''),
-                    ],
-                ],
+                'breakdown' => $breakdown,
             ],
             'items' => $paypalItems,
         ]],

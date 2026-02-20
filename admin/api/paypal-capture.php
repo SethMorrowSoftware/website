@@ -59,6 +59,9 @@ if ($captureResult && isset($captureResult['status']) && $captureResult['status'
     // Update our order
     updateOrderPayment($orderId, 'completed', $paypalOrderId, 'paypal');
 
+    // Decrement inventory now that payment is confirmed
+    processOrderInventory($orderId);
+
     // Generate download tokens for digital products
     $downloads = generateDownloadTokens($orderId);
 

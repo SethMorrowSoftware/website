@@ -741,6 +741,15 @@ function submitBlogComment(int $postId, array $data): int {
 
     $autoApprove = getSetting('blog_comment_moderation', '1') !== '1';
 
+    // Validate and sanitize input lengths to prevent abuse
+    $authorName = mb_substr(trim($data['author_name'] ?? ''), 0, 100);
+    $authorEmail = mb_substr(trim($data['author_email'] ?? ''), 0, 255);
+    $content = mb_substr(trim($data['content'] ?? ''), 0, 5000);
+
+    if (!$authorName || !$authorEmail || !$content) {
+        return 0;
+    }
+
     $stmt = $db->prepare(
         'INSERT INTO blog_comments (post_id, parent_id, customer_id, author_name, author_email, content, is_approved)
          VALUES (?, ?, ?, ?, ?, ?, ?)'
@@ -749,9 +758,9 @@ function submitBlogComment(int $postId, array $data): int {
         $postId,
         $parentId ?: null,
         $data['customer_id'] ?: null,
-        $data['author_name'],
-        $data['author_email'],
-        $data['content'],
+        $authorName,
+        $authorEmail,
+        $content,
         $autoApprove ? 1 : 0,
     ]);
     return (int)$db->lastInsertId();

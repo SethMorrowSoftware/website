@@ -32,13 +32,23 @@ if (!empty($_GET['search'])) {
 }
 
 if (!empty($_GET['archive']) && preg_match('/^\d{4}-\d{2}$/', $_GET['archive'])) {
-    $filters['archive'] = $_GET['archive'];
-    $filterLabel = 'Archive: ' . date('F Y', strtotime($_GET['archive'] . '-01'));
+    $archiveTime = strtotime($_GET['archive'] . '-01');
+    if ($archiveTime !== false) {
+        $filters['archive'] = $_GET['archive'];
+        $filterLabel = 'Archive: ' . date('F Y', $archiveTime);
+    }
 }
 
 $result = getBlogPosts($currentPage, $perPage, $filters);
 $posts = $result['posts'];
 $totalPages = $result['pages'];
+
+// Clamp page to valid range to prevent empty results on out-of-bound pages
+if ($totalPages > 0 && $currentPage > $totalPages) {
+    $currentPage = $totalPages;
+    $result = getBlogPosts($currentPage, $perPage, $filters);
+    $posts = $result['posts'];
+}
 
 // Sidebar data
 $categories = getBlogCategoriesWithCounts();

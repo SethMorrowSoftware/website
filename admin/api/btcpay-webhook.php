@@ -74,15 +74,30 @@ switch ($eventType) {
     case 'InvoicePaymentSettled':
         // Payment received and confirmed
         if ($order['payment_status'] !== 'completed') {
-            updateOrderPayment($order['id'], 'completed', $invoiceId, 'btcpay');
+            try {
+                $db->beginTransaction();
 
-            // Generate download tokens for digital products
-            $downloads = getDownloadTokens($order['id']);
-            if (empty($downloads)) {
-                generateDownloadTokens($order['id']);
+                updateOrderPayment($order['id'], 'completed', $invoiceId, 'btcpay');
+
+                // Decrement inventory now that payment is confirmed
+                processOrderInventory($order['id']);
+
+                // Generate download tokens for digital products
+                $downloads = getDownloadTokens($order['id']);
+                if (empty($downloads)) {
+                    generateDownloadTokens($order['id']);
+                }
+
+                $db->commit();
+            } catch (Exception $e) {
+                $db->rollBack();
+                error_log('[BTCPAY WEBHOOK] Transaction failed for order #' . $order['order_number'] . ': ' . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(['error' => 'Processing failed']);
+                exit;
             }
 
-            // Send confirmation email
+            // Send confirmation email outside transaction (non-critical, shouldn't rollback DB on failure)
             sendOrderConfirmation($order['id']);
 
             error_log('[BTCPAY WEBHOOK] Order #' . $order['order_number'] . ' marked as completed (event: ' . $eventType . ')');

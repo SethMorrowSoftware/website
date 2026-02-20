@@ -228,12 +228,12 @@ if (empty($cart)) {
                     <?php if (!empty($shippingMethods)): ?>
                         <div class="summary-row" id="shippingSummary">
                             <span>Shipping</span>
-                            <span id="shippingCost"><?php echo $shippingMethods[0]['cost'] == 0 ? 'FREE' : formatCurrency($shippingMethods[0]['cost']); ?></span>
+                            <span id="shippingCost"><?php echo (float)$shippingMethods[0]['cost'] === 0.0 ? 'FREE' : formatCurrency($shippingMethods[0]['cost']); ?></span>
                         </div>
                     <?php endif; ?>
                     <div class="summary-row summary-total">
                         <span>Total</span>
-                        <span id="orderTotal"><?php echo formatCurrency($totals['total'] + ($shippingMethods[0]['cost'] ?? 0)); ?></span>
+                        <span id="orderTotal"><?php echo formatCurrency($totals['total'] + (!empty($shippingMethods) ? $shippingMethods[0]['cost'] : 0)); ?></span>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: var(--space-lg);">

@@ -30,27 +30,30 @@ if ($orderNumber) {
             $session = verifyStripePayment($_GET['session_id']);
             if ($session && $session['payment_status'] === 'paid') {
                 updateOrderPayment($order['id'], 'completed', $session['payment_intent'] ?? $session['id'], 'stripe');
-                $order['payment_status'] = 'completed';
+
+                // Decrement inventory now that payment is confirmed
+                processOrderInventory($order['id']);
 
                 // Generate download tokens for digital products
                 if (empty($downloads)) {
-                    $downloads = generateDownloadTokens($order['id']);
+                    generateDownloadTokens($order['id']);
                 }
 
                 // Send confirmation email
                 sendOrderConfirmation($order['id']);
+
+                // Re-fetch order and downloads from DB to avoid stale data
+                $order = getOrderByNumber($orderNumber);
+                $downloads = getDownloadTokens($order['id']);
             }
         }
 
-        // For Square, mark as processing (Square handles capture asynchronously)
+        // For Square, mark as processing — actual payment confirmation should come
+        // via Square webhooks. We do NOT auto-mark as completed on redirect since
+        // Square handles capture asynchronously and the redirect alone is not proof.
         if ($paymentMethod === 'square' && $order['payment_status'] === 'pending') {
-            updateOrderPayment($order['id'], 'completed', '', 'square');
-            $order['payment_status'] = 'completed';
-
-            if (empty($downloads)) {
-                $downloads = generateDownloadTokens($order['id']);
-            }
-            sendOrderConfirmation($order['id']);
+            updateOrderPayment($order['id'], 'processing', $order['payment_id'] ?? '', 'square');
+            $order = getOrderByNumber($orderNumber);
         }
 
         // For BTCPay, verify the invoice status via the API
@@ -61,15 +64,18 @@ if ($orderNumber) {
                 // BTCPay statuses: New, Processing, Expired, Invalid, Settled
                 if ($btcStatus === 'Settled') {
                     updateOrderPayment($order['id'], 'completed', $order['payment_id'], 'btcpay');
-                    $order['payment_status'] = 'completed';
 
                     if (empty($downloads)) {
-                        $downloads = generateDownloadTokens($order['id']);
+                        generateDownloadTokens($order['id']);
                     }
                     sendOrderConfirmation($order['id']);
+
+                    // Re-fetch order and downloads from DB to avoid stale data
+                    $order = getOrderByNumber($orderNumber);
+                    $downloads = getDownloadTokens($order['id']);
                 } elseif ($btcStatus === 'Processing') {
-                    // Payment received, waiting for confirmation
-                    $order['payment_status'] = 'processing';
+                    updateOrderPayment($order['id'], 'processing', $order['payment_id'], 'btcpay');
+                    $order = getOrderByNumber($orderNumber);
                 }
             }
         }
