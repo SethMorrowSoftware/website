@@ -65,8 +65,25 @@ if (!$data) {
 
 $eventType = $data['type'] ?? '';
 
-// Replay protection: Square includes an event_id that is unique per delivery
+// Replay protection: Square includes an event_id that is unique per delivery.
+// Reject duplicate events by inserting into webhook_events with a unique constraint.
 $eventId = $data['event_id'] ?? '';
+if ($eventId) {
+    $db = getDB();
+    try {
+        $insertStmt = $db->prepare('INSERT INTO webhook_events (provider, event_id) VALUES (?, ?)');
+        $insertStmt->execute(['square', $eventId]);
+    } catch (Exception $e) {
+        // Duplicate key = already processed this event
+        if (str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE constraint')) {
+            http_response_code(200);
+            echo json_encode(['ok' => true, 'message' => 'Duplicate event ignored']);
+            exit;
+        }
+        // Other DB errors — log but continue processing
+        error_log('[SQUARE WEBHOOK] webhook_events insert error: ' . $e->getMessage());
+    }
+}
 
 // Handle payment events
 if ($eventType === 'payment.completed' || $eventType === 'payment.updated') {
