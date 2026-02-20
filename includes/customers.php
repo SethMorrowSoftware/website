@@ -85,6 +85,8 @@ function getCustomerId(): ?int {
 function logoutCustomer(): void {
     if (session_status() === PHP_SESSION_NONE) session_start();
     unset($_SESSION['customer_id'], $_SESSION['customer_email'], $_SESSION['customer_name']);
+    // Regenerate session ID to prevent session fixation attacks
+    session_regenerate_id(true);
 }
 
 /**

@@ -191,6 +191,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = (int)($_POST['quantity'] ?? 0);
         if ($productId) {
+            // Validate against available stock before updating
+            if ($quantity > 0 && !isInStock($productId, $quantity)) {
+                $available = getStockQuantity($productId);
+                if ($available !== null) {
+                    $_SESSION['flash_message'] = 'Only ' . $available . ' available in stock.';
+                    $_SESSION['flash_type'] = 'error';
+                    $quantity = $available; // Cap to available stock
+                }
+            }
             updateCartItem($productId, $quantity);
         }
         redirect('index.php?page=cart');
@@ -281,7 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $shippingMethodName = $sm ? $sm['name'] : '';
         }
 
-        // Create order (with coupon if applied)
+        // Create order from cart
         $orderId = createOrder($customerData, $paymentMethod);
         if (!$orderId) {
             $_SESSION['flash_message'] = 'There was a problem creating your order. Please try again.';
@@ -289,39 +298,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('index.php?page=checkout');
         }
 
-        // Update order with shipping info
-        if ($shippingCost > 0 || $shippingMethodName) {
-            $db = getDB();
-            $db->prepare('UPDATE orders SET shipping_cost = ?, shipping_method = ?, total = total + ? WHERE id = ?')
-               ->execute([$shippingCost, $shippingMethodName, $shippingCost, $orderId]);
-        }
+        $db = getDB();
 
-        // Process inventory
-        processOrderInventory($orderId);
-
-        // Handle coupon
+        // Apply coupon discount BEFORE payment gateway sees the order
         $coupon = getAppliedCoupon();
         if ($coupon) {
-            $db = getDB();
-            $db->prepare('UPDATE orders SET coupon_id = ?, coupon_code = ?, discount_amount = ? WHERE id = ?')
-               ->execute([$coupon['id'], $coupon['code'], $coupon['discount'], $orderId]);
+            $db->prepare('UPDATE orders SET coupon_id = ?, coupon_code = ?, discount_amount = ?, total = GREATEST(0, total - ?) WHERE id = ?')
+               ->execute([$coupon['id'], $coupon['code'], $coupon['discount'], $coupon['discount'], $orderId]);
             incrementCouponUsage($coupon['id']);
             removeCouponFromCart();
         }
 
+        // Apply shipping cost
+        if ($shippingCost > 0 || $shippingMethodName) {
+            $db->prepare('UPDATE orders SET shipping_cost = ?, shipping_method = ?, total = total + ? WHERE id = ?')
+               ->execute([$shippingCost, $shippingMethodName, $shippingCost, $orderId]);
+        }
+
         // Link to customer account if logged in
         if (isCustomerLoggedIn()) {
-            $db = getDB();
             $db->prepare('UPDATE orders SET customer_id = ? WHERE id = ?')
                ->execute([getCustomerId(), $orderId]);
         }
 
+        // Re-fetch the order with all adjustments applied
         $order = getOrder($orderId);
 
         // Store order number in session for order-complete page verification
         $_SESSION['recent_order_number'] = $order['order_number'];
 
         // Route to payment provider
+        // Note: inventory is decremented immediately for manual orders,
+        // and on payment confirmation for gateway orders (to avoid
+        // permanently decrementing stock on abandoned payments).
         switch ($paymentMethod) {
             case 'stripe':
                 $stripeUrl = createStripeCheckoutSession($orderId);
@@ -370,6 +379,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             case 'manual':
             default:
+                processOrderInventory($orderId);
                 clearCart();
                 generateDownloadTokens($orderId);
                 sendOrderConfirmation($orderId);

@@ -32,6 +32,9 @@ if ($orderNumber) {
                 updateOrderPayment($order['id'], 'completed', $session['payment_intent'] ?? $session['id'], 'stripe');
                 $order['payment_status'] = 'completed';
 
+                // Decrement inventory now that payment is confirmed
+                processOrderInventory($order['id']);
+
                 // Generate download tokens for digital products
                 if (empty($downloads)) {
                     $downloads = generateDownloadTokens($order['id']);
@@ -42,15 +45,12 @@ if ($orderNumber) {
             }
         }
 
-        // For Square, mark as processing (Square handles capture asynchronously)
+        // For Square, mark as processing — actual payment confirmation should come
+        // via Square webhooks. We do NOT auto-mark as completed on redirect since
+        // Square handles capture asynchronously and the redirect alone is not proof.
         if ($paymentMethod === 'square' && $order['payment_status'] === 'pending') {
-            updateOrderPayment($order['id'], 'completed', '', 'square');
-            $order['payment_status'] = 'completed';
-
-            if (empty($downloads)) {
-                $downloads = generateDownloadTokens($order['id']);
-            }
-            sendOrderConfirmation($order['id']);
+            updateOrderPayment($order['id'], 'processing', $order['payment_id'] ?? '', 'square');
+            $order['payment_status'] = 'processing';
         }
 
         // For BTCPay, verify the invoice status via the API

@@ -76,6 +76,9 @@ switch ($eventType) {
         if ($order['payment_status'] !== 'completed') {
             updateOrderPayment($order['id'], 'completed', $invoiceId, 'btcpay');
 
+            // Decrement inventory now that payment is confirmed
+            processOrderInventory($order['id']);
+
             // Generate download tokens for digital products
             $downloads = getDownloadTokens($order['id']);
             if (empty($downloads)) {

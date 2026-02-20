@@ -31,7 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $newStatus = $_POST['new_status'] ?? '';
         $validStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded'];
         if (in_array($newStatus, $validStatuses)) {
+            $oldStatus = $order['order_status'];
             $db->prepare('UPDATE orders SET order_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')->execute([$newStatus, $id]);
+
+            // Restore inventory when order is cancelled or refunded (from a non-cancelled/refunded state)
+            if (in_array($newStatus, ['cancelled', 'refunded']) && !in_array($oldStatus, ['cancelled', 'refunded'])) {
+                restoreOrderInventory($id);
+            }
+
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Order status updated.'];
         }
         redirect('admin/order-view.php?id=' . $id);
