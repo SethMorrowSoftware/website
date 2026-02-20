@@ -261,7 +261,7 @@ $hero = $heroStmt->fetch();
                 <!-- Featured Products Widget -->
                 <?php if (isFeatureEnabled('catalog')): ?>
                     <?php
-                    $featuredProducts = $db->query('SELECT * FROM products WHERE is_visible = 1 AND is_available = 1 ORDER BY RANDOM() LIMIT 3')->fetchAll();
+                    $featuredProducts = $db->query('SELECT * FROM products WHERE is_visible = 1 AND is_available = 1 ORDER BY RAND() LIMIT 3')->fetchAll();
                     if (!empty($featuredProducts)):
                     ?>
                     <div class="blog-widget">

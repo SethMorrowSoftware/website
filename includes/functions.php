@@ -932,11 +932,21 @@ function finalizePaidOrder(int $orderId, string $paymentId, string $provider): b
             return true;
         }
 
+        // Decrement inventory atomically — check before marking completed
+        $inventoryOk = processOrderInventory($orderId);
+
+        if (!$inventoryOk) {
+            // Stock decrement failed for one or more items — do not mark as
+            // completed.  Place order on hold for manual review instead of
+            // silently completing with a fulfillment mismatch.
+            $db->prepare("UPDATE orders SET payment_status = 'on_hold', payment_id = ?, payment_method = ?, order_status = 'needs_review', updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$paymentId, $provider, $orderId]);
+            $db->commit();
+            error_log('[FINALIZE ORDER] Order #' . $orderId . ' placed on hold: inventory decrement failed');
+            return false;
+        }
+
         // Update payment status to completed
         updateOrderPayment($orderId, 'completed', $paymentId, $provider);
-
-        // Decrement inventory atomically
-        processOrderInventory($orderId);
 
         // Generate download tokens (idempotent — skip if already exist)
         $existingTokens = getDownloadTokens($orderId);

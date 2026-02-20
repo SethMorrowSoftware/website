@@ -53,6 +53,12 @@ RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ index.php?page=blog-post&slug=$1 [L,QSA]
 # Prevent directory listing
 Options -Indexes
 
+# Allow robots.txt for search engine crawlers
+<Files "robots.txt">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
 # Protect sensitive files
 <FilesMatch "\.(sqlite|sql|md|log|txt)$">
     Order Allow,Deny

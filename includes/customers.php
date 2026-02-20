@@ -164,18 +164,29 @@ function createPasswordResetToken(int $customerId): string {
 
 /**
  * Validate and use a password reset token
+ *
+ * Uses an atomic consume pattern to prevent race conditions:
+ * a single UPDATE with WHERE conditions atomically marks the token
+ * as used only if it is still valid. Two concurrent requests cannot
+ * both succeed because only one UPDATE will affect a row.
  */
 function validatePasswordResetToken(string $token): ?int {
     $db = getDB();
-    $stmt = $db->prepare('SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()');
+
+    // Atomic consume: mark used only if still valid (unused + not expired)
+    $stmt = $db->prepare('UPDATE password_resets SET used = 1 WHERE token = ? AND used = 0 AND expires_at > NOW()');
+    $stmt->execute([$token]);
+
+    if ($stmt->rowCount() === 0) {
+        return null; // Token invalid, already used, or expired
+    }
+
+    // Fetch the customer_id for the consumed token
+    $stmt = $db->prepare('SELECT customer_id FROM password_resets WHERE token = ?');
     $stmt->execute([$token]);
     $reset = $stmt->fetch();
 
-    if (!$reset) return null;
-
-    // Mark as used
-    $db->prepare('UPDATE password_resets SET used = 1 WHERE id = ?')->execute([$reset['id']]);
-    return (int)$reset['customer_id'];
+    return $reset ? (int)$reset['customer_id'] : null;
 }
 
 /**
