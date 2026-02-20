@@ -702,9 +702,16 @@ function generateDownloadTokens(int $orderId): array {
         $product = $stmt->fetch();
         if (!$product || !$product['download_file']) continue;
 
+        // Verify the download file actually exists on disk
+        $downloadPath = BASE_PATH . '/' . $product['download_file'];
+        if (!file_exists($downloadPath)) {
+            error_log('Download token skipped: file not found for product #' . $item['product_id'] . ': ' . $product['download_file']);
+            continue;
+        }
+
         $token = bin2hex(random_bytes(32));
         $maxDownloads = $product['download_limit'] ?: 0; // 0 = unlimited
-        $expiryHours = $product['download_expiry_hours'] ?: 72;
+        $expiryHours = max(1, (int)($product['download_expiry_hours'] ?: 72));
         $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryHours} hours"));
 
         $stmt = $db->prepare('INSERT INTO download_tokens (order_id, order_item_id, product_id, token, max_downloads, expires_at) VALUES (?,?,?,?,?,?)');

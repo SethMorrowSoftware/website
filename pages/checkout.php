@@ -228,7 +228,7 @@ if (empty($cart)) {
                     <?php if (!empty($shippingMethods)): ?>
                         <div class="summary-row" id="shippingSummary">
                             <span>Shipping</span>
-                            <span id="shippingCost"><?php echo $shippingMethods[0]['cost'] == 0 ? 'FREE' : formatCurrency($shippingMethods[0]['cost']); ?></span>
+                            <span id="shippingCost"><?php echo (float)$shippingMethods[0]['cost'] === 0.0 ? 'FREE' : formatCurrency($shippingMethods[0]['cost']); ?></span>
                         </div>
                     <?php endif; ?>
                     <div class="summary-row summary-total">

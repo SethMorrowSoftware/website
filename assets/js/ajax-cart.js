@@ -227,35 +227,28 @@
         }
     }
 
-    // ---- Bind Forms on DOMContentLoaded ----
-    document.addEventListener('DOMContentLoaded', function() {
+    // ---- Bind Forms via Event Delegation ----
+    // Uses delegation so dynamically added forms (e.g. via AJAX) are also handled
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
 
-        // Intercept add-to-cart forms
-        var cartForms = document.querySelectorAll('.add-to-cart-form');
-        cartForms.forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitFormAjax(form, function(data) {
-                    if (data.cartCount !== undefined) {
-                        updateCartBadge(data.cartCount);
-                    }
-                });
+        if (form.matches('.add-to-cart-form')) {
+            e.preventDefault();
+            submitFormAjax(form, function(data) {
+                if (data.cartCount !== undefined) {
+                    updateCartBadge(data.cartCount);
+                }
             });
-        });
+        }
 
-        // Intercept wishlist forms
-        var wishlistForms = document.querySelectorAll('.wishlist-form');
-        wishlistForms.forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitFormAjax(form, function(data) {
-                    if (data.wishlistCount !== undefined) {
-                        updateWishlistBadge(data.wishlistCount);
-                    }
-                });
+        if (form.matches('.wishlist-form')) {
+            e.preventDefault();
+            submitFormAjax(form, function(data) {
+                if (data.wishlistCount !== undefined) {
+                    updateWishlistBadge(data.wishlistCount);
+                }
             });
-        });
-
+        }
     });
 
 })();
