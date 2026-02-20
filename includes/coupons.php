@@ -111,11 +111,22 @@ function calculateDiscount(array $coupon, float $subtotal): float {
 }
 
 /**
- * Increment coupon usage count
+ * Atomically increment coupon usage count.
+ *
+ * Uses a guarded UPDATE to prevent over-redemption under concurrent
+ * checkouts: the increment only succeeds when usage_limit is 0
+ * (unlimited) or used_count is still below the limit.
+ *
+ * @return bool True if the increment succeeded, false if the coupon
+ *              has already reached its usage limit.
  */
-function incrementCouponUsage(int $couponId): void {
+function incrementCouponUsage(int $couponId): bool {
     $db = getDB();
-    $db->prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?')->execute([$couponId]);
+    $stmt = $db->prepare(
+        'UPDATE coupons SET used_count = used_count + 1 WHERE id = ? AND (usage_limit = 0 OR used_count < usage_limit)'
+    );
+    $stmt->execute([$couponId]);
+    return $stmt->rowCount() > 0;
 }
 
 /**

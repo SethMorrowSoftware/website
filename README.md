@@ -1,13 +1,13 @@
 # Business Website CMS
 
-A self-contained PHP/SQLite content management system for small businesses. Manages products, services, blog content, customer accounts, orders, and online payments. Everything runs on vanilla PHP with no framework dependencies. Customize the company name, contact info, colors, and content through the admin panel.
+A self-contained PHP/MySQL content management system for small businesses. Manages products, services, blog content, customer accounts, orders, and online payments. Everything runs on vanilla PHP with no framework dependencies. Customize the company name, contact info, colors, and content through the admin panel.
 
 ## Requirements
 
 - PHP 8.0 or higher
-- SQLite3 PHP extension (`php-sqlite3`)
+- MySQL 5.7+ or MariaDB 10.3+
 - Apache with `mod_rewrite` enabled
-- PHP extensions: `fileinfo`, `mbstring`, `session`
+- PHP extensions: `pdo_mysql`, `fileinfo`, `mbstring`, `session`, `curl`
 - Optional: `mod_headers`, `mod_expires`, `mod_deflate` (for security headers, caching, and compression via `.htaccess`)
 
 ## Installation
@@ -18,21 +18,38 @@ A self-contained PHP/SQLite content management system for small businesses. Mana
 git clone <repo-url> /var/www/html/mysite
 ```
 
-2. Set directory permissions:
+2. Create a MySQL database and user:
+
+```sql
+CREATE DATABASE business_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'cms_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON business_cms.* TO 'cms_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+3. Configure database credentials via environment variables or edit `config.php`:
+
+```bash
+export DB_HOST=127.0.0.1
+export DB_NAME=business_cms
+export DB_USER=cms_user
+export DB_PASS=your_password
+```
+
+4. Set directory permissions:
 
 ```bash
 chmod 755 /var/www/html/mysite
 chmod -R 775 /var/www/html/mysite/uploads
-chmod -R 775 /var/www/html/mysite/database
 ```
 
-The web server user (e.g., `www-data`) needs write access to `uploads/` and `database/`.
+The web server user (e.g., `www-data`) needs write access to `uploads/`.
 
-3. Visit the site in a browser. On first load, the database is automatically created at `database/database.sqlite`, the schema is applied, and seed data is inserted.
+5. Visit the site in a browser. On first load, the schema is applied to the MySQL database and seed data is inserted.
 
-4. Admin credentials are generated randomly and written to `ADMIN_CREDENTIALS.txt` in the project root. This file is restricted to owner-read-only (`chmod 0600`) and blocked from web access by `.htaccess`. Read the credentials, log in, change your password at `/admin/profile.php`, then delete the file.
+6. Admin credentials are generated randomly and written to `ADMIN_CREDENTIALS.txt` in the project root. This file is restricted to owner-read-only (`chmod 0600`) and blocked from web access by `.htaccess`. Read the credentials, log in, change your password at `/admin/profile.php`, then delete the file.
 
-5. If deploying to a subdirectory (e.g., `/mysite/`), the `BASE_URL` is auto-detected. If auto-detection fails, set it manually in `config.php`:
+7. If deploying to a subdirectory (e.g., `/mysite/`), the `BASE_URL` is auto-detected. If auto-detection fails, set it manually in `config.php`:
 
 ```php
 define('BASE_URL', '/mysite');
@@ -49,7 +66,8 @@ define('BASE_URL', '/mysite');
 │   │   ├── reorder.php        #   Drag-and-drop reordering
 │   │   ├── paypal-create.php  #   PayPal order creation
 │   │   ├── paypal-capture.php #   PayPal payment capture
-│   │   └── btcpay-webhook.php #   BTCPay Server webhook
+│   │   ├── btcpay-webhook.php #   BTCPay Server webhook
+│   │   └── square-webhook.php #   Square payment webhook
 │   ├── index.php              # Dashboard
 │   ├── login.php              # Login page
 │   ├── settings.php           # Global site settings
@@ -153,7 +171,11 @@ All runtime configuration is in `config.php`:
 
 | Constant | Default | Description |
 |---|---|---|
-| `DB_PATH` | `database/database.sqlite` | Path to SQLite database file |
+| `DB_HOST` | `127.0.0.1` (env `DB_HOST`) | MySQL server hostname |
+| `DB_PORT` | `3306` (env `DB_PORT`) | MySQL server port |
+| `DB_NAME` | `business_cms` (env `DB_NAME`) | MySQL database name |
+| `DB_USER` | `root` (env `DB_USER`) | MySQL username |
+| `DB_PASS` | _(empty)_ (env `DB_PASS`) | MySQL password |
 | `UPLOADS_PATH` | `uploads/` | Filesystem path for uploaded files |
 | `BASE_URL` | Auto-detected | URL prefix if site is in a subdirectory |
 | `SITE_NAME` | `Your Business Name` | Fallback site name |
@@ -288,7 +310,7 @@ Each gateway is enabled individually via admin settings. Multiple gateways can b
 
 ## Database
 
-SQLite database with 30+ tables, automatically created on first request. Key table groups:
+MySQL database with 30+ tables, automatically created on first request. Key table groups:
 
 - **Core**: `settings`, `users`, `pages`, `navigation`, `hero_sections`, `media`
 - **Catalog**: `product_categories`, `products`, `product_images`, `product_options`, `product_option_values`
@@ -384,17 +406,21 @@ All frontend JS is vanilla (no jQuery, no build step):
 
 The entire site state is in two locations:
 
-1. `database/database.sqlite` — all content, settings, user accounts, orders
+1. MySQL database (`business_cms`) — all content, settings, user accounts, orders
 2. `uploads/` — uploaded images and videos
 
 ```bash
-cp database/database.sqlite database/database.sqlite.bak
+mysqldump -u cms_user -p business_cms > business_cms_backup.sql
 tar -czf uploads-backup.tar.gz uploads/
 ```
 
 ## Resetting the Database
 
-Delete `database/database.sqlite` and reload the site. A fresh database will be created with seed data and new admin credentials written to `ADMIN_CREDENTIALS.txt`.
+Drop and recreate the database, then reload the site. A fresh schema will be applied with seed data and new admin credentials written to `ADMIN_CREDENTIALS.txt`.
+
+```bash
+mysql -u cms_user -p -e "DROP DATABASE business_cms; CREATE DATABASE business_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
 
 ## HTTPS
 
@@ -409,11 +435,11 @@ The `Strict-Transport-Security` header is automatically applied when HTTPS is ac
 
 ## Troubleshooting
 
-**Blank page or 500 error**: Check PHP error log. Common causes: missing `php-sqlite3` extension, incorrect file permissions on `database/` or `uploads/`.
+**Blank page or 500 error**: Check PHP error log. Common causes: missing `pdo_mysql` extension, incorrect database credentials, or wrong file permissions on `uploads/`.
 
 **Clean URLs not working**: Ensure `mod_rewrite` is enabled (`a2enmod rewrite`) and `AllowOverride All` is set in your Apache config.
 
-**Database locked errors**: SQLite uses file-level locking. WAL mode is enabled for better concurrent reads. If persistent, check that no long-running process is holding the database open.
+**Database connection errors**: Verify MySQL is running, credentials are correct, and the database exists. Check that PHP has the `pdo_mysql` extension enabled.
 
 **Uploads failing**: Check that `uploads/` is writable by the web server user. Check PHP `upload_max_filesize` and `post_max_size` settings.
 

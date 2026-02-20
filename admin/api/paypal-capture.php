@@ -56,17 +56,10 @@ if (!isset($_SESSION['pending_paypal_order']) || (int)$_SESSION['pending_paypal_
 $captureResult = capturePayPalOrder($paypalOrderId);
 
 if ($captureResult && isset($captureResult['status']) && $captureResult['status'] === 'COMPLETED') {
-    // Update our order
-    updateOrderPayment($orderId, 'completed', $paypalOrderId, 'paypal');
-
-    // Decrement inventory now that payment is confirmed
-    processOrderInventory($orderId);
-
-    // Generate download tokens for digital products
-    $downloads = generateDownloadTokens($orderId);
-
-    // Send confirmation email
-    sendOrderConfirmation($orderId);
+    // Idempotent finalization — safe against duplicate callbacks, retries,
+    // or user double-submit.  Handles payment status update, inventory
+    // decrement, download tokens, and confirmation email exactly once.
+    finalizePaidOrder($orderId, $paypalOrderId, 'paypal');
 
     // Clear the cart
     clearCart();
