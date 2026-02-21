@@ -47,7 +47,7 @@ function createSubscriptionPlan(array $data): ?int {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
-        $data['product_id'] ?: null,
+        $data['product_id'] ?? null,
         $data['name'],
         $data['description'] ?? '',
         $data['price'],

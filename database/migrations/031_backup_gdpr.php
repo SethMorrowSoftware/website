@@ -37,7 +37,7 @@ return function (PDO $db) {
         ['cookie_consent_enabled', '0'],
         ['gdpr_self_service', '1'],
     ];
-    $stmt = $db->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt = $db->prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)");
     foreach ($settings as $s) {
         $stmt->execute($s);
     }

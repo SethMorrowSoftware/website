@@ -332,7 +332,7 @@ function submitOrderInquiry(array $data): bool {
  * breaks deliverability behind proxies.
  */
 function sendNotificationEmail(string $to, string $subject, string $body): bool {
-    $fromAddress = getSetting('mail_from_address');
+    $fromAddress = getSetting('mail_from_address') ?: getSetting('smtp_from_email');
     if (!$fromAddress) {
         // Derive from company_domain setting, or fall back to localhost
         $domain = getSetting('company_domain', 'localhost');

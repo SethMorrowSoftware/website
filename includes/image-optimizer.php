@@ -118,8 +118,11 @@ function processImage(string $originalPath): array {
             $db = getDB();
             $relPath = str_replace(BASE_PATH . '/', '', $variantPath);
             $origRelPath = str_replace(BASE_PATH . '/', '', $originalPath);
+            $variantInfo = @getimagesize($variantPath);
+            $variantWidth = $variantInfo ? $variantInfo[0] : 0;
+            $variantHeight = $variantInfo ? $variantInfo[1] : 0;
             $db->prepare("INSERT IGNORE INTO image_variants (original_path, variant_size, variant_path, width, height, file_size, format) VALUES (?, ?, ?, ?, ?, ?, ?)")
-                ->execute([$origRelPath, $sizeName, $relPath, imagesx(loadImage($variantPath, $info[2]) ?: imagecreatetruecolor(1,1)), imagesy(loadImage($variantPath, $info[2]) ?: imagecreatetruecolor(1,1)), filesize($variantPath), $ext]);
+                ->execute([$origRelPath, $sizeName, $relPath, $variantWidth, $variantHeight, filesize($variantPath), $ext]);
         } catch (Exception $e) {}
     }
 

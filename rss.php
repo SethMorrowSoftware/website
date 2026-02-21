@@ -15,7 +15,7 @@ if (!isFeatureEnabled('blog')) {
 
 $companyName = getSetting('company_name', SITE_NAME);
 $tagline = getSetting('tagline', '');
-$baseUrl = rtrim((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL, '/');
+$baseUrl = rtrim(getCanonicalBaseUrl(), '/');
 
 // Get latest 20 published posts
 $result = getBlogPosts(1, 20);

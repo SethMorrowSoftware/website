@@ -104,7 +104,7 @@ function getBreadcrumbSchema(array $items): string {
  * Generate WebSite schema with SearchAction.
  */
 function getWebSiteSchema(): string {
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $baseUrl = getCanonicalBaseUrl();
 
     $schema = [
         '@context' => 'https://schema.org',

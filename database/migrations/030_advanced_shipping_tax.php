@@ -34,7 +34,7 @@ return function (PDO $db) {
         ['weight_unit', 'kg'],
         ['dimension_unit', 'cm'],
     ];
-    $stmt = $db->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt = $db->prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)");
     foreach ($settings as $s) {
         $stmt->execute($s);
     }

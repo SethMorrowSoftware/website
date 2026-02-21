@@ -29,7 +29,7 @@ return function (PDO $db) {
         ['cdn_base_url', ''],
         ['image_lazy_loading', '1'],
     ];
-    $stmt = $db->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt = $db->prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)");
     foreach ($settings as $s) {
         $stmt->execute($s);
     }

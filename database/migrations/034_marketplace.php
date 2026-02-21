@@ -82,7 +82,7 @@ return function (PDO $db) {
         ['marketplace_auto_approve_vendors', '0'],
         ['marketplace_vendor_registration', '1'],
     ];
-    $stmt = $db->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt = $db->prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)");
     foreach ($settings as $s) {
         $stmt->execute($s);
     }
