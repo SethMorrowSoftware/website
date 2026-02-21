@@ -61,9 +61,59 @@ function isTrustedProxy(): bool {
         return false;
     }
 
-    $allowedIps = array_map('trim', explode(',', $allowlistRaw));
-    $result = in_array($remoteAddr, $allowedIps, true);
+    $allowedEntries = array_map('trim', explode(',', $allowlistRaw));
+    $result = ipMatchesAllowlist($remoteAddr, $allowedEntries);
     return $result;
+}
+
+/**
+ * Check if an IP address matches any entry in an allowlist.
+ * Supports both exact IPs and CIDR notation (e.g. '10.0.0.0/8', '2001:db8::/32').
+ */
+function ipMatchesAllowlist(string $ip, array $entries): bool {
+    foreach ($entries as $entry) {
+        if ($entry === '') continue;
+
+        if (str_contains($entry, '/')) {
+            // CIDR notation
+            if (ipInCidr($ip, $entry)) return true;
+        } else {
+            // Exact match
+            if ($ip === $entry) return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check if an IP address falls within a CIDR range.
+ * Works for both IPv4 and IPv6.
+ */
+function ipInCidr(string $ip, string $cidr): bool {
+    $parts = explode('/', $cidr, 2);
+    if (count($parts) !== 2) return false;
+
+    $subnet = $parts[0];
+    $bits   = (int)$parts[1];
+
+    $ipBin    = @inet_pton($ip);
+    $subnetBin = @inet_pton($subnet);
+
+    if ($ipBin === false || $subnetBin === false) return false;
+    if (strlen($ipBin) !== strlen($subnetBin)) return false; // IPv4 vs IPv6 mismatch
+
+    $totalBits = strlen($ipBin) * 8;
+    if ($bits < 0 || $bits > $totalBits) return false;
+
+    // Build a bitmask of $bits leading 1s
+    $mask = str_repeat("\xff", intdiv($bits, 8));
+    $remainder = $bits % 8;
+    if ($remainder > 0) {
+        $mask .= chr(0xff << (8 - $remainder) & 0xff);
+    }
+    $mask = str_pad($mask, strlen($ipBin), "\x00");
+
+    return ($ipBin & $mask) === ($subnetBin & $mask);
 }
 
 /**

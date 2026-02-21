@@ -39,22 +39,14 @@ $signature = $_SERVER['HTTP_SQUARE_SIGNATURE'] ?? '';
 // Use the canonical webhook URL setting if configured (recommended for
 // reverse-proxy / CDN setups where PHP server variables may not match
 // the URL Square was configured with). Falls back to reconstructing from
-// request data with proxy-header awareness.
+// request data using the centralized proxy-aware helpers.
 $canonicalUrl = getSetting('square_webhook_url');
 if (!$canonicalUrl) {
-    // Determine scheme: trust X-Forwarded-Proto when a trusted proxy is configured
-    $trustedProxy = getSetting('trusted_proxy_enabled') === '1';
-    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-        $scheme = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']);
-    } else {
-        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-    }
+    $scheme = isRequestSecure() ? 'https' : 'http';
 
-    // Determine host: trust X-Forwarded-Host when a trusted proxy is configured
-    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-        $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
-    } else {
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    if (isTrustedProxy() && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+        $host = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]);
     }
 
     $canonicalUrl = $scheme . '://' . $host . ($_SERVER['REQUEST_URI'] ?? '/admin/api/square-webhook.php');
@@ -94,9 +86,13 @@ if ($eventId) {
     try {
         $insertStmt = $db->prepare('INSERT INTO webhook_events (provider, event_id) VALUES (?, ?)');
         $insertStmt->execute(['square', $eventId]);
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         // Duplicate key = already processed this event
-        if (str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE constraint')) {
+        // Check MySQL error code 1062 (locale-independent) before string fallback
+        $errCode = (int)($e->errorInfo[1] ?? 0);
+        if ($errCode === 1062
+            || str_contains($e->getMessage(), 'Duplicate entry')
+            || str_contains($e->getMessage(), 'UNIQUE constraint')) {
             http_response_code(200);
             echo json_encode(['ok' => true, 'message' => 'Duplicate event ignored']);
             exit;

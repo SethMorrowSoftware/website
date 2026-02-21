@@ -54,7 +54,7 @@ function isIdempotentDdlError(PDOException $e): bool {
     //   1060 = Duplicate column name
     //   1061 = Duplicate key name (index)
     //   1062 = Duplicate entry (unique constraint)
-    $code = (int)$e->errorInfo[1] ?? 0;
+    $code = (int)($e->errorInfo[1] ?? 0);
     if (in_array($code, [1050, 1060, 1061, 1062], true)) {
         return true;
     }
