@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if ($action === 'create_plan') {
         createSubscriptionPlan([
-            'product_id' => $_POST['product_id'] ?: null,
+            'product_id' => $_POST['product_id'] ?? null,
             'name' => trim($_POST['name']),
             'description' => trim($_POST['description'] ?? ''),
             'price' => (float)$_POST['price'],

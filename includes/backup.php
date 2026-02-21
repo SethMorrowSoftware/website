@@ -249,6 +249,7 @@ function downloadCustomerData(int $customerId): void {
  * wishlist, reviews, contact submissions.
  */
 function deleteCustomerData(int $customerId): bool {
+    $db = null;
     try {
         $db = getDB();
         $db->beginTransaction();
@@ -282,7 +283,9 @@ function deleteCustomerData(int $customerId): bool {
         $db->commit();
         return true;
     } catch (Exception $e) {
-        $db->rollBack();
+        if ($db && $db->inTransaction()) {
+            $db->rollBack();
+        }
         error_log("GDPR deletion failed: " . $e->getMessage());
         return false;
     }

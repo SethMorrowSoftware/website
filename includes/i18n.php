@@ -34,7 +34,7 @@ function getLocale(): string {
 /**
  * Set the active locale and load its language file.
  */
-function setLocale(string $locale): void {
+function setI18nLocale(string $locale): void {
     global $_i18n_locale, $_i18n_strings, $_i18n_loaded;
 
     $locale = preg_replace('/[^a-zA-Z0-9_-]/', '', $locale);
@@ -125,7 +125,7 @@ function initI18n(): void {
     } catch (\Throwable $e) {
         $locale = 'en';
     }
-    setLocale($locale);
+    setI18nLocale($locale);
 }
 
 /**

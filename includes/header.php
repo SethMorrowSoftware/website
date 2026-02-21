@@ -61,7 +61,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
     <!-- Canonical URL -->
     <?php
     $canonicalUrl = '';
-    $baseHost = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $baseHost = getCanonicalBaseUrl();
     if ($currentPage === 'blog') {
         // Blog listing: canonical is the base blog URL (strip pagination/filter params)
         $canonicalUrl = $baseHost . url('index.php?page=blog');

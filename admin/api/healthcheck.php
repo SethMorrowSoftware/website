@@ -149,7 +149,7 @@ $checks['webhooks'] = $webhookChecks ?: ['status' => 'none_enabled'];
 
 // 5. Mail configuration
 $checks['mail'] = [
-    'from_address' => (bool)getSetting('mail_from_address') || (bool)getSetting('company_domain'),
+    'from_address' => (bool)getSetting('mail_from_address') || (bool)getSetting('smtp_from_email') || (bool)getSetting('company_domain'),
     'contact_email_set' => (bool)getSetting('contact_email'),
 ];
 

@@ -215,7 +215,7 @@ require_once __DIR__ . '/header.php';
                 <div style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <div style="font-size: 0.875rem;">
-                            <i class="fas fa-<?php echo $sess['session_id'] === $currentSessionId ? 'circle' : 'circle'; ?>"
+                            <i class="fas fa-<?php echo $sess['session_id'] === $currentSessionId ? 'circle-check' : 'circle'; ?>"
                                style="color: <?php echo $sess['session_id'] === $currentSessionId ? '#22c55e' : '#94a3b8'; ?>; font-size: 0.5rem; vertical-align: middle;"></i>
                             <?php echo e(substr($sess['user_agent'], 0, 60)); ?>
                             <?php if ($sess['session_id'] === $currentSessionId): ?>

@@ -241,8 +241,7 @@ function sendOrderEmail(int $orderId): bool {
  * Send password reset email
  */
 function sendPasswordResetEmail(string $toEmail, string $firstName, string $token): bool {
-    $baseUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http')
-        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+    $baseUrl = getCanonicalBaseUrl();
     $resetUrl = $baseUrl . '/reset-password?token=' . urlencode($token);
     $companyName = getSetting('company_name', 'Our Store');
 

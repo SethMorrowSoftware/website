@@ -130,7 +130,8 @@ document.title = <?php echo json_encode(e($post['title']) . ' | ' . e($companyNa
                 <div class="blog-post-share">
                     <span class="share-label">Share this article:</span>
                     <?php
-                    $shareUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '');
+                    $parsedBase = parse_url(getCanonicalBaseUrl());
+                    $shareUrl = ($parsedBase['scheme'] ?? 'https') . '://' . ($parsedBase['host'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '');
                     $shareTitle = urlencode($post['title']);
                     $shareUrlEncoded = urlencode($shareUrl);
                     ?>
