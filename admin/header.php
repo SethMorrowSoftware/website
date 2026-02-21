@@ -77,6 +77,11 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
             <i class="fas fa-sync-alt"></i> Subscriptions
         </a>
         <?php endif; ?>
+        <?php if (isMarketplaceEnabled()): ?>
+        <a href="<?php echo url('admin/vendors.php'); ?>" class="<?php echo $adminPage === 'vendors' ? 'active' : ''; ?>">
+            <i class="fas fa-store"></i> Vendors
+        </a>
+        <?php endif; ?>
 
         <?php if (isFeatureEnabled('blog')): ?>
         <div class="nav-section">Blog</div>

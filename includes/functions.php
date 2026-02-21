@@ -27,6 +27,9 @@ require_once __DIR__ . '/seo.php';
 require_once __DIR__ . '/image-optimizer.php';
 require_once __DIR__ . '/tax-engine.php';
 require_once __DIR__ . '/backup.php';
+require_once __DIR__ . '/performance.php';
+require_once __DIR__ . '/two-factor.php';
+require_once __DIR__ . '/marketplace.php';
 
 // Initialize i18n (before plugins, so translations are available to them)
 initI18n();

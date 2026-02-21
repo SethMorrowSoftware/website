@@ -716,6 +716,8 @@ $allowedPages = [
     'forgot-password', 'reset-password', 'order-status',
     // Blog pages
     'blog', 'blog-post',
+    // Marketplace
+    'vendor',
 ];
 
 // Redirect away from disabled feature pages
