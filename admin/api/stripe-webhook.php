@@ -101,8 +101,12 @@ if ($eventId) {
     try {
         $insertStmt = $db->prepare('INSERT INTO webhook_events (provider, event_id) VALUES (?, ?)');
         $insertStmt->execute(['stripe', $eventId]);
-    } catch (Exception $e) {
-        if (str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE constraint')) {
+    } catch (PDOException $e) {
+        // Check MySQL error code 1062 (locale-independent) before string fallback
+        $errCode = (int)($e->errorInfo[1] ?? 0);
+        if ($errCode === 1062
+            || str_contains($e->getMessage(), 'Duplicate entry')
+            || str_contains($e->getMessage(), 'UNIQUE constraint')) {
             http_response_code(200);
             echo json_encode(['ok' => true, 'message' => 'Duplicate event ignored']);
             exit;
