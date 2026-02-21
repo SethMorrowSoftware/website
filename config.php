@@ -517,6 +517,13 @@ function updateSetting(string $key, string $value, string $type = 'text'): bool 
 }
 
 /**
+ * Alias for updateSetting() — used throughout admin panel
+ */
+function setSetting(string $key, $value, string $type = 'text'): bool {
+    return updateSetting($key, (string)$value, $type);
+}
+
+/**
  * Generate CSRF token
  */
 function generateCSRFToken(): string {

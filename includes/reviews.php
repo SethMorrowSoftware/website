@@ -42,7 +42,7 @@ function submitReview(int $productId, array $data): bool {
     if (isCustomerLoggedIn()) {
         $customerId = getCustomerId();
         $stmt = $db->prepare('SELECT COUNT(*) FROM orders o JOIN order_items oi ON o.id = oi.order_id WHERE o.customer_id = ? AND oi.product_id = ? AND o.payment_status = ?');
-        $stmt->execute([$customerId, $productId, 'paid']);
+        $stmt->execute([$customerId, $productId, 'completed']);
         $isVerified = (int)$stmt->fetchColumn() > 0 ? 1 : 0;
     }
 

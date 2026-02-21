@@ -51,22 +51,35 @@ $today = date('Y-m-d');
 $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));
 $sevenDaysAgo = date('Y-m-d', strtotime('-7 days'));
 
-// Revenue stats
-$todayRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed' AND date(created_at) = '$today'")->fetchColumn();
-$weekRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed' AND date(created_at) >= '$sevenDaysAgo'")->fetchColumn();
-$monthRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed' AND date(created_at) >= '$thirtyDaysAgo'")->fetchColumn();
+// Revenue stats (use prepared statements for all date-filtered queries)
+$stmt = $db->prepare("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed' AND date(created_at) = ?");
+$stmt->execute([$today]);
+$todayRevenue = $stmt->fetchColumn();
+
+$stmt = $db->prepare("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed' AND date(created_at) >= ?");
+$stmt->execute([$sevenDaysAgo]);
+$weekRevenue = $stmt->fetchColumn();
+
+$stmt = $db->prepare("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed' AND date(created_at) >= ?");
+$stmt->execute([$thirtyDaysAgo]);
+$monthRevenue = $stmt->fetchColumn();
+
 $totalRevenue = $db->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'completed'")->fetchColumn();
 $avgOrderValue = $db->query("SELECT COALESCE(AVG(total), 0) FROM orders WHERE payment_status = 'completed'")->fetchColumn();
 
 // Daily revenue for chart (last 30 days)
-$dailyRevenue = $db->query("SELECT date(created_at) as day, COALESCE(SUM(total), 0) as revenue, COUNT(*) as orders FROM orders WHERE payment_status = 'completed' AND date(created_at) >= '$thirtyDaysAgo' GROUP BY date(created_at) ORDER BY day")->fetchAll();
+$stmt = $db->prepare("SELECT date(created_at) as day, COALESCE(SUM(total), 0) as revenue, COUNT(*) as orders FROM orders WHERE payment_status = 'completed' AND date(created_at) >= ? GROUP BY date(created_at) ORDER BY day");
+$stmt->execute([$thirtyDaysAgo]);
+$dailyRevenue = $stmt->fetchAll();
 
 // Top selling products
 $topProducts = $db->query("SELECT oi.product_name, SUM(oi.quantity) as total_qty, SUM(oi.total_price) as total_revenue FROM order_items oi JOIN orders o ON oi.order_id = o.id WHERE o.payment_status = 'completed' GROUP BY oi.product_name ORDER BY total_revenue DESC LIMIT 5")->fetchAll();
 
 // Total customers
 $totalCustomers = $db->query('SELECT COUNT(*) FROM customers')->fetchColumn();
-$newCustomersMonth = $db->query("SELECT COUNT(*) FROM customers WHERE date(created_at) >= '$thirtyDaysAgo'")->fetchColumn();
+$stmt = $db->prepare("SELECT COUNT(*) FROM customers WHERE date(created_at) >= ?");
+$stmt->execute([$thirtyDaysAgo]);
+$newCustomersMonth = $stmt->fetchColumn();
 
 require_once __DIR__ . '/header.php';
 ?>

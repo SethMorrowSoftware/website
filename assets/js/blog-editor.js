@@ -176,6 +176,8 @@
     };
 
     window.insertProductShortcode = function(productId) {
+        productId = parseInt(productId, 10) || 0;
+        if (!productId || !editorArea || sourceMode) return;
         if (editorArea && !sourceMode) {
             editorArea.focus();
             var shortcode = '[product id=' + productId + ']';

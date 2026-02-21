@@ -62,9 +62,12 @@ function handleUpdateInventory(int $id): void {
            ->execute([$qty > 0 ? 1 : 0, $id]);
     }
 
+    $availStmt = $db->prepare('SELECT is_available FROM products WHERE id = ?');
+    $availStmt->execute([$id]);
+
     apiResponse([
         'id' => $id,
         'stock_quantity' => getStockQuantity($id),
-        'is_available' => (bool)$db->prepare('SELECT is_available FROM products WHERE id = ?')->execute([$id]),
+        'is_available' => (bool)$availStmt->fetchColumn(),
     ]);
 }

@@ -4,7 +4,7 @@
  * Grid of images.
  */
 $galleryImages = $images ?? [];
-$cols = (int)($columns ?? 3);
+$cols = max(1, min(6, (int)($columns ?? 3)));
 if (empty($galleryImages)) return;
 ?>
 <section class="block-gallery">

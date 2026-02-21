@@ -4,7 +4,8 @@
  * YouTube, Vimeo, or self-hosted video.
  */
 $videoUrl = $url ?? '';
-$ratio = $aspect_ratio ?? '16:9';
+$allowedRatios = ['16:9', '4:3', '1:1', '21:9'];
+$ratio = in_array($aspect_ratio ?? '16:9', $allowedRatios) ? ($aspect_ratio ?? '16:9') : '16:9';
 $ratioClass = str_replace(':', '-', $ratio);
 
 if (!$videoUrl) return;

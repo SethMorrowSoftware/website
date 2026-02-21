@@ -10,7 +10,7 @@ $showPhone = ($show_phone ?? 'yes') === 'yes';
         <?php if (!empty($heading)): ?>
             <h2 class="block-heading"><?php echo e($heading); ?></h2>
         <?php endif; ?>
-        <form method="POST" action="<?php echo url('index.php?page=' . ($_GET['page'] ?? 'home')); ?>" class="contact-form">
+        <form method="POST" action="<?php echo e(url('index.php?page=' . urlencode($_GET['page'] ?? 'home'))); ?>" class="contact-form">
             <input type="hidden" name="csrf_token" value="<?php echo e(generateCSRFToken()); ?>">
             <input type="hidden" name="block_contact_form" value="1">
             <div class="form-group">
