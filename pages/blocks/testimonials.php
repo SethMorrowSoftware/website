@@ -21,7 +21,7 @@ if (empty($items)) return;
                     <?php if (!empty($testimonial['rating'])): ?>
                         <div class="testimonial-rating">
                             <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <i class="fas fa-star<?php echo $i <= $testimonial['rating'] ? '' : '-half-alt'; ?>" style="color: var(--color-secondary);"></i>
+                                <i class="<?php echo $i <= $testimonial['rating'] ? 'fas' : 'far'; ?> fa-star" style="color: var(--color-secondary);"></i>
                             <?php endfor; ?>
                         </div>
                     <?php endif; ?>

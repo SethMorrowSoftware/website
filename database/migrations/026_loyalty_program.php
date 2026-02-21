@@ -69,7 +69,7 @@ return function (PDO $db) {
         ['referral_enabled', '0'],
         ['referral_reward_points', '500'],
     ];
-    $stmt = $db->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt = $db->prepare("INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)");
     foreach ($settings as $s) {
         $stmt->execute($s);
     }

@@ -7,9 +7,9 @@
  */
 return function (PDO $db) {
     // Seed locale setting if not already set
-    $stmt = $db->prepare("SELECT COUNT(*) FROM settings WHERE setting_key = 'locale'");
+    $stmt = $db->prepare("SELECT COUNT(*) FROM settings WHERE `key` = 'locale'");
     $stmt->execute();
     if ((int)$stmt->fetchColumn() === 0) {
-        $db->prepare("INSERT INTO settings (setting_key, setting_value) VALUES ('locale', 'en')")->execute();
+        $db->prepare("INSERT INTO settings (`key`, `value`) VALUES ('locale', 'en')")->execute();
     }
 };
