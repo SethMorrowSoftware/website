@@ -28,9 +28,23 @@ if (!verifyCSRFToken($csrfToken)) {
     exit;
 }
 
-if (empty($_FILES['file'])) {
+if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);
-    echo json_encode(['error' => 'No file provided']);
+    $errorMsg = 'Upload failed. ';
+    if (!empty($_FILES['file']['error'])) {
+        if ($_FILES['file']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['file']['error'] === UPLOAD_ERR_FORM_SIZE) {
+            $errorMsg .= 'File exceeds the maximum allowed size.';
+        } elseif ($_FILES['file']['error'] === UPLOAD_ERR_PARTIAL) {
+            $errorMsg .= 'File was only partially uploaded.';
+        } elseif ($_FILES['file']['error'] === UPLOAD_ERR_NO_FILE) {
+            $errorMsg .= 'No file was uploaded.';
+        } else {
+            $errorMsg .= 'An unexpected error occurred (code ' . $_FILES['file']['error'] . ').';
+        }
+    } else {
+        $errorMsg = 'No file provided.';
+    }
+    echo json_encode(['error' => $errorMsg]);
     exit;
 }
 

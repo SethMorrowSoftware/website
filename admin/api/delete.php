@@ -50,13 +50,26 @@ try {
         $stmt->execute([$id]);
         $media = $stmt->fetch();
         if ($media) {
-            $filepath = UPLOADS_PATH . '/' . $media['filename'];
-            if (file_exists($filepath)) unlink($filepath);
+            $filename = basename($media['filename']);
+            $subdir = dirname($media['filename']);
+            $filepath = realpath(UPLOADS_PATH . '/' . $subdir . '/' . $filename);
+
+            // Ensure the resolved path lives inside UPLOADS_PATH
+            $uploadsReal = realpath(UPLOADS_PATH);
+            if ($filepath && $uploadsReal && strpos($filepath, $uploadsReal) === 0 && file_exists($filepath)) {
+                unlink($filepath);
+            }
         }
     }
 
-    $stmt = $db->prepare("DELETE FROM $table WHERE id = ?");
-    $stmt->execute([$id]);
+    // Soft delete for orders and products to preserve data integrity
+    if ($table === 'orders' || $table === 'products') {
+        $stmt = $db->prepare("UPDATE $table SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $stmt->execute([$id]);
+    } else {
+        $stmt = $db->prepare("DELETE FROM $table WHERE id = ?");
+        $stmt->execute([$id]);
+    }
 
     echo json_encode(['success' => true]);
 } catch (Exception $e) {

@@ -13,7 +13,7 @@ $db = getDB();
 
 // Handle delete (POST only)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-    $db->prepare('DELETE FROM products WHERE id = ?')->execute([(int)$_POST['delete']]);
+    $db->prepare('UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?')->execute([(int)$_POST['delete']]);
     $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product deleted.'];
     redirect('admin/products.php');
 }
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle']) && verifyCS
     redirect('admin/products.php');
 }
 
-$products = $db->query('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id ORDER BY pc.sort_order, p.sort_order')->fetchAll();
+$products = $db->query('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.deleted_at IS NULL ORDER BY pc.sort_order, p.sort_order')->fetchAll();
 $csrfToken = generateCSRFToken();
 
 require_once __DIR__ . '/header.php';

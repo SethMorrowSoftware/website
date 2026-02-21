@@ -24,15 +24,15 @@ $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
 $_contactFormEnabled = isFeatureEnabled('contact_form');
 
 // Stats
-$totalProducts = $db->query('SELECT COUNT(*) FROM products')->fetchColumn();
+$totalProducts = $db->query('SELECT COUNT(*) FROM products WHERE deleted_at IS NULL')->fetchColumn();
 $totalCategories = $db->query('SELECT COUNT(*) FROM product_categories')->fetchColumn();
 $totalPages = $db->query('SELECT COUNT(*) FROM pages')->fetchColumn();
 $totalMedia = $db->query('SELECT COUNT(*) FROM media')->fetchColumn();
-$totalOrders = $db->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-$pendingOrders = $db->query("SELECT COUNT(*) FROM orders WHERE order_status IN ('pending','processing')")->fetchColumn();
+$totalOrders = $db->query('SELECT COUNT(*) FROM orders WHERE deleted_at IS NULL')->fetchColumn();
+$pendingOrders = $db->query("SELECT COUNT(*) FROM orders WHERE deleted_at IS NULL AND order_status IN ('pending','processing')")->fetchColumn();
 $recentContacts = $_contactFormEnabled ? $db->query('SELECT * FROM contact_submissions ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
 $recentOrders = $_orderInquiryEnabled ? $db->query('SELECT * FROM order_inquiries ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
-$recentPurchases = $_cartEnabled ? $db->query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
+$recentPurchases = $_cartEnabled ? $db->query('SELECT * FROM orders WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
 $lowStockProducts = getLowStockProducts();
 
 // Store type info for display
