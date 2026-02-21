@@ -25,6 +25,6 @@ return function (PDO $db) {
             status_code INT DEFAULT 301,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY uk_old_path (old_path(191))
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 };

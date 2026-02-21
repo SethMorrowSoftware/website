@@ -28,7 +28,7 @@ return function (PDO $db) {
             UNIQUE KEY uniq_vendor_slug (slug),
             INDEX idx_vendor_status (status),
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Add vendor_id to products
@@ -54,7 +54,7 @@ return function (PDO $db) {
             INDEX idx_payout_vendor (vendor_id),
             INDEX idx_payout_status (status),
             FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Vendor commission log (per order item)
@@ -72,7 +72,7 @@ return function (PDO $db) {
             INDEX idx_comm_vendor (vendor_id),
             INDEX idx_comm_order (order_id),
             FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Seed marketplace settings

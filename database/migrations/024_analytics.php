@@ -17,7 +17,7 @@ return function (PDO $db) {
             INDEX idx_page_views_path (page_path),
             INDEX idx_page_views_created (created_at),
             INDEX idx_page_views_session (session_id, created_at)
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     $db->exec("
@@ -25,6 +25,6 @@ return function (PDO $db) {
             report_key VARCHAR(100) PRIMARY KEY,
             data_json LONGTEXT NOT NULL,
             generated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 };

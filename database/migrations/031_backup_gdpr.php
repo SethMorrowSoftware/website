@@ -12,7 +12,7 @@ return function (PDO $db) {
             file_size BIGINT DEFAULT NULL,
             created_by INT DEFAULT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // GDPR data requests
@@ -27,7 +27,7 @@ return function (PDO $db) {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_gdpr_customer (customer_id),
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Seed settings

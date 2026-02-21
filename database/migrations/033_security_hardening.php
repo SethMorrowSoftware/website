@@ -26,6 +26,6 @@ return function (PDO $db) {
             UNIQUE KEY uniq_session (session_id),
             INDEX idx_session_user (user_id),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 };

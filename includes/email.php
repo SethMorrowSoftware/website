@@ -105,16 +105,18 @@ function sendSmtpEmail(string $host, int $port, string $user, string $pass, stri
             return false;
         }
 
-        // MAIL FROM
-        smtpSend($socket, "MAIL FROM:<$fromEmail>");
+        // MAIL FROM (sanitize to prevent command injection)
+        $safeFrom = str_replace(["\r", "\n", "\0"], '', $fromEmail);
+        smtpSend($socket, "MAIL FROM:<$safeFrom>");
         $response = smtpGetResponse($socket);
         if (substr($response, 0, 3) !== '250') {
             fclose($socket);
             return false;
         }
 
-        // RCPT TO
-        smtpSend($socket, "RCPT TO:<$to>");
+        // RCPT TO (sanitize to prevent command injection)
+        $safeTo = str_replace(["\r", "\n", "\0"], '', $to);
+        smtpSend($socket, "RCPT TO:<$safeTo>");
         $response = smtpGetResponse($socket);
         if (substr($response, 0, 3) !== '250') {
             fclose($socket);
@@ -129,10 +131,11 @@ function sendSmtpEmail(string $host, int $port, string $user, string $pass, stri
             return false;
         }
 
-        // Build message
-        $message = "From: $fromName <$fromEmail>\r\n";
-        $message .= "To: $to\r\n";
-        $message .= "Subject: $subject\r\n";
+        // Build message (sanitize header fields to prevent header injection)
+        $sanitize = fn($s) => str_replace(["\r", "\n", "\0"], '', $s);
+        $message = "From: " . $sanitize($fromName) . " <" . $sanitize($fromEmail) . ">\r\n";
+        $message .= "To: " . $sanitize($to) . "\r\n";
+        $message .= "Subject: " . $sanitize($subject) . "\r\n";
         $message .= "MIME-Version: 1.0\r\n";
         $message .= "Content-Type: text/html; charset=UTF-8\r\n";
         $message .= "Date: " . date('r') . "\r\n";

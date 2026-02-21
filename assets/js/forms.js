@@ -23,7 +23,11 @@ document.addEventListener('DOMContentLoaded', function() {
         errorEl.className = 'field-error-message';
         errorEl.textContent = message;
         field.parentNode.appendChild(errorEl);
-        field.focus();
+    }
+
+    function focusFirstError(container) {
+        var first = container.querySelector('.field-error');
+        if (first) first.focus();
     }
 
     function clearFieldError(field) {
@@ -143,18 +147,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (email && !email.value.trim()) {
                     showFieldError(email, 'Please enter your email.');
-                    if (valid) email.focus();
                     valid = false;
                 } else if (email && email.value && !isValidEmail(email.value)) {
                     showFieldError(email, 'Please enter a valid email address.');
-                    if (valid) email.focus();
                     valid = false;
                 }
                 if (phone && !phone.value.trim()) {
                     showFieldError(phone, 'Please enter your phone number.');
-                    if (valid) phone.focus();
                     valid = false;
                 }
+                if (!valid) focusFirstError(orderForm);
                 return valid;
             }
 
@@ -240,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (emailField && !isValidEmail(emailField.value)) {
                 e.preventDefault();
                 showFieldError(emailField, 'Please enter a valid email address.');
+                emailField.focus();
             }
         });
 
@@ -261,15 +264,16 @@ document.addEventListener('DOMContentLoaded', function() {
             var valid = true;
 
             if (nameField && !nameField.value.trim()) {
-                e.preventDefault();
                 showFieldError(nameField, 'Please enter your name.');
                 valid = false;
             }
             if (emailField && !isValidEmail(emailField.value)) {
-                e.preventDefault();
                 showFieldError(emailField, 'Please enter a valid email address.');
-                if (valid) emailField.focus();
                 valid = false;
+            }
+            if (!valid) {
+                e.preventDefault();
+                focusFirstError(checkoutForm);
             }
         });
 

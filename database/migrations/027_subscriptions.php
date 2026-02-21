@@ -18,7 +18,7 @@ return function (PDO $db) {
             is_active TINYINT(1) DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Customer subscriptions
@@ -43,7 +43,7 @@ return function (PDO $db) {
             INDEX idx_sub_next_billing (next_billing_date),
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
             FOREIGN KEY (plan_id) REFERENCES subscription_plans(id) ON DELETE RESTRICT
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Subscription billing history
@@ -62,6 +62,6 @@ return function (PDO $db) {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_invoice_sub (subscription_id),
             FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 };

@@ -14,7 +14,7 @@ return function (PDO $db) {
             variables TEXT DEFAULT NULL,
             is_active TINYINT(1) DEFAULT 1,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Admin notification preferences
@@ -26,7 +26,7 @@ return function (PDO $db) {
             channel VARCHAR(50) DEFAULT 'email',
             is_enabled TINYINT(1) DEFAULT 1,
             UNIQUE KEY uk_user_event_channel (user_id, event_type, channel)
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Email queue for async sending
@@ -45,7 +45,7 @@ return function (PDO $db) {
             sent_at DATETIME DEFAULT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_email_queue_status (status, scheduled_at)
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Seed default email templates

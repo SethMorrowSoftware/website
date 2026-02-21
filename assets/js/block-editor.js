@@ -438,13 +438,17 @@
             if (xhr.status === 200) {
                 try {
                     var resp = JSON.parse(xhr.responseText);
-                    if (resp.url) callback(resp.url);
+                    if (resp.url && callback) callback(resp.url);
+                    else alert('Upload failed: No URL in response');
                 } catch (e) {
                     alert('Upload failed: Invalid response');
                 }
             } else {
                 alert('Upload failed: ' + xhr.status);
             }
+        };
+        xhr.onerror = function () {
+            alert('Upload failed: Network error. Please check your connection and try again.');
         };
         xhr.send(formData);
     }
