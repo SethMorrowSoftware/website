@@ -58,6 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'maintenance_message',
         // Blog settings
         'blog_page_title', 'blog_posts_per_page',
+        // Advanced / Proxy
+        'site_url', 'trusted_proxy_ips',
     ];
 
     foreach ($fields as $field) {
@@ -75,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'stripe_enabled', 'paypal_enabled', 'square_enabled', 'paypal_sandbox', 'square_sandbox', 'btcpay_enabled',
         'enable_maintenance', 'maintenance_mode',
         'enable_blog', 'blog_allow_comments', 'blog_comment_moderation', 'blog_show_author', 'blog_show_sidebar',
+        'trusted_proxy_enabled',
     ];
     foreach ($checkboxes as $cb) {
         updateSetting($cb, isset($_POST[$cb]) ? '1' : '0');
@@ -563,7 +566,7 @@ require_once __DIR__ . '/header.php';
         <div class="form-group">
             <label>Webhook Secret (optional)</label>
             <input type="password" name="btcpay_webhook_secret" class="form-control" value="<?php echo e(getSetting('btcpay_webhook_secret')); ?>" placeholder="Webhook secret for signature verification">
-            <small class="form-help">If you configure a webhook in BTCPay (recommended), paste the secret here to verify incoming notifications. Webhook URL: <code><?php echo e((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'yourdomain.com') . url('admin/api/btcpay-webhook.php')); ?></code></small>
+            <small class="form-help">If you configure a webhook in BTCPay (recommended), paste the secret here to verify incoming notifications. Webhook URL: <code><?php echo e(getCanonicalBaseUrl() . '/admin/api/btcpay-webhook.php'); ?></code></small>
         </div>
     </div>
 
@@ -727,6 +730,34 @@ require_once __DIR__ . '/header.php';
             <div class="form-group" style="margin-top: var(--space-md);">
                 <label for="maintenance_message">Maintenance Message</label>
                 <textarea id="maintenance_message" name="maintenance_message" class="form-control" rows="3" placeholder="We are currently performing scheduled maintenance..."><?php echo e(getSetting('maintenance_message', 'We are currently performing scheduled maintenance. We will be back online shortly.')); ?></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced / Proxy & URL Settings -->
+    <div class="admin-section" id="advanced">
+        <h2><i class="fas fa-server"></i> Advanced: Proxy &amp; URL Settings</h2>
+        <p class="section-desc">Configure these settings if your site runs behind a reverse proxy (Cloudflare, AWS ALB, Nginx, etc.).</p>
+        <div class="admin-card">
+            <div class="form-group">
+                <label>Canonical Site URL</label>
+                <input type="url" name="site_url" class="form-control" value="<?php echo e(getSetting('site_url')); ?>" placeholder="https://www.yourdomain.com">
+                <small class="form-help">The public-facing base URL of your site. Used for payment redirect URLs, webhook URLs, and email links. Leave blank to auto-detect from the request. <strong>Recommended for production.</strong></small>
+            </div>
+            <div class="toggle-group" style="margin-top: var(--space-md);">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="trusted_proxy_enabled" value="1" <?php echo getSetting('trusted_proxy_enabled') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Enable Trusted Proxy</strong>
+                    <small>Trust <code>X-Forwarded-For</code> and <code>X-Forwarded-Proto</code> headers for client IP detection and HTTPS detection. <strong>Only enable if you run behind a reverse proxy.</strong></small>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: var(--space-md);">
+                <label>Trusted Proxy IPs</label>
+                <input type="text" name="trusted_proxy_ips" class="form-control" value="<?php echo e(getSetting('trusted_proxy_ips')); ?>" placeholder="127.0.0.1, 10.0.0.1, 172.16.0.0">
+                <small class="form-help">Comma-separated list of IP addresses allowed to set forwarded headers. Forwarded headers from other IPs are ignored. <strong>Required</strong> when trusted proxy is enabled — without this, proxy mode stays inactive.</small>
             </div>
         </div>
     </div>

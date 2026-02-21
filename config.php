@@ -9,11 +9,93 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
+/**
+ * Check if the immediate connecting peer is a trusted proxy.
+ *
+ * Only trusts X-Forwarded-* headers when:
+ *   1. The `trusted_proxy_enabled` setting is '1', AND
+ *   2. REMOTE_ADDR is in the `trusted_proxy_ips` allowlist.
+ *
+ * This prevents attackers from spoofing forwarded headers when the
+ * app is directly internet-exposed or behind an untrusted hop.
+ *
+ * Called early (before DB may be available), so it catches and
+ * returns false on any DB exception.
+ */
+function isTrustedProxy(): bool {
+    static $result = null;
+    static $dbWasAvailable = false;
+
+    // Return cached result only if it was computed with DB access.
+    // During early init (before DB constants are defined), the function
+    // returns false without caching, so it re-evaluates once the DB is ready.
+    if ($result !== null && $dbWasAvailable) return $result;
+
+    try {
+        $enabled = getSetting('trusted_proxy_enabled') === '1';
+        $dbWasAvailable = true;
+    } catch (\Throwable $e) {
+        // DB not available yet (early init) or other error — fail closed.
+        // Do NOT cache this result so we re-evaluate after DB init.
+        return false;
+    }
+
+    if (!$enabled) {
+        $result = false;
+        return false;
+    }
+
+    // Validate that the immediate peer (REMOTE_ADDR) is in the allowlist
+    $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+    try {
+        $allowlistRaw = getSetting('trusted_proxy_ips', '');
+    } catch (\Throwable $e) {
+        return false;
+    }
+
+    if ($allowlistRaw === '') {
+        // No allowlist configured — refuse to trust any proxy.
+        // This is fail-closed: enabling trusted_proxy without an
+        // allowlist does NOT trust all peers.
+        $result = false;
+        return false;
+    }
+
+    $allowedIps = array_map('trim', explode(',', $allowlistRaw));
+    $result = in_array($remoteAddr, $allowedIps, true);
+    return $result;
+}
+
+/**
+ * Determine whether the current request was made over HTTPS.
+ *
+ * Checks the direct $_SERVER['HTTPS'] variable first.  When the app
+ * sits behind a TLS-terminating reverse proxy (Cloudflare, ALB, Nginx),
+ * also checks X-Forwarded-Proto — but ONLY when isTrustedProxy() is true,
+ * so the header cannot be spoofed by arbitrary clients.
+ */
+function isRequestSecure(): bool {
+    // Direct HTTPS termination on this server
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+
+    // Behind a trusted TLS-terminating proxy
+    if (isTrustedProxy()) {
+        $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+        if (strtolower($proto) === 'https') {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // Session configuration
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Lax');
-if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+if (isRequestSecure()) {
     ini_set('session.cookie_secure', 1);
 }
 
@@ -47,21 +129,16 @@ define('ADMIN_SESSION_TIMEOUT', 3600); // 1 hour
 
 /**
  * Resolve the real client IP, respecting trusted proxy configuration.
- * Defined here so both front-end and admin code can use it.
+ *
+ * Only trusts X-Forwarded-For when isTrustedProxy() confirms that
+ * REMOTE_ADDR is in the configured allowlist.  This prevents IP
+ * spoofing when the app is directly internet-exposed.
  */
 function getClientIp(): string {
     static $ip = null;
     if ($ip !== null) return $ip;
 
-    // Check trusted proxy setting (requires DB, so fall back to REMOTE_ADDR
-    // if the DB isn't available yet)
-    try {
-        $trustedProxy = getSetting('trusted_proxy_enabled') === '1';
-    } catch (Exception $e) {
-        $trustedProxy = false;
-    }
-
-    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    if (isTrustedProxy() && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         // Take the left-most IP (original client) from the chain
         $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
         $clientIp = trim($parts[0]);
@@ -161,57 +238,43 @@ function initializeDatabase(PDO $db): void {
 /**
  * Run database migrations for existing installations.
  * Called under advisory lock via ensureMigrations().
- * Each DDL statement is wrapped in duplicate-safe try/catch.
+ *
+ * Uses schema introspection (INFORMATION_SCHEMA) to check column/table
+ * existence before executing DDL. This is locale-independent and avoids
+ * fragile error-message string matching.
  */
 function migrateDatabase(PDO $db): void {
-    // Helper: safely execute DDL that may already have been applied
-    $safeDDL = function(string $sql) use ($db): void {
-        try {
-            $db->exec($sql);
-        } catch (PDOException $e) {
-            $msg = $e->getMessage();
-            // Tolerate "already exists" / "duplicate column" errors
-            if (str_contains($msg, 'Duplicate column') || str_contains($msg, 'already exists')) {
-                return;
-            }
-            throw $e;
-        }
-    };
+    // Load introspection helpers from migrations module
+    require_once BASE_PATH . '/includes/migrations.php';
 
     // Check if products table has the new columns
-    $cols = $db->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products'")->fetchAll();
-    $colNames = array_column($cols, 'COLUMN_NAME');
-
-    if (!in_array('specifications', $colNames)) {
-        $safeDDL('ALTER TABLE products ADD COLUMN specifications TEXT');
+    if (!columnExists($db, 'products', 'specifications')) {
+        $db->exec('ALTER TABLE products ADD COLUMN specifications TEXT');
     }
-    if (!in_array('features', $colNames)) {
-        $safeDDL('ALTER TABLE products ADD COLUMN features TEXT');
+    if (!columnExists($db, 'products', 'features')) {
+        $db->exec('ALTER TABLE products ADD COLUMN features TEXT');
     }
-    if (!in_array('price_note', $colNames)) {
-        $safeDDL('ALTER TABLE products ADD COLUMN price_note TEXT');
+    if (!columnExists($db, 'products', 'price_note')) {
+        $db->exec('ALTER TABLE products ADD COLUMN price_note TEXT');
     }
 
     // Check if product_categories has icon column
-    $catCols = $db->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'product_categories'")->fetchAll();
-    $catColNames = array_column($catCols, 'COLUMN_NAME');
-
-    if (!in_array('icon', $catColNames)) {
-        $safeDDL("ALTER TABLE product_categories ADD COLUMN icon VARCHAR(100) DEFAULT 'fa-tag'");
+    if (!columnExists($db, 'product_categories', 'icon')) {
+        $db->exec("ALTER TABLE product_categories ADD COLUMN icon VARCHAR(100) DEFAULT 'fa-tag'");
     }
 
     // Add e-commerce columns to products
-    if (!in_array('product_type', $colNames)) {
-        $safeDDL("ALTER TABLE products ADD COLUMN product_type VARCHAR(50) DEFAULT 'physical'");
+    if (!columnExists($db, 'products', 'product_type')) {
+        $db->exec("ALTER TABLE products ADD COLUMN product_type VARCHAR(50) DEFAULT 'physical'");
     }
-    if (!in_array('download_file', $colNames)) {
-        $safeDDL('ALTER TABLE products ADD COLUMN download_file TEXT');
+    if (!columnExists($db, 'products', 'download_file')) {
+        $db->exec('ALTER TABLE products ADD COLUMN download_file TEXT');
     }
-    if (!in_array('download_limit', $colNames)) {
-        $safeDDL('ALTER TABLE products ADD COLUMN download_limit INT DEFAULT 0');
+    if (!columnExists($db, 'products', 'download_limit')) {
+        $db->exec('ALTER TABLE products ADD COLUMN download_limit INT DEFAULT 0');
     }
-    if (!in_array('download_expiry_hours', $colNames)) {
-        $safeDDL('ALTER TABLE products ADD COLUMN download_expiry_hours INT DEFAULT 72');
+    if (!columnExists($db, 'products', 'download_expiry_hours')) {
+        $db->exec('ALTER TABLE products ADD COLUMN download_expiry_hours INT DEFAULT 72');
     }
 
     // Create orders table if it doesn't exist
@@ -293,6 +356,8 @@ function migrateDatabase(PDO $db): void {
         ['enable_reviews',      '0'],
         // Beta-readiness settings (proxy, mail, webhooks)
         ['trusted_proxy_enabled', '0'],
+        ['trusted_proxy_ips',   ''],
+        ['site_url',            ''],
         ['mail_from_address',   ''],
         ['mail_from_name',      ''],
         ['company_domain',      ''],
@@ -445,6 +510,45 @@ function url(string $path = '/'): string {
         return BASE_URL . '/';
     }
     return BASE_URL . '/' . ltrim($path, '/');
+}
+
+/**
+ * Build the canonical absolute base URL for external-facing links
+ * (payment callbacks, webhook URLs, email links, etc.).
+ *
+ * Priority:
+ *   1. Explicit `site_url` setting (most reliable for production).
+ *   2. Auto-detect from request using proxy-aware scheme/host.
+ *
+ * Always returns a URL without a trailing slash.
+ */
+function getCanonicalBaseUrl(): string {
+    static $cached = null;
+    if ($cached !== null) return $cached;
+
+    // 1. Prefer explicit setting — avoids all proxy-detection issues
+    try {
+        $siteUrl = getSetting('site_url', '');
+    } catch (\Throwable $e) {
+        $siteUrl = '';
+    }
+
+    if ($siteUrl !== '') {
+        $cached = rtrim($siteUrl, '/');
+        return $cached;
+    }
+
+    // 2. Auto-detect from request with proxy awareness
+    $scheme = isRequestSecure() ? 'https' : 'http';
+
+    // Use X-Forwarded-Host when behind a trusted proxy, otherwise HTTP_HOST
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    if (isTrustedProxy() && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+        $host = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]);
+    }
+
+    $cached = $scheme . '://' . $host . BASE_URL;
+    return $cached;
 }
 
 /**
