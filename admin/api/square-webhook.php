@@ -35,15 +35,36 @@ if (!$payload) {
 // Verify webhook signature (HMAC-SHA256)
 $signatureKey = getSetting('square_webhook_signature_key');
 $signature = $_SERVER['HTTP_SQUARE_SIGNATURE'] ?? '';
-$notificationUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
-    . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
-    . ($_SERVER['REQUEST_URI'] ?? '/admin/api/square-webhook.php');
+
+// Use the canonical webhook URL setting if configured (recommended for
+// reverse-proxy / CDN setups where PHP server variables may not match
+// the URL Square was configured with). Falls back to reconstructing from
+// request data with proxy-header awareness.
+$canonicalUrl = getSetting('square_webhook_url');
+if (!$canonicalUrl) {
+    // Determine scheme: trust X-Forwarded-Proto when a trusted proxy is configured
+    $trustedProxy = getSetting('trusted_proxy_enabled') === '1';
+    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $scheme = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']);
+    } else {
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+    }
+
+    // Determine host: trust X-Forwarded-Host when a trusted proxy is configured
+    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+        $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
+    } else {
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    }
+
+    $canonicalUrl = $scheme . '://' . $host . ($_SERVER['REQUEST_URI'] ?? '/admin/api/square-webhook.php');
+}
 
 if ($signatureKey) {
     // Square signature = Base64(HMAC-SHA256(notificationUrl + body, signatureKey))
-    $expectedSignature = base64_encode(hash_hmac('sha256', $notificationUrl . $payload, $signatureKey, true));
+    $expectedSignature = base64_encode(hash_hmac('sha256', $canonicalUrl . $payload, $signatureKey, true));
     if (!hash_equals($expectedSignature, $signature)) {
-        error_log('[SQUARE WEBHOOK] Invalid signature');
+        error_log('[SQUARE WEBHOOK] Invalid signature — URL used for validation: ' . $canonicalUrl);
         http_response_code(403);
         echo json_encode(['error' => 'Invalid signature']);
         exit;
