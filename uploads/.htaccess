@@ -1,0 +1,16 @@
+# Prevent PHP execution in uploads directory
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Fallback for other PHP handlers
+<FilesMatch "\.(?:php|phtml|php[3-7]|phps)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Disable CGI execution
+Options -ExecCGI
+
+# Prevent directory listing
+Options -Indexes

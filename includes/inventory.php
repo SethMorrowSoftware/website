@@ -86,7 +86,7 @@ function incrementStock(int $productId, int $quantity): bool {
  */
 function getLowStockProducts(): array {
     $db = getDB();
-    $stmt = $db->query('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.track_inventory = 1 AND p.stock_quantity <= p.low_stock_threshold AND p.is_visible = 1 ORDER BY p.stock_quantity ASC');
+    $stmt = $db->query('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.track_inventory = 1 AND p.stock_quantity <= p.low_stock_threshold AND p.is_visible = 1 AND p.deleted_at IS NULL ORDER BY p.stock_quantity ASC');
     return $stmt->fetchAll();
 }
 

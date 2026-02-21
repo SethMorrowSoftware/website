@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 
     if ($exportType === 'products_csv') {
-        $rows = $db->query("SELECT p.name, p.slug, pc.name as category, p.description, p.price, p.unit, p.product_type, p.stock_quantity, p.is_available, p.is_visible FROM products p LEFT JOIN product_categories pc ON p.category_id = pc.id ORDER BY pc.sort_order, p.sort_order")->fetchAll();
+        $rows = $db->query("SELECT p.name, p.slug, pc.name as category, p.description, p.price, p.unit, p.product_type, p.stock_quantity, p.is_available, p.is_visible FROM products p LEFT JOIN product_categories pc ON p.category_id = pc.id WHERE p.deleted_at IS NULL ORDER BY pc.sort_order, p.sort_order")->fetchAll();
 
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="products_' . date('Y-m-d') . '.csv"');

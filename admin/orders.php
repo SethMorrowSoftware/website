@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if (isset($_POST['delete'])) {
         $orderId = (int)$_POST['delete'];
-        $db->prepare('DELETE FROM orders WHERE id = ?')->execute([$orderId]);
+        $db->prepare('UPDATE orders SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?')->execute([$orderId]);
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Order deleted.'];
         redirect('admin/orders.php');
     }
@@ -34,10 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
 // Filter
 $statusFilter = $_GET['status'] ?? 'all';
-$query = 'SELECT * FROM orders';
+$query = 'SELECT * FROM orders WHERE deleted_at IS NULL';
 $params = [];
 if ($statusFilter !== 'all') {
-    $query .= ' WHERE order_status = ?';
+    $query .= ' AND order_status = ?';
     $params[] = $statusFilter;
 }
 $query .= ' ORDER BY created_at DESC';

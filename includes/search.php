@@ -20,7 +20,7 @@ function searchProducts(string $query, int $limit = 50): array {
         SELECT p.*, pc.name as category_name, pc.slug as category_slug, pc.icon as category_icon
         FROM products p
         JOIN product_categories pc ON p.category_id = pc.id
-        WHERE p.is_visible = 1
+        WHERE p.is_visible = 1 AND p.deleted_at IS NULL
           AND (
             p.name LIKE ? OR
             p.description LIKE ? OR
@@ -59,7 +59,7 @@ function getSearchSuggestions(string $query, int $limit = 8): array {
     $suggestions = [];
 
     // Product names
-    $stmt = $db->prepare('SELECT DISTINCT name FROM products WHERE is_visible = 1 AND name LIKE ? ORDER BY name LIMIT ?');
+    $stmt = $db->prepare('SELECT DISTINCT name FROM products WHERE is_visible = 1 AND deleted_at IS NULL AND name LIKE ? ORDER BY name LIMIT ?');
     $stmt->execute([$searchTerm, $limit]);
     foreach ($stmt->fetchAll() as $row) {
         $suggestions[] = ['type' => 'product', 'text' => $row['name']];

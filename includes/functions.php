@@ -201,7 +201,7 @@ function getCategories(): array {
  */
 function getProductsByCategory(int $categoryId): array {
     $db = getDB();
-    $stmt = $db->prepare('SELECT * FROM products WHERE category_id = ? AND is_visible = 1 ORDER BY sort_order ASC');
+    $stmt = $db->prepare('SELECT * FROM products WHERE category_id = ? AND is_visible = 1 AND deleted_at IS NULL ORDER BY sort_order ASC');
     $stmt->execute([$categoryId]);
     return $stmt->fetchAll();
 }
@@ -223,7 +223,7 @@ function getAllProducts(): array {
     $stmt = $db->query('SELECT p.*, pc.name as category_name, pc.slug as category_slug
                         FROM products p
                         JOIN product_categories pc ON p.category_id = pc.id
-                        WHERE p.is_visible = 1 AND p.is_available = 1
+                        WHERE p.is_visible = 1 AND p.is_available = 1 AND p.deleted_at IS NULL
                         ORDER BY pc.sort_order, p.sort_order');
     return $stmt->fetchAll();
 }
@@ -236,7 +236,7 @@ function getFeaturedProducts(int $limit = 6): array {
     $stmt = $db->prepare('SELECT p.*, pc.name as category_name, pc.icon as category_icon
                           FROM products p
                           JOIN product_categories pc ON p.category_id = pc.id
-                          WHERE p.is_visible = 1
+                          WHERE p.is_visible = 1 AND p.deleted_at IS NULL
                           ORDER BY pc.sort_order, p.sort_order
                           LIMIT ?');
     $stmt->execute([$limit]);
@@ -465,7 +465,7 @@ function addToCart(int $productId, int $quantity = 1): bool {
         session_start();
     }
     $db = getDB();
-    $stmt = $db->prepare('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.id = ? AND p.is_visible = 1 AND p.is_available = 1');
+    $stmt = $db->prepare('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.id = ? AND p.is_visible = 1 AND p.is_available = 1 AND p.deleted_at IS NULL');
     $stmt->execute([$productId]);
     $product = $stmt->fetch();
     if (!$product) return false;
@@ -1709,7 +1709,7 @@ function recordFormSubmission(string $formType, string $identity = ''): void {
  */
 function getProductBySlug(string $slug): ?array {
     $db = getDB();
-    $stmt = $db->prepare('SELECT p.*, pc.name as category_name, pc.slug as category_slug, pc.icon as category_icon FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.slug = ? AND p.is_visible = 1');
+    $stmt = $db->prepare('SELECT p.*, pc.name as category_name, pc.slug as category_slug, pc.icon as category_icon FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.slug = ? AND p.is_visible = 1 AND p.deleted_at IS NULL');
     $stmt->execute([$slug]);
     $product = $stmt->fetch();
     return $product ?: null;
@@ -1756,7 +1756,7 @@ function getProductOptions(int $productId): array {
  */
 function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): array {
     $db = getDB();
-    $stmt = $db->prepare('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.category_id = ? AND p.id != ? AND p.is_visible = 1 ORDER BY p.sort_order LIMIT ?');
+    $stmt = $db->prepare('SELECT p.*, pc.name as category_name FROM products p JOIN product_categories pc ON p.category_id = pc.id WHERE p.category_id = ? AND p.id != ? AND p.is_visible = 1 AND p.deleted_at IS NULL ORDER BY p.sort_order LIMIT ?');
     $stmt->execute([$categoryId, $productId, $limit]);
     return $stmt->fetchAll();
 }
@@ -1825,10 +1825,10 @@ function getWishlistItems(): array {
 
     try {
         if ($customerId) {
-            $stmt = $db->prepare('SELECT p.*, pc.name as category_name, w.id as wishlist_id FROM wishlists w JOIN products p ON w.product_id = p.id JOIN product_categories pc ON p.category_id = pc.id WHERE w.customer_id = ? AND p.is_visible = 1 ORDER BY w.created_at DESC');
+            $stmt = $db->prepare('SELECT p.*, pc.name as category_name, w.id as wishlist_id FROM wishlists w JOIN products p ON w.product_id = p.id JOIN product_categories pc ON p.category_id = pc.id WHERE w.customer_id = ? AND p.is_visible = 1 AND p.deleted_at IS NULL ORDER BY w.created_at DESC');
             $stmt->execute([$customerId]);
         } else {
-            $stmt = $db->prepare('SELECT p.*, pc.name as category_name, w.id as wishlist_id FROM wishlists w JOIN products p ON w.product_id = p.id JOIN product_categories pc ON p.category_id = pc.id WHERE w.session_id = ? AND p.is_visible = 1 ORDER BY w.created_at DESC');
+            $stmt = $db->prepare('SELECT p.*, pc.name as category_name, w.id as wishlist_id FROM wishlists w JOIN products p ON w.product_id = p.id JOIN product_categories pc ON p.category_id = pc.id WHERE w.session_id = ? AND p.is_visible = 1 AND p.deleted_at IS NULL ORDER BY w.created_at DESC');
             $stmt->execute([$sessionId]);
         }
         return $stmt->fetchAll();
