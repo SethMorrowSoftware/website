@@ -77,13 +77,13 @@ if (isFeatureEnabled('blog')):
     </url>
 <?php foreach ($blogCategories as $bc): ?>
     <url>
-        <loc><?php echo htmlspecialchars($baseUrl . '/blog/category/' . urlencode($bc['slug'])); ?></loc>
+        <loc><?php echo htmlspecialchars($baseUrl . '/blog/category/' . rawurlencode($bc['slug'])); ?></loc>
         <priority>0.6</priority>
     </url>
 <?php endforeach; ?>
 <?php foreach ($blogPosts as $bp): ?>
     <url>
-        <loc><?php echo htmlspecialchars($baseUrl . '/blog/' . urlencode($bp['slug'])); ?></loc>
+        <loc><?php echo htmlspecialchars($baseUrl . '/blog/' . rawurlencode($bp['slug'])); ?></loc>
         <lastmod><?php echo date('Y-m-d', strtotime($bp['updated_at'] ?: $bp['published_at'])); ?></lastmod>
         <priority>0.7</priority>
     </url>
