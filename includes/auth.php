@@ -40,30 +40,54 @@ function requireLogin(): void {
     }
 }
 
+// getClientIp() is defined in config.php (shared between front-end and admin)
+
 /**
- * Check if login is rate-limited for this IP.
+ * Check if login is rate-limited.
+ *
+ * Uses composite key: both IP-based and username-based windows are
+ * checked independently. This prevents shared-NAT false positives
+ * (different usernames aren't penalised together) while also catching
+ * credential-stuffing against a single account from rotating IPs.
+ *
  * Returns remaining seconds if locked out, or 0 if OK.
  */
-function checkLoginThrottle(string $ip): int {
+function checkLoginThrottle(string $ip, string $username = ''): int {
     $db = getDB();
     // Ensure table exists (for existing DBs before migration)
     $db->exec('CREATE TABLE IF NOT EXISTS login_attempts (id INT AUTO_INCREMENT PRIMARY KEY, ip_address VARCHAR(45) NOT NULL, username VARCHAR(255) NOT NULL, attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 
     $window = 15 * 60; // 15 minute window
-    $maxAttempts = 5;
+    $maxAttemptsPerIp = 10;      // Higher threshold to reduce shared-NAT false positives
+    $maxAttemptsPerUser = 5;     // Tighter per-account to block credential stuffing
     $cutoff = date('Y-m-d H:i:s', time() - $window);
 
+    // Check per-IP rate limit
     $stmt = $db->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip_address = ? AND attempted_at > ?');
     $stmt->execute([$ip, $cutoff]);
-    $count = (int)$stmt->fetchColumn();
+    $ipCount = (int)$stmt->fetchColumn();
 
-    if ($count >= $maxAttempts) {
-        // Find when the oldest relevant attempt expires
+    if ($ipCount >= $maxAttemptsPerIp) {
         $stmt = $db->prepare('SELECT attempted_at FROM login_attempts WHERE ip_address = ? AND attempted_at > ? ORDER BY attempted_at ASC LIMIT 1');
         $stmt->execute([$ip, $cutoff]);
         $oldest = $stmt->fetchColumn();
         return max(1, $window - (time() - strtotime($oldest)));
     }
+
+    // Check per-username rate limit (catch rotating-IP attacks on one account)
+    if ($username) {
+        $stmt = $db->prepare('SELECT COUNT(*) FROM login_attempts WHERE username = ? AND attempted_at > ?');
+        $stmt->execute([$username, $cutoff]);
+        $userCount = (int)$stmt->fetchColumn();
+
+        if ($userCount >= $maxAttemptsPerUser) {
+            $stmt = $db->prepare('SELECT attempted_at FROM login_attempts WHERE username = ? AND attempted_at > ? ORDER BY attempted_at ASC LIMIT 1');
+            $stmt->execute([$username, $cutoff]);
+            $oldest = $stmt->fetchColumn();
+            return max(1, $window - (time() - strtotime($oldest)));
+        }
+    }
+
     return 0;
 }
 
@@ -79,11 +103,14 @@ function recordLoginAttempt(string $ip, string $username): void {
 }
 
 /**
- * Clear login attempts for an IP after successful login
+ * Clear login attempts for an IP and username after successful login
  */
-function clearLoginAttempts(string $ip): void {
+function clearLoginAttempts(string $ip, string $username = ''): void {
     $db = getDB();
     $db->prepare('DELETE FROM login_attempts WHERE ip_address = ?')->execute([$ip]);
+    if ($username) {
+        $db->prepare('DELETE FROM login_attempts WHERE username = ?')->execute([$username]);
+    }
 }
 
 /**
@@ -91,12 +118,13 @@ function clearLoginAttempts(string $ip): void {
  */
 function attemptLogin(string $username, string $password): bool {
     $db = getDB();
+    $ip = getClientIp();
     $stmt = $db->prepare('SELECT * FROM users WHERE username = ?');
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password_hash'])) {
-        clearLoginAttempts($_SERVER['REMOTE_ADDR'] ?? '');
+        clearLoginAttempts($ip, $username);
         ensureSession();
         session_regenerate_id(true);
         $_SESSION['admin_logged_in'] = true;
@@ -112,7 +140,7 @@ function attemptLogin(string $username, string $password): bool {
 
         return true;
     }
-    recordLoginAttempt($_SERVER['REMOTE_ADDR'] ?? '', $username);
+    recordLoginAttempt($ip, $username);
     return false;
 }
 

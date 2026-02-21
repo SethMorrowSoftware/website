@@ -25,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $csrf = $_POST['csrf_token'] ?? '';
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $ip = getClientIp();
 
-    // Check rate limit before processing
-    $lockoutSeconds = checkLoginThrottle($ip);
+    // Check rate limit before processing (composite: IP + username)
+    $lockoutSeconds = checkLoginThrottle($ip, $username);
     if ($lockoutSeconds > 0) {
         $minutes = (int)ceil($lockoutSeconds / 60);
         $error = "Too many login attempts. Please try again in $minutes minute(s).";

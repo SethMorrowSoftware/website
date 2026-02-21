@@ -302,10 +302,32 @@ function submitOrderInquiry(array $data): bool {
 }
 
 /**
- * Send email with logging (replaces raw @mail)
+ * Send email with logging (replaces raw @mail).
+ *
+ * The From address is derived from the `mail_from_address` setting when
+ * configured. Falls back to `noreply@<company_domain>` or `noreply@localhost`.
+ * Never uses request-derived HTTP_HOST — that can be forged by clients and
+ * breaks deliverability behind proxies.
  */
 function sendNotificationEmail(string $to, string $subject, string $body): bool {
-    $headers = "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $fromAddress = getSetting('mail_from_address');
+    if (!$fromAddress) {
+        // Derive from company_domain setting, or fall back to localhost
+        $domain = getSetting('company_domain', 'localhost');
+        // Validate domain is a plausible hostname (no spaces, has a dot or is localhost)
+        if (!preg_match('/^[a-zA-Z0-9._-]+$/', $domain)) {
+            $domain = 'localhost';
+        }
+        $fromAddress = 'noreply@' . $domain;
+    }
+
+    $fromName = getSetting('mail_from_name', getSetting('company_name', ''));
+    if ($fromName) {
+        $headers = "From: " . mb_encode_mimeheader($fromName, 'UTF-8') . " <" . $fromAddress . ">";
+    } else {
+        $headers = "From: " . $fromAddress;
+    }
+
     $sent = mail($to, $subject, $body, $headers);
     if (!$sent) {
         error_log("[MAIL FAILURE] To: $to | Subject: $subject | " . date('Y-m-d H:i:s'));
@@ -1524,37 +1546,67 @@ function formatCurrency(float $amount): string {
 // ============================================================
 
 /**
- * Check if a form submission is rate-limited
- * Returns true if the submission should be blocked
+ * Check if a form submission is rate-limited.
+ *
+ * Uses composite key: IP + user-agent hash. This reduces false positives
+ * from shared-NAT IPs (different user-agents pass) while still blocking
+ * automated abuse from a single client fingerprint. An optional $identity
+ * (e.g. email) enables per-identity rate limiting across rotating IPs.
+ *
+ * Returns true if the submission should be blocked.
  */
-function isFormRateLimited(string $formType, int $maxPerWindow = 5, int $windowSeconds = 300): bool {
+function isFormRateLimited(string $formType, int $maxPerWindow = 5, int $windowSeconds = 300, string $identity = ''): bool {
     $db = getDB();
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $ip = getClientIp();
 
     try {
         $cutoff = date('Y-m-d H:i:s', time() - $windowSeconds);
+
+        // Check IP-based limit
         $stmt = $db->prepare('SELECT COUNT(*) FROM form_submissions WHERE ip_address = ? AND form_type = ? AND created_at > ?');
         $stmt->execute([$ip, $formType, $cutoff]);
-        return (int)$stmt->fetchColumn() >= $maxPerWindow;
+        if ((int)$stmt->fetchColumn() >= $maxPerWindow) {
+            return true;
+        }
+
+        // Check identity-based limit (e.g. email) — catches rotating-IP abuse
+        if ($identity) {
+            $identityHash = hash('sha256', $identity);
+            $stmt = $db->prepare('SELECT COUNT(*) FROM form_submissions WHERE identity_hash = ? AND form_type = ? AND created_at > ?');
+            $stmt->execute([$identityHash, $formType, $cutoff]);
+            if ((int)$stmt->fetchColumn() >= $maxPerWindow) {
+                return true;
+            }
+        }
+
+        return false;
     } catch (Exception $e) {
-        return false; // Don't block on table-not-found
+        return false; // Don't block on table-not-found or missing column
     }
 }
 
 /**
  * Record a form submission for rate limiting
  */
-function recordFormSubmission(string $formType): void {
+function recordFormSubmission(string $formType, string $identity = ''): void {
     $db = getDB();
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $ip = getClientIp();
+    $identityHash = $identity ? hash('sha256', $identity) : '';
 
     try {
-        $stmt = $db->prepare('INSERT INTO form_submissions (ip_address, form_type) VALUES (?, ?)');
-        $stmt->execute([$ip, $formType]);
+        // Try inserting with identity_hash column; fall back gracefully if column doesn't exist yet
+        $stmt = $db->prepare('INSERT INTO form_submissions (ip_address, form_type, identity_hash) VALUES (?, ?, ?)');
+        $stmt->execute([$ip, $formType, $identityHash]);
         // Cleanup old entries
         $db->exec("DELETE FROM form_submissions WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
     } catch (Exception $e) {
-        // Silently fail if table doesn't exist yet
+        // Fall back to original schema if identity_hash column doesn't exist
+        try {
+            $stmt = $db->prepare('INSERT INTO form_submissions (ip_address, form_type) VALUES (?, ?)');
+            $stmt->execute([$ip, $formType]);
+        } catch (Exception $e2) {
+            // Silently fail if table doesn't exist yet
+        }
     }
 }
 

@@ -46,7 +46,40 @@ define('SITE_NAME', 'Your Business Name');
 define('ADMIN_SESSION_TIMEOUT', 3600); // 1 hour
 
 /**
+ * Resolve the real client IP, respecting trusted proxy configuration.
+ * Defined here so both front-end and admin code can use it.
+ */
+function getClientIp(): string {
+    static $ip = null;
+    if ($ip !== null) return $ip;
+
+    // Check trusted proxy setting (requires DB, so fall back to REMOTE_ADDR
+    // if the DB isn't available yet)
+    try {
+        $trustedProxy = getSetting('trusted_proxy_enabled') === '1';
+    } catch (Exception $e) {
+        $trustedProxy = false;
+    }
+
+    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // Take the left-most IP (original client) from the chain
+        $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $clientIp = trim($parts[0]);
+        if (filter_var($clientIp, FILTER_VALIDATE_IP)) {
+            $ip = $clientIp;
+            return $ip;
+        }
+    }
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    return $ip;
+}
+
+/**
  * Get database connection (singleton)
+ *
+ * Connection-only in the request path. Schema migrations are NOT run
+ * here — they are handled by ensureMigrations(), which is called once
+ * per process and uses a MySQL advisory lock to prevent concurrent DDL.
  */
 function getDB(): PDO {
     static $db = null;
@@ -57,6 +90,33 @@ function getDB(): PDO {
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
+        ensureMigrations($db);
+    }
+    return $db;
+}
+
+/**
+ * Run schema initialisation / migrations exactly once per process,
+ * protected by a MySQL advisory lock so concurrent workers never
+ * execute DDL simultaneously.
+ */
+function ensureMigrations(PDO $db): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    // Acquire an advisory lock (non-blocking attempt first, then blocking with timeout).
+    // Lock name is scoped to this database so different apps on the same server don't collide.
+    $lockName = 'cms_schema_migration_' . DB_NAME;
+    $acquired = (int)$db->query("SELECT GET_LOCK('" . addslashes($lockName) . "', 10)")->fetchColumn();
+    if (!$acquired) {
+        // Another process is running migrations — skip silently for this request.
+        // The schema will be up-to-date by the time that lock holder finishes.
+        error_log('[MIGRATION] Could not acquire advisory lock — skipping migrations this request');
+        return;
+    }
+
+    try {
         // Check if database has been initialized (settings table exists)
         $initialized = false;
         try {
@@ -75,8 +135,9 @@ function getDB(): PDO {
         // Run file-based migrations (for both new and existing DBs)
         require_once BASE_PATH . '/includes/migrations.php';
         runMigrations($db);
+    } finally {
+        $db->query("SELECT RELEASE_LOCK('" . addslashes($lockName) . "')");
     }
-    return $db;
 }
 
 /**
@@ -99,21 +160,36 @@ function initializeDatabase(PDO $db): void {
 
 /**
  * Run database migrations for existing installations.
- * Called on every connection to bring older schemas up to date.
+ * Called under advisory lock via ensureMigrations().
+ * Each DDL statement is wrapped in duplicate-safe try/catch.
  */
 function migrateDatabase(PDO $db): void {
+    // Helper: safely execute DDL that may already have been applied
+    $safeDDL = function(string $sql) use ($db): void {
+        try {
+            $db->exec($sql);
+        } catch (PDOException $e) {
+            $msg = $e->getMessage();
+            // Tolerate "already exists" / "duplicate column" errors
+            if (str_contains($msg, 'Duplicate column') || str_contains($msg, 'already exists')) {
+                return;
+            }
+            throw $e;
+        }
+    };
+
     // Check if products table has the new columns
     $cols = $db->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products'")->fetchAll();
     $colNames = array_column($cols, 'COLUMN_NAME');
 
     if (!in_array('specifications', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN specifications TEXT');
+        $safeDDL('ALTER TABLE products ADD COLUMN specifications TEXT');
     }
     if (!in_array('features', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN features TEXT');
+        $safeDDL('ALTER TABLE products ADD COLUMN features TEXT');
     }
     if (!in_array('price_note', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN price_note TEXT');
+        $safeDDL('ALTER TABLE products ADD COLUMN price_note TEXT');
     }
 
     // Check if product_categories has icon column
@@ -121,21 +197,21 @@ function migrateDatabase(PDO $db): void {
     $catColNames = array_column($catCols, 'COLUMN_NAME');
 
     if (!in_array('icon', $catColNames)) {
-        $db->exec("ALTER TABLE product_categories ADD COLUMN icon VARCHAR(100) DEFAULT 'fa-tag'");
+        $safeDDL("ALTER TABLE product_categories ADD COLUMN icon VARCHAR(100) DEFAULT 'fa-tag'");
     }
 
     // Add e-commerce columns to products
     if (!in_array('product_type', $colNames)) {
-        $db->exec("ALTER TABLE products ADD COLUMN product_type VARCHAR(50) DEFAULT 'physical'");
+        $safeDDL("ALTER TABLE products ADD COLUMN product_type VARCHAR(50) DEFAULT 'physical'");
     }
     if (!in_array('download_file', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN download_file TEXT');
+        $safeDDL('ALTER TABLE products ADD COLUMN download_file TEXT');
     }
     if (!in_array('download_limit', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN download_limit INT DEFAULT 0');
+        $safeDDL('ALTER TABLE products ADD COLUMN download_limit INT DEFAULT 0');
     }
     if (!in_array('download_expiry_hours', $colNames)) {
-        $db->exec('ALTER TABLE products ADD COLUMN download_expiry_hours INT DEFAULT 72');
+        $safeDDL('ALTER TABLE products ADD COLUMN download_expiry_hours INT DEFAULT 72');
     }
 
     // Create orders table if it doesn't exist
@@ -215,6 +291,12 @@ function migrateDatabase(PDO $db): void {
         ['enable_search',       '1'],
         ['enable_wishlists',    '1'],
         ['enable_reviews',      '0'],
+        // Beta-readiness settings (proxy, mail, webhooks)
+        ['trusted_proxy_enabled', '0'],
+        ['mail_from_address',   ''],
+        ['mail_from_name',      ''],
+        ['company_domain',      ''],
+        ['square_webhook_url',  ''],
     ];
     $checkStmt = $db->prepare('SELECT COUNT(*) FROM settings WHERE `key` = ?');
     $insertStmt = $db->prepare('INSERT INTO settings (`key`, `value`, `type`) VALUES (?, ?, ?)');

@@ -400,7 +400,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             case 'manual':
             default:
-                processOrderInventory($orderId);
+                $inventoryOk = processOrderInventory($orderId);
+                if (!$inventoryOk) {
+                    // Stock decrement failed — place order under manual review
+                    // instead of confirming with unreserved inventory.
+                    $db->prepare("UPDATE orders SET order_status = 'needs_review', payment_status = 'on_hold', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+                       ->execute([$orderId]);
+                    clearCart();
+                    $_SESSION['flash_message'] = 'Your order has been placed but some items could not be reserved. Our team will review it and contact you shortly.';
+                    $_SESSION['flash_type'] = 'warning';
+                    redirect('index.php?page=order-complete&order=' . $order['order_number'] . '&payment=manual&review=1');
+                }
                 clearCart();
                 generateDownloadTokens($orderId);
                 sendOrderConfirmation($orderId);
