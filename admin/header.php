@@ -142,6 +142,9 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/export.php'); ?>" class="<?php echo $adminPage === 'export' ? 'active' : ''; ?>">
             <i class="fas fa-download"></i> Export Data
         </a>
+        <a href="<?php echo url('admin/backups.php'); ?>" class="<?php echo $adminPage === 'backups' ? 'active' : ''; ?>">
+            <i class="fas fa-shield-alt"></i> Backup & Privacy
+        </a>
         <a href="<?php echo url('admin/audit-log.php'); ?>" class="<?php echo $adminPage === 'audit-log' ? 'active' : ''; ?>">
             <i class="fas fa-clipboard-list"></i> Audit Log
         </a>

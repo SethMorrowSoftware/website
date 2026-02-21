@@ -144,6 +144,8 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
     <script type="application/ld+json">
     <?php echo json_encode($schemaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES); ?>
     </script>
+    <?php // WebSite schema with SearchAction for sitelinks search box
+    echo getWebSiteSchema(); ?>
 </head>
 <body class="<?php echo e(getThemeBodyClasses()); ?>">
 

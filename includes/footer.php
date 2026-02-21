@@ -194,5 +194,8 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 <?php // Plugin hook: inject scripts/HTML before closing body
 do_action('wp_footer'); ?>
 
+<?php // Cookie consent banner (GDPR)
+echo renderCookieConsentBanner(); ?>
+
 </body>
 </html>
