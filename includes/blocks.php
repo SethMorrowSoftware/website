@@ -80,15 +80,11 @@ function renderBlock(array $block): string {
         return $blockDef['render']($data);
     }
 
-    // Template-based rendering
-    $templateFile = BASE_PATH . '/pages/blocks/' . $type . '.php';
-
-    // Allow theme override
+    // Template-based rendering (with theme override support)
     if (function_exists('resolveTemplate')) {
-        $themeTemplate = resolveTemplate('pages/blocks/' . $type . '.php');
-        if ($themeTemplate !== 'pages/blocks/' . $type . '.php') {
-            $templateFile = BASE_PATH . '/' . $themeTemplate;
-        }
+        $templateFile = resolveTemplate('pages/blocks/' . $type . '.php');
+    } else {
+        $templateFile = BASE_PATH . '/pages/blocks/' . $type . '.php';
     }
 
     if (!file_exists($templateFile)) {

@@ -100,10 +100,22 @@ require_once __DIR__ . '/header.php';
                     <td colspan="4" style="text-align: right;">Subtotal</td>
                     <td><strong><?php echo formatCurrency($order['subtotal']); ?></strong></td>
                 </tr>
+                <?php if ($order['discount_amount'] > 0): ?>
+                    <tr>
+                        <td colspan="4" style="text-align: right;">Discount<?php if ($order['coupon_code']): ?> (<?php echo e($order['coupon_code']); ?>)<?php endif; ?></td>
+                        <td style="color: var(--color-success);">-<?php echo formatCurrency($order['discount_amount']); ?></td>
+                    </tr>
+                <?php endif; ?>
                 <?php if ($order['tax'] > 0): ?>
                     <tr>
                         <td colspan="4" style="text-align: right;">Tax</td>
                         <td><?php echo formatCurrency($order['tax']); ?></td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($order['shipping_cost'] > 0): ?>
+                    <tr>
+                        <td colspan="4" style="text-align: right;">Shipping<?php if ($order['shipping_method']): ?> (<?php echo e($order['shipping_method']); ?>)<?php endif; ?></td>
+                        <td><?php echo formatCurrency($order['shipping_cost']); ?></td>
                     </tr>
                 <?php endif; ?>
                 <tr>

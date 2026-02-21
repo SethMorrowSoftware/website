@@ -25,12 +25,9 @@ if (empty($items)) return;
                             <?php endfor; ?>
                         </div>
                     <?php endif; ?>
-                    <blockquote><?php echo e($testimonial['content']); ?></blockquote>
+                    <blockquote><?php echo e($testimonial['quote']); ?></blockquote>
                     <div class="testimonial-author">
-                        <strong><?php echo e($testimonial['author_name']); ?></strong>
-                        <?php if (!empty($testimonial['author_title'])): ?>
-                            <span><?php echo e($testimonial['author_title']); ?></span>
-                        <?php endif; ?>
+                        <strong><?php echo e($testimonial['customer_name']); ?></strong>
                     </div>
                 </div>
             <?php endforeach; ?>

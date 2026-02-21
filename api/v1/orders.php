@@ -99,6 +99,12 @@ function handleUpdateOrder(int $id): void {
     $values[] = $id;
     $db->prepare('UPDATE orders SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($values);
 
+    if (isset($data['order_status'])
+        && in_array($data['order_status'], ['cancelled', 'refunded'])
+        && !in_array($order['order_status'], ['cancelled', 'refunded'])) {
+        restoreOrderInventory($id);
+    }
+
     do_action('after_api_order_updated', $id, $data);
 
     handleGetOrder($id);

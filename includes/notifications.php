@@ -105,11 +105,11 @@ function sendTemplatedEmail(string $slug, string $to, array $vars = [], bool $qu
 /**
  * Add an email to the queue.
  */
-function queueEmail(string $to, string $subject, string $bodyHtml, ?string $scheduledAt = null): bool {
+function queueEmail(string $to, string $subject, string $bodyHtml, ?string $scheduledAt = null, ?string $fromName = null, ?string $fromEmail = null): bool {
     try {
         $db = getDB();
-        $stmt = $db->prepare('INSERT INTO email_queue (to_email, subject, body_html, scheduled_at) VALUES (?, ?, ?, ?)');
-        return $stmt->execute([$to, $subject, $bodyHtml, $scheduledAt ?? date('Y-m-d H:i:s')]);
+        $stmt = $db->prepare('INSERT INTO email_queue (to_email, subject, body_html, scheduled_at, from_name, from_email) VALUES (?, ?, ?, ?, ?, ?)');
+        return $stmt->execute([$to, $subject, $bodyHtml, $scheduledAt ?? date('Y-m-d H:i:s'), $fromName, $fromEmail]);
     } catch (Exception $e) {
         // Queue table might not exist yet — send immediately as fallback
         return sendEmail($to, $subject, $bodyHtml);
@@ -267,6 +267,8 @@ function sendNotification(string $eventType, string $to, array $vars = [], ?int 
         'order_delivered' => 'order_delivered',
         'low_stock' => 'low_stock_alert',
         'new_customer' => 'welcome_email',
+        'new_contact' => 'new_contact',
+        'new_review' => 'new_review',
         'review_request' => 'review_request',
     ];
 

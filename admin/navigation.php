@@ -88,12 +88,7 @@ require_once __DIR__ . '/header.php';
                                 <input type="checkbox" name="items[<?php echo $item['id']; ?>][is_visible]" value="1" <?php echo $item['is_visible'] ? 'checked' : ''; ?>>
                             </td>
                             <td style="width: 60px;">
-                                <form method="POST" style="display:inline;" onsubmit="return confirm('Remove this nav item?')">
-                                    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                                    <input type="hidden" name="nav_action" value="delete">
-                                    <input type="hidden" name="delete" value="<?php echo $item['id']; ?>">
-                                    <button type="submit" class="btn-icon btn-danger"><i class="fas fa-trash"></i></button>
-                                </form>
+                                <button type="button" class="btn-icon btn-danger" onclick="deleteNavItem(<?php echo (int)$item['id']; ?>)"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -131,5 +126,18 @@ require_once __DIR__ . '/header.php';
         <button type="submit" class="btn-admin btn-add"><i class="fas fa-plus"></i> Add Item</button>
     </div>
 </form>
+
+<form method="POST" id="deleteNavForm" style="display:none;">
+    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+    <input type="hidden" name="nav_action" value="delete">
+    <input type="hidden" name="delete" id="deleteNavId" value="">
+</form>
+<script>
+function deleteNavItem(id) {
+    if (!confirm('Remove this nav item?')) return;
+    document.getElementById('deleteNavId').value = id;
+    document.getElementById('deleteNavForm').submit();
+}
+</script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

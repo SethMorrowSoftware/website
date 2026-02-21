@@ -146,12 +146,12 @@ function getCartTotalsWithShipping(int $shippingMethodId = 0): array {
 function saveShippingZone(array $data): int {
     $db = getDB();
     if (!empty($data['id'])) {
-        $stmt = $db->prepare('UPDATE shipping_zones SET name = ?, countries = ?, states = ?, is_default = ?, is_active = ? WHERE id = ?');
-        $stmt->execute([$data['name'], $data['countries'] ?? '', $data['states'] ?? '', $data['is_default'] ?? 0, $data['is_active'] ?? 1, $data['id']]);
+        $stmt = $db->prepare('UPDATE shipping_zones SET name = ?, countries = ?, states = ?, is_default = ?, is_active = ?, sort_order = ? WHERE id = ?');
+        $stmt->execute([$data['name'], $data['countries'] ?? '', $data['states'] ?? '', $data['is_default'] ?? 0, $data['is_active'] ?? 1, $data['sort_order'] ?? 0, $data['id']]);
         return (int)$data['id'];
     }
-    $stmt = $db->prepare('INSERT INTO shipping_zones (name, countries, states, is_default, is_active) VALUES (?, ?, ?, ?, ?)');
-    $stmt->execute([$data['name'], $data['countries'] ?? '', $data['states'] ?? '', $data['is_default'] ?? 0, $data['is_active'] ?? 1]);
+    $stmt = $db->prepare('INSERT INTO shipping_zones (name, countries, states, is_default, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$data['name'], $data['countries'] ?? '', $data['states'] ?? '', $data['is_default'] ?? 0, $data['is_active'] ?? 1, $data['sort_order'] ?? 0]);
     return (int)$db->lastInsertId();
 }
 
@@ -161,12 +161,12 @@ function saveShippingZone(array $data): int {
 function saveShippingMethod(array $data): int {
     $db = getDB();
     if (!empty($data['id'])) {
-        $stmt = $db->prepare('UPDATE shipping_methods SET zone_id = ?, name = ?, type = ?, cost = ?, free_threshold = ?, estimated_days = ?, is_active = ? WHERE id = ?');
-        $stmt->execute([$data['zone_id'], $data['name'], $data['type'], $data['cost'] ?? 0, $data['free_threshold'] ?? 0, $data['estimated_days'] ?? '', $data['is_active'] ?? 1, $data['id']]);
+        $stmt = $db->prepare('UPDATE shipping_methods SET zone_id = ?, name = ?, type = ?, cost = ?, free_threshold = ?, min_price = ?, max_price = ?, estimated_days = ?, is_active = ?, sort_order = ? WHERE id = ?');
+        $stmt->execute([$data['zone_id'], $data['name'], $data['type'], $data['cost'] ?? 0, $data['free_threshold'] ?? 0, $data['min_price'] ?? 0, $data['max_price'] ?? 0, $data['estimated_days'] ?? '', $data['is_active'] ?? 1, $data['sort_order'] ?? 0, $data['id']]);
         return (int)$data['id'];
     }
-    $stmt = $db->prepare('INSERT INTO shipping_methods (zone_id, name, type, cost, free_threshold, estimated_days, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$data['zone_id'], $data['name'], $data['type'], $data['cost'] ?? 0, $data['free_threshold'] ?? 0, $data['estimated_days'] ?? '', $data['is_active'] ?? 1]);
+    $stmt = $db->prepare('INSERT INTO shipping_methods (zone_id, name, type, cost, free_threshold, min_price, max_price, estimated_days, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$data['zone_id'], $data['name'], $data['type'], $data['cost'] ?? 0, $data['free_threshold'] ?? 0, $data['min_price'] ?? 0, $data['max_price'] ?? 0, $data['estimated_days'] ?? '', $data['is_active'] ?? 1, $data['sort_order'] ?? 0]);
     return (int)$db->lastInsertId();
 }
 
