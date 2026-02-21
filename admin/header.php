@@ -73,6 +73,9 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/shipping.php'); ?>" class="<?php echo $adminPage === 'shipping' ? 'active' : ''; ?>">
             <i class="fas fa-shipping-fast"></i> Shipping
         </a>
+        <a href="<?php echo url('admin/subscriptions.php'); ?>" class="<?php echo $adminPage === 'subscriptions' ? 'active' : ''; ?>">
+            <i class="fas fa-sync-alt"></i> Subscriptions
+        </a>
         <?php endif; ?>
 
         <?php if (isFeatureEnabled('blog')): ?>
@@ -115,6 +118,15 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         do_action('admin_menu'); ?>
 
         <div class="nav-section">System</div>
+        <a href="<?php echo url('admin/analytics.php'); ?>" class="<?php echo $adminPage === 'analytics' ? 'active' : ''; ?>">
+            <i class="fas fa-chart-line"></i> Analytics
+        </a>
+        <a href="<?php echo url('admin/email-templates.php'); ?>" class="<?php echo $adminPage === 'email-templates' ? 'active' : ''; ?>">
+            <i class="fas fa-envelope"></i> Email & Notifications
+        </a>
+        <a href="<?php echo url('admin/loyalty.php'); ?>" class="<?php echo $adminPage === 'loyalty' ? 'active' : ''; ?>">
+            <i class="fas fa-gift"></i> Loyalty & Marketing
+        </a>
         <a href="<?php echo url('admin/plugins.php'); ?>" class="<?php echo $adminPage === 'plugins' ? 'active' : ''; ?>">
             <i class="fas fa-puzzle-piece"></i> Plugins
         </a>
