@@ -38,6 +38,14 @@ if ($orderNumber) {
             }
         }
 
+        // Clear cart now that payment is confirmed or order is on the
+        // completion page.  Cart is preserved during offsite payment redirect
+        // so the customer can recover if they abandon or the capture fails.
+        if (!empty($_SESSION['cart'])) {
+            clearCart();
+        }
+        unset($_SESSION['pending_checkout_order']);
+
         // For Square, mark as processing — actual payment confirmation should come
         // via Square webhooks. We do NOT auto-mark as completed on redirect since
         // Square handles capture asynchronously and the redirect alone is not proof.

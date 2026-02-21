@@ -351,7 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'stripe':
                 $stripeUrl = createStripeCheckoutSession($orderId);
                 if ($stripeUrl) {
-                    clearCart();
+                    $_SESSION['pending_checkout_order'] = $orderId;
                     header('Location: ' . $stripeUrl);
                     exit;
                 } else {
@@ -365,15 +365,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
 
             case 'paypal':
-                clearCart();
                 $_SESSION['pending_paypal_order'] = $orderId;
+                $_SESSION['pending_checkout_order'] = $orderId;
                 redirect('index.php?page=paypal-checkout&order=' . $order['order_number']);
                 break;
 
             case 'square':
                 $squareUrl = createSquareCheckout($orderId);
                 if ($squareUrl) {
-                    clearCart();
+                    $_SESSION['pending_checkout_order'] = $orderId;
                     header('Location: ' . $squareUrl);
                     exit;
                 } else {
@@ -387,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'btcpay':
                 $btcpayUrl = createBTCPayInvoice($orderId);
                 if ($btcpayUrl) {
-                    clearCart();
+                    $_SESSION['pending_checkout_order'] = $orderId;
                     header('Location: ' . $btcpayUrl);
                     exit;
                 } else {
