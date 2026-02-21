@@ -275,7 +275,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('index.php?page=checkout');
         }
 
-        // Calculate shipping — validate that submitted method is actually available
+        // Calculate shipping — validate that submitted method is actually available.
+        // Only methods returned by getAvailableShippingMethods() are accepted.
+        // No fallback: if the method is not in the available list, reject checkout.
         $shippingMethodId = (int)($_POST['shipping_method_id'] ?? 0);
         $shippingCost = 0;
         $shippingMethodName = '';
@@ -292,10 +294,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $shippingCost = $validMethod['cost'];
                 $shippingMethodName = $validMethod['name'];
             } else {
-                // Fall back to recalculating from DB (in case method exists but wasn't in available list)
-                $shippingCost = calculateShipping($shippingMethodId);
-                $sm = getShippingMethod($shippingMethodId);
-                $shippingMethodName = $sm ? $sm['name'] : '';
+                $_SESSION['flash_message'] = 'The selected shipping method is not available. Please choose a valid option.';
+                $_SESSION['flash_type'] = 'error';
+                redirect('index.php?page=checkout');
             }
         }
 

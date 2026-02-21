@@ -607,47 +607,65 @@ function createOrder(array $customerData, string $paymentMethod = ''): ?int {
     if (empty($cart)) return null;
 
     $totals = getCartTotals();
-    $orderNumber = generateOrderNumber();
     $db = getDB();
 
-    try {
-        $db->beginTransaction();
+    // Retry up to 3 times on duplicate order number (unique index collision).
+    // Probability is extremely low but non-zero at scale.
+    $maxAttempts = 3;
+    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        $orderNumber = generateOrderNumber();
 
-        $stmt = $db->prepare('INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, shipping_address, subtotal, tax, total, payment_method, notes) VALUES (?,?,?,?,?,?,?,?,?,?)');
-        $stmt->execute([
-            $orderNumber,
-            $customerData['name'],
-            $customerData['email'],
-            $customerData['phone'] ?? '',
-            $customerData['shipping_address'] ?? '',
-            $totals['subtotal'],
-            $totals['tax'],
-            $totals['total'],
-            $paymentMethod,
-            $customerData['notes'] ?? '',
-        ]);
-        $orderId = (int)$db->lastInsertId();
+        try {
+            $db->beginTransaction();
 
-        $itemStmt = $db->prepare('INSERT INTO order_items (order_id, product_id, product_name, product_type, quantity, unit_price, total_price) VALUES (?,?,?,?,?,?,?)');
-        foreach ($cart as $item) {
-            $itemStmt->execute([
-                $orderId,
-                $item['product_id'],
-                $item['name'],
-                $item['product_type'] ?? 'physical',
-                $item['quantity'],
-                $item['price'],
-                $item['price'] * $item['quantity'],
+            $stmt = $db->prepare('INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, shipping_address, subtotal, tax, total, payment_method, notes) VALUES (?,?,?,?,?,?,?,?,?,?)');
+            $stmt->execute([
+                $orderNumber,
+                $customerData['name'],
+                $customerData['email'],
+                $customerData['phone'] ?? '',
+                $customerData['shipping_address'] ?? '',
+                $totals['subtotal'],
+                $totals['tax'],
+                $totals['total'],
+                $paymentMethod,
+                $customerData['notes'] ?? '',
             ]);
-        }
+            $orderId = (int)$db->lastInsertId();
 
-        $db->commit();
-        return $orderId;
-    } catch (Exception $e) {
-        $db->rollBack();
-        error_log('[ORDER ERROR] ' . $e->getMessage());
-        return null;
+            $itemStmt = $db->prepare('INSERT INTO order_items (order_id, product_id, product_name, product_type, quantity, unit_price, total_price) VALUES (?,?,?,?,?,?,?)');
+            foreach ($cart as $item) {
+                $itemStmt->execute([
+                    $orderId,
+                    $item['product_id'],
+                    $item['name'],
+                    $item['product_type'] ?? 'physical',
+                    $item['quantity'],
+                    $item['price'],
+                    $item['price'] * $item['quantity'],
+                ]);
+            }
+
+            $db->commit();
+            return $orderId;
+        } catch (Exception $e) {
+            $db->rollBack();
+
+            // Retry on duplicate order number (MySQL error 1062 / "Duplicate entry")
+            $isDuplicate = str_contains($e->getMessage(), 'Duplicate entry')
+                || str_contains($e->getMessage(), '1062');
+
+            if ($isDuplicate && $attempt < $maxAttempts) {
+                error_log('[ORDER] Duplicate order number collision (attempt ' . $attempt . '/' . $maxAttempts . '), regenerating');
+                continue;
+            }
+
+            error_log('[ORDER ERROR] ' . $e->getMessage());
+            return null;
+        }
     }
+
+    return null;
 }
 
 /**
@@ -953,60 +971,80 @@ function sendOrderConfirmation(int $orderId): void {
  */
 function finalizePaidOrder(int $orderId, string $paymentId, string $provider): bool {
     $db = getDB();
+    $maxRetries = 3;
 
-    try {
-        $db->beginTransaction();
+    for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+        try {
+            $db->beginTransaction();
 
-        // Lock the order row and check current status
-        $stmt = $db->prepare('SELECT id, payment_status, order_number FROM orders WHERE id = ? FOR UPDATE');
-        $stmt->execute([$orderId]);
-        $order = $stmt->fetch();
+            // Lock the order row and check current status
+            $stmt = $db->prepare('SELECT id, payment_status, order_number FROM orders WHERE id = ? FOR UPDATE');
+            $stmt->execute([$orderId]);
+            $order = $stmt->fetch();
 
-        if (!$order) {
-            $db->rollBack();
-            return false;
-        }
+            if (!$order) {
+                $db->rollBack();
+                return false;
+            }
 
-        // Idempotency: already completed — nothing to do
-        if ($order['payment_status'] === 'completed') {
-            $db->rollBack();
-            return true;
-        }
+            // Idempotency: already completed — nothing to do
+            if ($order['payment_status'] === 'completed') {
+                $db->rollBack();
+                return true;
+            }
 
-        // Decrement inventory atomically — check before marking completed
-        $inventoryOk = processOrderInventory($orderId);
+            // Decrement inventory atomically — check before marking completed
+            $inventoryOk = processOrderInventory($orderId);
 
-        if (!$inventoryOk) {
-            // Stock decrement failed for one or more items — do not mark as
-            // completed.  Place order on hold for manual review instead of
-            // silently completing with a fulfillment mismatch.
-            $db->prepare("UPDATE orders SET payment_status = 'on_hold', payment_id = ?, payment_method = ?, order_status = 'needs_review', updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$paymentId, $provider, $orderId]);
+            if (!$inventoryOk) {
+                // Stock decrement failed for one or more items — do not mark as
+                // completed.  Place order on hold for manual review instead of
+                // silently completing with a fulfillment mismatch.
+                $db->prepare("UPDATE orders SET payment_status = 'on_hold', payment_id = ?, payment_method = ?, order_status = 'needs_review', updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$paymentId, $provider, $orderId]);
+                $db->commit();
+                error_log('[FINALIZE ORDER] Order #' . $orderId . ' placed on hold: inventory decrement failed');
+                return false;
+            }
+
+            // Update payment status to completed
+            updateOrderPayment($orderId, 'completed', $paymentId, $provider);
+
+            // Generate download tokens (idempotent — skip if already exist)
+            $existingTokens = getDownloadTokens($orderId);
+            if (empty($existingTokens)) {
+                generateDownloadTokens($orderId);
+            }
+
             $db->commit();
-            error_log('[FINALIZE ORDER] Order #' . $orderId . ' placed on hold: inventory decrement failed');
+
+            // Send confirmation email outside transaction (non-critical, should not
+            // roll back the DB on mail failure)
+            sendOrderConfirmation($orderId);
+
+            return true;
+        } catch (Exception $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+
+            // Retry on deadlock (MySQL error 1213 / SQLSTATE 40001)
+            $isDeadlock = str_contains($e->getMessage(), 'Deadlock')
+                || str_contains($e->getMessage(), '1213')
+                || ($e->getCode() === '40001');
+
+            if ($isDeadlock && $attempt < $maxRetries) {
+                error_log('[FINALIZE ORDER] Deadlock on order #' . $orderId . ', attempt ' . $attempt . '/' . $maxRetries . ' — retrying');
+                usleep($attempt * 100000); // 100ms, 200ms backoff
+                continue;
+            }
+
+            error_log('[FINALIZE ORDER ERROR] Order #' . $orderId . ': ' . $e->getMessage()
+                . ($isDeadlock ? ' (deadlock retries exhausted)' : ''));
             return false;
         }
-
-        // Update payment status to completed
-        updateOrderPayment($orderId, 'completed', $paymentId, $provider);
-
-        // Generate download tokens (idempotent — skip if already exist)
-        $existingTokens = getDownloadTokens($orderId);
-        if (empty($existingTokens)) {
-            generateDownloadTokens($orderId);
-        }
-
-        $db->commit();
-    } catch (Exception $e) {
-        $db->rollBack();
-        error_log('[FINALIZE ORDER ERROR] Order #' . $orderId . ': ' . $e->getMessage());
-        return false;
     }
 
-    // Send confirmation email outside transaction (non-critical, should not
-    // roll back the DB on mail failure)
-    sendOrderConfirmation($orderId);
-
-    return true;
+    return false;
 }
 
 // ============================================================

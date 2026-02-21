@@ -30,21 +30,51 @@ if ($orderNumber) {
         if ($paymentMethod === 'stripe' && isset($_GET['session_id']) && $order['payment_status'] !== 'completed') {
             $session = verifyStripePayment($_GET['session_id']);
             if ($session && $session['payment_status'] === 'paid') {
-                finalizePaidOrder($order['id'], $session['payment_intent'] ?? $session['id'], 'stripe');
+                // Validate that the Stripe session belongs to this exact order.
+                // Without this, a user could present any paid session_id to
+                // finalize a different order (inventory depletion, false revenue).
+                $metaOrderId = $session['metadata']['order_id'] ?? null;
+                $metaOrderNumber = $session['metadata']['order_number'] ?? null;
+                $sessionAmountTotal = $session['amount_total'] ?? null;
+                $sessionCurrency = strtolower($session['currency'] ?? '');
+                $expectedAmountCents = (int)round((float)$order['total'] * 100);
+                $expectedCurrency = strtolower(getSetting('currency_code', 'usd'));
 
-                // Re-fetch order and downloads from DB to avoid stale data
-                $order = getOrderByNumber($orderNumber);
-                $downloads = getDownloadTokens($order['id']);
+                $bindingValid = (int)$metaOrderId === (int)$order['id']
+                    && $metaOrderNumber === $order['order_number']
+                    && (int)$sessionAmountTotal === $expectedAmountCents
+                    && $sessionCurrency === $expectedCurrency;
+
+                if ($bindingValid) {
+                    finalizePaidOrder($order['id'], $session['payment_intent'] ?? $session['id'], 'stripe');
+
+                    // Re-fetch order and downloads from DB to avoid stale data
+                    $order = getOrderByNumber($orderNumber);
+                    $downloads = getDownloadTokens($order['id']);
+                } else {
+                    error_log('[STRIPE REDIRECT REJECT] Binding mismatch for order #' . $order['id'] . ': '
+                        . json_encode([
+                            'meta_order_id' => $metaOrderId, 'expected_id' => $order['id'],
+                            'meta_order_number' => $metaOrderNumber, 'expected_number' => $order['order_number'],
+                            'session_amount' => $sessionAmountTotal, 'expected_amount' => $expectedAmountCents,
+                            'session_currency' => $sessionCurrency, 'expected_currency' => $expectedCurrency,
+                        ]));
+                }
             }
         }
 
-        // Clear cart now that payment is confirmed or order is on the
-        // completion page.  Cart is preserved during offsite payment redirect
-        // so the customer can recover if they abandon or the capture fails.
-        if (!empty($_SESSION['cart'])) {
+        // Only clear cart when payment is confirmed completed or when the
+        // order was placed manually.  Preserving the cart on pending/failed
+        // paths avoids forcing the customer to rebuild checkout on gateway
+        // hiccups or abandoned offsite payments.
+        $confirmedOrManual = $order['payment_status'] === 'completed'
+            || $paymentMethod === 'manual';
+        if ($confirmedOrManual && !empty($_SESSION['cart'])) {
             clearCart();
         }
-        unset($_SESSION['pending_checkout_order']);
+        if ($confirmedOrManual) {
+            unset($_SESSION['pending_checkout_order']);
+        }
 
         // For Square, mark as processing — actual payment confirmation should come
         // via Square webhooks. We do NOT auto-mark as completed on redirect since

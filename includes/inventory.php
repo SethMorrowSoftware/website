@@ -108,7 +108,9 @@ function updateStockQuantity(int $productId, int $quantity): bool {
  */
 function processOrderInventory(int $orderId): bool {
     $db = getDB();
-    $stmt = $db->prepare('SELECT product_id, quantity FROM order_items WHERE order_id = ?');
+    // ORDER BY product_id ensures deterministic lock acquisition order,
+    // preventing deadlocks when concurrent orders share overlapping products.
+    $stmt = $db->prepare('SELECT product_id, quantity FROM order_items WHERE order_id = ? ORDER BY product_id ASC');
     $stmt->execute([$orderId]);
     $items = $stmt->fetchAll();
 
