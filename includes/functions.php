@@ -14,6 +14,17 @@ require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/audit.php';
 require_once __DIR__ . '/shipping.php';
 require_once __DIR__ . '/blog.php';
+require_once __DIR__ . '/plugins.php';
+require_once __DIR__ . '/themes.php';
+require_once __DIR__ . '/permissions.php';
+require_once __DIR__ . '/i18n.php';
+require_once __DIR__ . '/blocks.php';
+
+// Initialize i18n (before plugins, so translations are available to them)
+initI18n();
+
+// Load active plugins (after all core modules are available)
+loadActivePlugins();
 
 // ============================================================
 // Store Configuration Helpers
@@ -493,6 +504,10 @@ function addToCart(int $productId, int $quantity = 1): bool {
             'quantity' => $quantity,
         ];
     }
+
+    // Plugin hook: after item added to cart
+    do_action('cart_item_added', $productId, $quantity);
+
     return true;
 }
 
@@ -681,6 +696,10 @@ function createOrder(array $customerData, string $paymentMethod = '', array $adj
             }
 
             $db->commit();
+
+            // Plugin hook: after order created
+            do_action('after_order_created', $orderId, $customerData, $paymentMethod);
+
             return $orderId;
         } catch (Exception $e) {
             $db->rollBack();

@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
+requirePermission('manage_settings');
 
 // Handle test email
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['test_email']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -58,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         'maintenance_message',
         // Blog settings
         'blog_page_title', 'blog_posts_per_page',
+        // Localization
+        'locale',
         // Advanced / Proxy
         'site_url', 'trusted_proxy_ips',
     ];
@@ -425,6 +428,27 @@ require_once __DIR__ . '/header.php';
             <label>Google Maps Embed URL</label>
             <input type="url" name="google_maps_embed" class="form-control" value="<?php echo e(getSetting('google_maps_embed')); ?>" placeholder="https://www.google.com/maps/embed?pb=...">
             <small class="form-help">Go to Google Maps, click Share, then Embed, and paste the src URL here.</small>
+        </div>
+    </div>
+
+    <!-- Localization -->
+    <div class="form-section">
+        <h3><i class="fas fa-globe"></i> Localization</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Site Language / Locale</label>
+                <select name="locale" class="form-control">
+                    <?php
+                    $currentLocale = getSetting('locale', 'en');
+                    $availableLocales = getAvailableLocales();
+                    foreach ($availableLocales as $code => $name): ?>
+                        <option value="<?php echo e($code); ?>" <?php echo $code === $currentLocale ? 'selected' : ''; ?>>
+                            <?php echo e($name); ?> (<?php echo e($code); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="form-help">Select the primary language for the front-end site. Add new languages by creating translation files in the <code>languages/</code> directory.</small>
+            </div>
         </div>
     </div>
 

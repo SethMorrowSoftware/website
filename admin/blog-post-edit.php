@@ -9,6 +9,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
+requirePermission('manage_blog');
 
 $db = getDB();
 $id = (int)($_GET['id'] ?? 0);

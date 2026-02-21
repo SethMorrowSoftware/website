@@ -22,7 +22,7 @@ $pageTitle = $pageData ? ($pageData['title'] ?? '') . ' | ' . $companyName : $co
 $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagline')) ?? '';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo e(getLocale()); ?>" dir="<?php echo getTextDirection(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -102,15 +102,26 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
     // Dynamic theme colors from admin settings
     $primaryColor = getSetting('primary_color', '#2563EB');
     $secondaryColor = getSetting('secondary_color', '#F59E0B');
-    if ($primaryColor !== '#2563EB' || $secondaryColor !== '#F59E0B'):
+    $themeCssVars = generateThemeCssVariables();
+    if ($primaryColor !== '#2563EB' || $secondaryColor !== '#F59E0B' || $themeCssVars):
     ?>
     <style>
         :root {
             --color-primary: <?php echo e($primaryColor); ?>;
             --color-secondary: <?php echo e($secondaryColor); ?>;
+<?php echo $themeCssVars; ?>
         }
     </style>
     <?php endif; ?>
+
+    <?php // Theme stylesheet (loaded after core styles so it can override)
+    $themeStylesheet = getThemeStylesheet();
+    if ($themeStylesheet): ?>
+        <link rel="stylesheet" href="<?php echo e($themeStylesheet); ?>">
+    <?php endif; ?>
+
+    <?php // Plugin hook: inject styles/meta in <head>
+    do_action('wp_head'); ?>
 
     <!-- Structured Data -->
     <?php
@@ -134,7 +145,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
     <?php echo json_encode($schemaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES); ?>
     </script>
 </head>
-<body>
+<body class="<?php echo e(getThemeBodyClasses()); ?>">
 
 <!-- Top Bar -->
 <?php $hasTopBarContent = ($showPhoneHeader && $companyPhone) || ($showEmailHeader && $companyEmail) || $facebookUrl || $instagramUrl || $twitterUrl; ?>
