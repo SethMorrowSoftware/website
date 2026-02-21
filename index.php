@@ -300,9 +300,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Create order from cart
-        $orderId = createOrder($customerData, $paymentMethod);
+        // Build adjustments to apply atomically within the order transaction.
+        // This ensures the persisted order always has consistent pricing,
+        // shipping, and ownership — no partial-state window.
+        $adjustments = [];
+
+        // Coupon discount — increment usage atomically BEFORE creating order.
+        // incrementCouponUsage() is atomic — if the usage limit was reached
+        // between validation and now (concurrent checkout race), the coupon
+        // is silently skipped rather than over-redeemed.
+        $coupon = getAppliedCoupon();
+        if ($coupon) {
+            if (incrementCouponUsage($coupon['id'])) {
+                $adjustments['coupon'] = [
+                    'id' => $coupon['id'],
+                    'code' => $coupon['code'],
+                    'discount' => $coupon['discount'],
+                ];
+            } else {
+                error_log('[COUPON] Usage limit reached for coupon #' . $coupon['id'] . ' during checkout');
+            }
+            removeCouponFromCart();
+        }
+
+        // Shipping cost
+        if ($shippingCost > 0 || $shippingMethodName) {
+            $adjustments['shipping'] = [
+                'cost' => $shippingCost,
+                'method' => $shippingMethodName,
+            ];
+        }
+
+        // Customer account linkage
+        if (isCustomerLoggedIn()) {
+            $adjustments['customer_id'] = getCustomerId();
+        }
+
+        // Create order with all adjustments in a single transaction
+        $orderId = createOrder($customerData, $paymentMethod, $adjustments);
         if (!$orderId) {
+            // If coupon usage was incremented but order creation failed,
+            // the coupon usage is already consumed. This is acceptable:
+            // the alternative (decrementing on failure) risks races.
             $_SESSION['flash_message'] = 'There was a problem creating your order. Please try again.';
             $_SESSION['flash_type'] = 'error';
             redirect('index.php?page=checkout');
@@ -310,35 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $db = getDB();
 
-        // Apply coupon discount BEFORE payment gateway sees the order.
-        // incrementCouponUsage() is atomic — if the usage limit was reached
-        // between validation and now (concurrent checkout race), the coupon
-        // is silently skipped rather than over-redeemed.
-        $coupon = getAppliedCoupon();
-        if ($coupon) {
-            if (incrementCouponUsage($coupon['id'])) {
-                $db->prepare('UPDATE orders SET coupon_id = ?, coupon_code = ?, discount_amount = ?, total = GREATEST(0, total - ?) WHERE id = ?')
-                   ->execute([$coupon['id'], $coupon['code'], $coupon['discount'], $coupon['discount'], $orderId]);
-            } else {
-                // Coupon hit its usage limit between validation and checkout
-                error_log('[COUPON] Usage limit reached for coupon #' . $coupon['id'] . ' during checkout (order #' . $orderId . ')');
-            }
-            removeCouponFromCart();
-        }
-
-        // Apply shipping cost
-        if ($shippingCost > 0 || $shippingMethodName) {
-            $db->prepare('UPDATE orders SET shipping_cost = ?, shipping_method = ?, total = total + ? WHERE id = ?')
-               ->execute([$shippingCost, $shippingMethodName, $shippingCost, $orderId]);
-        }
-
-        // Link to customer account if logged in
-        if (isCustomerLoggedIn()) {
-            $db->prepare('UPDATE orders SET customer_id = ? WHERE id = ?')
-               ->execute([getCustomerId(), $orderId]);
-        }
-
-        // Re-fetch the order with all adjustments applied
+        // Re-fetch the order with all adjustments already applied
         $order = getOrder($orderId);
 
         // Store order number in session for order-complete page verification

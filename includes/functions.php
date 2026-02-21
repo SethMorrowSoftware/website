@@ -600,9 +600,20 @@ function generateOrderNumber(): string {
 }
 
 /**
- * Create a new order from the current cart
+ * Create a new order from the current cart.
+ *
+ * The optional $adjustments array allows callers to apply coupon
+ * discounts, shipping costs, and customer linkage within the same
+ * DB transaction as the order + item inserts. This guarantees the
+ * persisted order is always in a consistent state — no window where
+ * an order exists without its expected discount/shipping/ownership.
+ *
+ * Supported $adjustments keys:
+ *   'coupon'      => ['id' => int, 'code' => string, 'discount' => float]
+ *   'shipping'    => ['cost' => float, 'method' => string]
+ *   'customer_id' => int
  */
-function createOrder(array $customerData, string $paymentMethod = ''): ?int {
+function createOrder(array $customerData, string $paymentMethod = '', array $adjustments = []): ?int {
     $cart = getCart();
     if (empty($cart)) return null;
 
@@ -644,6 +655,29 @@ function createOrder(array $customerData, string $paymentMethod = ''): ?int {
                     $item['price'],
                     $item['price'] * $item['quantity'],
                 ]);
+            }
+
+            // Apply pricing adjustments within the same transaction
+            // so the order is never visible in a partially-adjusted state.
+
+            // Coupon discount
+            if (!empty($adjustments['coupon'])) {
+                $c = $adjustments['coupon'];
+                $db->prepare('UPDATE orders SET coupon_id = ?, coupon_code = ?, discount_amount = ?, total = GREATEST(0, total - ?) WHERE id = ?')
+                   ->execute([$c['id'], $c['code'], $c['discount'], $c['discount'], $orderId]);
+            }
+
+            // Shipping cost
+            if (!empty($adjustments['shipping'])) {
+                $s = $adjustments['shipping'];
+                $db->prepare('UPDATE orders SET shipping_cost = ?, shipping_method = ?, total = total + ? WHERE id = ?')
+                   ->execute([$s['cost'], $s['method'], $s['cost'], $orderId]);
+            }
+
+            // Customer account linkage
+            if (!empty($adjustments['customer_id'])) {
+                $db->prepare('UPDATE orders SET customer_id = ? WHERE id = ?')
+                   ->execute([$adjustments['customer_id'], $orderId]);
             }
 
             $db->commit();
@@ -1139,7 +1173,7 @@ function createStripeCheckoutSession(int $orderId): ?string {
         ]];
     }
 
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+    $baseUrl = getCanonicalBaseUrl();
 
     $postData = [
         'payment_method_types' => ['card'],
@@ -1394,7 +1428,7 @@ function createSquareCheckout(int $orderId): ?string {
         ];
     }
 
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+    $baseUrl = getCanonicalBaseUrl();
 
     $payload = [
         'idempotency_key' => bin2hex(random_bytes(16)),
@@ -1457,8 +1491,7 @@ function createBTCPayInvoice(int $orderId): ?string {
     $storeId = getSetting('btcpay_store_id');
     if (!$btcpayUrl || !$apiKey || !$storeId) return null;
 
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
-        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+    $baseUrl = getCanonicalBaseUrl();
 
     $currencyCode = strtoupper(getSetting('currency_code', 'USD'));
 
