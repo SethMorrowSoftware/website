@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Touch/swipe support for mobile
-        var touchStartX = 0;
-        var touchStartY = 0;
+        var touchStartX = null;
+        var touchStartY = null;
         var touchDiffX = 0;
         var isSwiping = false;
 
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, { passive: true });
 
         testimonialTrack.addEventListener('touchmove', function(e) {
-            if (!touchStartX) return;
+            if (touchStartX === null) return;
             touchDiffX = e.touches[0].clientX - touchStartX;
             var touchDiffY = e.touches[0].clientY - touchStartY;
 
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     goToSlide(currentSlide - 1); // Swipe right = prev
                 }
             }
-            touchStartX = 0;
+            touchStartX = null;
             touchDiffX = 0;
             isSwiping = false;
             startAutoplay();

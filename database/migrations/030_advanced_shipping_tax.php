@@ -25,7 +25,7 @@ return function (PDO $db) {
             is_active TINYINT(1) DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_tax_country_state (country, state)
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Seed settings

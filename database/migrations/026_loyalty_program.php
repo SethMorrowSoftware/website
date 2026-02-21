@@ -10,7 +10,7 @@ return function (PDO $db) {
             points_balance INT DEFAULT 0,
             lifetime_points INT DEFAULT 0,
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Loyalty transactions log
@@ -25,7 +25,7 @@ return function (PDO $db) {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_loyalty_customer (customer_id, created_at),
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Referral tracking
@@ -42,7 +42,7 @@ return function (PDO $db) {
             completed_at DATETIME DEFAULT NULL,
             INDEX idx_referral_code (referral_code),
             FOREIGN KEY (referrer_customer_id) REFERENCES customers(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Flash sales / scheduled pricing
@@ -57,7 +57,7 @@ return function (PDO $db) {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_flash_active (is_active, starts_at, ends_at),
             FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Seed loyalty settings

@@ -160,6 +160,7 @@
             body: formData
         })
         .then(function(response) {
+            if (!response.ok) throw new Error('Server error: ' + response.status);
             return response.json();
         })
         .then(function(data) {

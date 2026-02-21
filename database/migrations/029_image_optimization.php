@@ -17,7 +17,7 @@ return function (PDO $db) {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY uk_original_size (original_path(191), variant_size),
             INDEX idx_original (original_path(191))
-        ) ENGINE=InnoDB
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
     // Seed image optimization settings

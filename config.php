@@ -255,7 +255,9 @@ function ensureMigrations(PDO $db): void {
     // Acquire an advisory lock (non-blocking attempt first, then blocking with timeout).
     // Lock name is scoped to this database so different apps on the same server don't collide.
     $lockName = 'cms_schema_migration_' . DB_NAME;
-    $acquired = (int)$db->query("SELECT GET_LOCK('" . addslashes($lockName) . "', 10)")->fetchColumn();
+    $lockStmt = $db->prepare("SELECT GET_LOCK(?, 10)");
+    $lockStmt->execute([$lockName]);
+    $acquired = (int)$lockStmt->fetchColumn();
     if (!$acquired) {
         // Another process is running migrations — skip silently for this request.
         // The schema will be up-to-date by the time that lock holder finishes.
@@ -283,7 +285,7 @@ function ensureMigrations(PDO $db): void {
         require_once BASE_PATH . '/includes/migrations.php';
         runMigrations($db);
     } finally {
-        $db->query("SELECT RELEASE_LOCK('" . addslashes($lockName) . "')");
+        $db->prepare("SELECT RELEASE_LOCK(?)")->execute([$lockName]);
     }
 }
 
