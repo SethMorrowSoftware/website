@@ -19,6 +19,17 @@ require_once __DIR__ . '/themes.php';
 require_once __DIR__ . '/permissions.php';
 require_once __DIR__ . '/i18n.php';
 require_once __DIR__ . '/blocks.php';
+require_once __DIR__ . '/analytics.php';
+require_once __DIR__ . '/notifications.php';
+require_once __DIR__ . '/loyalty.php';
+require_once __DIR__ . '/subscriptions.php';
+require_once __DIR__ . '/seo.php';
+require_once __DIR__ . '/image-optimizer.php';
+require_once __DIR__ . '/tax-engine.php';
+require_once __DIR__ . '/backup.php';
+require_once __DIR__ . '/performance.php';
+require_once __DIR__ . '/two-factor.php';
+require_once __DIR__ . '/marketplace.php';
 
 // Initialize i18n (before plugins, so translations are available to them)
 initI18n();

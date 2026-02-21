@@ -88,7 +88,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
     <!-- Styles -->
     <link rel="stylesheet" href="<?php echo asset('css/variables.css'); ?>">
@@ -144,8 +144,16 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
     <script type="application/ld+json">
     <?php echo json_encode($schemaData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES); ?>
     </script>
+    <?php // WebSite schema with SearchAction for sitelinks search box
+    echo getWebSiteSchema(); ?>
 </head>
 <body class="<?php echo e(getThemeBodyClasses()); ?>">
+
+<!-- Skip to Content (Accessibility) -->
+<a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+<!-- Screen Reader Announcements (ARIA Live Region) -->
+<div id="ariaLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
 <!-- Top Bar -->
 <?php $hasTopBarContent = ($showPhoneHeader && $companyPhone) || ($showEmailHeader && $companyEmail) || $facebookUrl || $instagramUrl || $twitterUrl; ?>
@@ -188,7 +196,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
 <?php endif; ?>
 
 <!-- Header -->
-<header class="site-header" id="siteHeader">
+<header class="site-header" id="siteHeader" role="banner">
     <div class="container">
         <div class="header-inner">
             <a href="<?php echo url('/'); ?>" class="site-logo">
@@ -208,7 +216,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
                 <span></span>
             </button>
 
-            <nav class="main-nav" id="mainNav">
+            <nav class="main-nav" id="mainNav" role="navigation" aria-label="Main navigation">
                 <ul class="nav-menu">
                     <?php foreach ($navigation as $item): ?>
                         <?php
@@ -280,7 +288,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
 
 <div class="mobile-overlay" id="mobileOverlay"></div>
 
-<main>
+<main id="mainContent" role="main">
 <?php if ($flashMessage): ?>
     <div class="container" style="padding-top: var(--space-xl);">
         <div class="flash-message <?php echo e($flashType); ?>" role="alert">

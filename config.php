@@ -4,9 +4,29 @@
  * Configuration file
  */
 
+// Load .env file if present (before any getenv() calls)
+$_envFile = __DIR__ . '/.env';
+if (file_exists($_envFile)) {
+    $_envLines = file($_envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($_envLines as $_envLine) {
+        $_envLine = trim($_envLine);
+        if ($_envLine === '' || $_envLine[0] === '#') continue;
+        if (strpos($_envLine, '=') === false) continue;
+        [$_envKey, $_envVal] = explode('=', $_envLine, 2);
+        $_envKey = trim($_envKey);
+        $_envVal = trim($_envVal);
+        if (!getenv($_envKey)) {
+            putenv("$_envKey=$_envVal");
+        }
+    }
+    unset($_envLines, $_envLine, $_envKey, $_envVal);
+}
+unset($_envFile);
+
 // Error reporting (disable in production)
+$_appDebug = getenv('APP_DEBUG') ?: '0';
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', $_appDebug === '1' ? 1 : 0);
 ini_set('log_errors', 1);
 
 /**

@@ -69,7 +69,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 </section>
 
 <!-- Footer -->
-<footer class="site-footer">
+<footer class="site-footer" role="contentinfo">
     <div class="container">
         <div class="footer-grid">
             <div class="footer-about">
@@ -170,7 +170,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 <script src="<?php echo asset('js/ajax-cart.js'); ?>"></script>
 
 <!-- Mobile Bottom Nav -->
-<nav class="mobile-bottom-nav" id="mobileBottomNav">
+<nav class="mobile-bottom-nav" id="mobileBottomNav" role="navigation" aria-label="Mobile navigation">
     <a href="<?php echo url('/'); ?>" class="mobile-nav-item <?php echo ($currentPage ?? 'home') === 'home' ? 'active' : ''; ?>">
         <i class="fas fa-home"></i><span>Home</span>
     </a>
@@ -193,6 +193,9 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 
 <?php // Plugin hook: inject scripts/HTML before closing body
 do_action('wp_footer'); ?>
+
+<?php // Cookie consent banner (GDPR)
+echo renderCookieConsentBanner(); ?>
 
 </body>
 </html>

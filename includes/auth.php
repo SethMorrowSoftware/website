@@ -114,9 +114,14 @@ function clearLoginAttempts(string $ip, string $username = ''): void {
 }
 
 /**
- * Attempt login
+ * Attempt login.
+ *
+ * Returns:
+ *   true     — login successful (no 2FA required)
+ *   '2fa'    — password correct, 2FA code required
+ *   false    — login failed
  */
-function attemptLogin(string $username, string $password): bool {
+function attemptLogin(string $username, string $password): bool|string {
     $db = getDB();
     $ip = getClientIp();
     $stmt = $db->prepare('SELECT * FROM users WHERE username = ?');
@@ -130,30 +135,86 @@ function attemptLogin(string $username, string $password): bool {
             return false;
         }
 
-        clearLoginAttempts($ip, $username);
-        ensureSession();
-        session_regenerate_id(true);
-        $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_user_id'] = $user['id'];
-        $_SESSION['admin_username'] = $user['username'];
-        $_SESSION['last_activity'] = time();
-
-        // Update last login timestamp
-        try {
-            $db->prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?')->execute([$user['id']]);
-        } catch (\Throwable $e) {
-            // Column may not exist pre-migration — ignore
+        // Check if 2FA is enabled
+        if (!empty($user['totp_secret'])) {
+            // Store pending 2FA state in session
+            ensureSession();
+            session_regenerate_id(true);
+            $_SESSION['2fa_pending_user_id'] = $user['id'];
+            $_SESSION['2fa_pending_username'] = $user['username'];
+            $_SESSION['2fa_pending_time'] = time();
+            return '2fa';
         }
 
-        // Auto-delete bootstrap credential file after first successful login
-        $credFile = BASE_PATH . '/ADMIN_CREDENTIALS.txt';
-        if (file_exists($credFile)) {
-            @unlink($credFile);
-        }
-
+        completeLogin($user);
         return true;
     }
     recordLoginAttempt($ip, $username);
+    return false;
+}
+
+/**
+ * Complete login after password (and optional 2FA) verification.
+ */
+function completeLogin(array $user): void {
+    $ip = getClientIp();
+    clearLoginAttempts($ip, $user['username']);
+    ensureSession();
+    session_regenerate_id(true);
+    $_SESSION['admin_logged_in'] = true;
+    $_SESSION['admin_user_id'] = $user['id'];
+    $_SESSION['admin_username'] = $user['username'];
+    $_SESSION['last_activity'] = time();
+
+    // Clear any pending 2FA state
+    unset($_SESSION['2fa_pending_user_id'], $_SESSION['2fa_pending_username'], $_SESSION['2fa_pending_time']);
+
+    // Update last login timestamp
+    $db = getDB();
+    try {
+        $db->prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?')->execute([$user['id']]);
+    } catch (\Throwable $e) {
+        // Column may not exist pre-migration — ignore
+    }
+
+    // Record admin session for session management
+    if (function_exists('recordAdminSession')) {
+        recordAdminSession($user['id']);
+    }
+
+    // Auto-delete bootstrap credential file after first successful login
+    $credFile = BASE_PATH . '/ADMIN_CREDENTIALS.txt';
+    if (file_exists($credFile)) {
+        @unlink($credFile);
+    }
+}
+
+/**
+ * Complete 2FA verification and finalize login.
+ */
+function completeTwoFactorLogin(string $code): bool {
+    ensureSession();
+    $userId = $_SESSION['2fa_pending_user_id'] ?? null;
+    $pendingTime = $_SESSION['2fa_pending_time'] ?? 0;
+
+    if (!$userId || (time() - $pendingTime) > 300) {
+        // 2FA challenge expired (5 minute window)
+        unset($_SESSION['2fa_pending_user_id'], $_SESSION['2fa_pending_username'], $_SESSION['2fa_pending_time']);
+        return false;
+    }
+
+    require_once __DIR__ . '/two-factor.php';
+    if (verifyTwoFactorCode($userId, $code)) {
+        $db = getDB();
+        $stmt = $db->prepare('SELECT * FROM users WHERE id = ?');
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+        if ($user) {
+            completeLogin($user);
+            return true;
+        }
+    }
+
     return false;
 }
 

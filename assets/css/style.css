@@ -3073,3 +3073,65 @@ select.form-control {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 }
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Skip-to-content link — visible only on focus */
+.skip-to-content {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-primary);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    z-index: 10000;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.2s;
+}
+.skip-to-content:focus {
+    top: 1rem;
+    outline: 3px solid var(--color-secondary);
+    outline-offset: 2px;
+}
+
+/* Screen-reader only utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus outlines — visible keyboard focus */
+:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

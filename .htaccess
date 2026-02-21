@@ -18,6 +18,11 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^product/([a-zA-Z0-9_-]+)/?$ index.php?page=product&slug=$1 [L,QSA]
 
+# Vendor storefront pages: /vendor/slug -> index.php?page=vendor&slug=slug
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^vendor/([a-zA-Z0-9_-]+)/?$ index.php?page=vendor&slug=$1 [L,QSA]
+
 # Blog clean URLs
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

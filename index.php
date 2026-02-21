@@ -716,6 +716,8 @@ $allowedPages = [
     'forgot-password', 'reset-password', 'order-status',
     // Blog pages
     'blog', 'blog-post',
+    // Marketplace
+    'vendor',
 ];
 
 // Redirect away from disabled feature pages
@@ -773,6 +775,11 @@ $template = apply_filters('page_template', $template, $page);
 
 // Plugin hook: before page render
 do_action('before_render', $page);
+
+// Track page view (lightweight, non-blocking)
+if (function_exists('trackPageView')) {
+    trackPageView($page);
+}
 
 // Load the page with output buffering so template-level redirects work
 ob_start();

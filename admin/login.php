@@ -20,7 +20,28 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+$show2FA = false;
 
+// Handle 2FA verification
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['totp_code'])) {
+    $csrf = $_POST['csrf_token'] ?? '';
+    if (!verifyCSRFToken($csrf)) {
+        $error = 'Invalid session. Please try again.';
+    } else {
+        $code = trim($_POST['totp_code'] ?? '');
+        if (completeTwoFactorLogin($code)) {
+            redirect('admin/');
+        } else {
+            $error = 'Invalid verification code or session expired.';
+            // Check if still pending
+            if (!empty($_SESSION['2fa_pending_user_id'])) {
+                $show2FA = true;
+            }
+        }
+    }
+}
+
+// Handle normal login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -34,10 +55,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
         $error = "Too many login attempts. Please try again in $minutes minute(s).";
     } elseif (!verifyCSRFToken($csrf)) {
         $error = 'Invalid session. Please try again.';
-    } elseif (attemptLogin($username, $password)) {
-        redirect('admin/');
     } else {
-        $error = 'Invalid username or password.';
+        $result = attemptLogin($username, $password);
+        if ($result === true) {
+            redirect('admin/');
+        } elseif ($result === '2fa') {
+            $show2FA = true;
+        } else {
+            $error = 'Invalid username or password.';
+        }
+    }
+}
+
+// Check if we already have a pending 2FA challenge
+if (!empty($_SESSION['2fa_pending_user_id']) && !$show2FA && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $pendingTime = $_SESSION['2fa_pending_time'] ?? 0;
+    if ((time() - $pendingTime) < 300) {
+        $show2FA = true;
     }
 }
 
@@ -166,6 +200,29 @@ $csrfToken = generateCSRFToken();
             <div class="error-msg"><i class="fas fa-exclamation-circle"></i> <?php echo e($error); ?></div>
         <?php endif; ?>
 
+        <?php if ($show2FA): ?>
+        <!-- 2FA Verification Form -->
+        <p style="text-align:center; color:#666; margin-bottom:20px; font-size:0.875rem;">
+            <i class="fas fa-shield-alt" style="color:#2563EB;"></i>
+            Enter the 6-digit code from your authenticator app.
+        </p>
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+
+            <div class="form-group">
+                <label for="totp_code">Verification Code</label>
+                <input type="text" id="totp_code" name="totp_code" class="form-control" required autofocus
+                       placeholder="Enter 6-digit code or recovery code"
+                       autocomplete="one-time-code" inputmode="numeric" maxlength="20"
+                       style="text-align:center; letter-spacing:4px; font-size:1.25rem;">
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="fas fa-check"></i> Verify
+            </button>
+        </form>
+        <?php else: ?>
+        <!-- Normal Login Form -->
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
 
@@ -183,6 +240,7 @@ $csrfToken = generateCSRFToken();
                 <i class="fas fa-sign-in-alt"></i> Sign In
             </button>
         </form>
+        <?php endif; ?>
 
         <a href="<?php echo url('/'); ?>" class="back-link"><i class="fas fa-arrow-left"></i> Back to Website</a>
     </div>
