@@ -775,6 +775,10 @@ function validateDownloadToken(string $token): ?array {
 
 /**
  * Record a download and serve the file
+ *
+ * Uses an atomic UPDATE with a WHERE guard to prevent race conditions:
+ * concurrent requests cannot both pass the download-count check before
+ * the increment takes effect.
  */
 function processDownload(string $token): void {
     $download = validateDownloadToken($token);
@@ -791,9 +795,24 @@ function processDownload(string $token): void {
         return;
     }
 
-    // Increment download count
+    // Atomically increment download count with a guard on the limit.
+    // If max_downloads is 0, the token is unlimited.  Otherwise the UPDATE
+    // only succeeds when download_count is still below max_downloads.
+    // This prevents concurrent requests from both passing validateDownloadToken()
+    // before either increments.
     $db = getDB();
-    $db->prepare('UPDATE download_tokens SET download_count = download_count + 1 WHERE token = ?')->execute([$token]);
+    $stmt = $db->prepare(
+        'UPDATE download_tokens SET download_count = download_count + 1 '
+        . 'WHERE token = ? AND (max_downloads = 0 OR download_count < max_downloads) '
+        . 'AND (expires_at IS NULL OR expires_at >= NOW())'
+    );
+    $stmt->execute([$token]);
+
+    if ($stmt->rowCount() === 0) {
+        // Another concurrent request consumed the last download, or the token
+        // expired between validation and this point.
+        return;
+    }
 
     // Serve file
     $finfo = finfo_open(FILEINFO_MIME_TYPE);

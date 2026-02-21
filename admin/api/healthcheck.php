@@ -1,19 +1,40 @@
 <?php
 /**
- * Preflight Healthcheck Endpoint
+ * Healthcheck Endpoint
  *
- * Reports on system readiness: database connectivity, migration status,
- * and payment webhook configuration. Intended for deployment pipelines,
- * load-balancer probes, and operational dashboards.
+ * Two modes:
+ *   1. Public liveness probe  — unauthenticated requests receive only a
+ *      minimal 200/503 response with no internal details.
+ *   2. Authenticated diagnostics — admin-session or bearer-token requests
+ *      receive full migration drift, webhook readiness, and subsystem status.
  *
- * Access: unauthenticated (safe — exposes no secrets, only boolean status).
+ * Authentication for diagnostics mode:
+ *   - Active admin session (cookie), OR
+ *   - `Authorization: Bearer <token>` header matching the configured
+ *     `healthcheck_token` setting (for CI/monitoring systems).
+ *
  * Returns HTTP 200 if healthy, HTTP 503 if any critical check fails.
  */
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/auth.php';
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store');
+
+// Determine whether the caller is authorized for detailed diagnostics.
+$authorized = false;
+if (isLoggedIn()) {
+    $authorized = true;
+} else {
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (preg_match('/^Bearer\s+(.+)$/i', $authHeader, $m)) {
+        $configuredToken = getSetting('healthcheck_token');
+        if ($configuredToken && hash_equals($configuredToken, $m[1])) {
+            $authorized = true;
+        }
+    }
+}
 
 $checks = [];
 $healthy = true;
@@ -24,9 +45,27 @@ try {
     $db->query('SELECT 1');
     $checks['database'] = ['status' => 'ok'];
 } catch (Exception $e) {
-    $checks['database'] = ['status' => 'fail', 'error' => 'Connection failed'];
+    $checks['database'] = ['status' => 'fail'];
     $healthy = false;
 }
+
+// 4. Uploads directory writable (critical — always checked)
+$checks['uploads_writable'] = is_writable(UPLOADS_PATH) ? 'ok' : 'fail';
+if ($checks['uploads_writable'] !== 'ok') {
+    $healthy = false;
+}
+
+// --- Unauthenticated callers get liveness-only response ---
+if (!$authorized) {
+    http_response_code($healthy ? 200 : 503);
+    echo json_encode([
+        'healthy' => $healthy,
+        'timestamp' => date('c'),
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+// --- Authenticated callers get full diagnostics below ---
 
 // 2. Migration drift — compare pending file-based migrations
 if (isset($db)) {
@@ -107,12 +146,6 @@ if (getSetting('btcpay_enabled') === '1') {
 }
 
 $checks['webhooks'] = $webhookChecks ?: ['status' => 'none_enabled'];
-
-// 4. Uploads directory writable
-$checks['uploads_writable'] = is_writable(UPLOADS_PATH) ? 'ok' : 'fail';
-if ($checks['uploads_writable'] !== 'ok') {
-    $healthy = false;
-}
 
 // 5. Mail configuration
 $checks['mail'] = [
