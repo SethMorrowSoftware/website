@@ -1,6 +1,9 @@
 <?php
 /**
  * Custom Page Template — for admin-created pages
+ *
+ * Supports both legacy HTML content and block-based content.
+ * Pages with blocks use the block renderer; others fall back to sanitizeHtml().
  */
 
 $pageSlug = $_GET['page'] ?? '';
@@ -12,6 +15,7 @@ if (!$customPage) {
 }
 
 $hero = getHero($pageSlug);
+$hasBlocks = pageHasBlocks($customPage['blocks'] ?? null);
 ?>
 
 <!-- Hero -->
@@ -28,7 +32,7 @@ $hero = getHero($pageSlug);
         <?php endif; ?>
     </div>
 </section>
-<?php else: ?>
+<?php elseif (!$hasBlocks): ?>
 <section class="hero" style="min-height: 30vh;">
     <div class="hero-overlay"></div>
     <div class="hero-content">
@@ -47,8 +51,14 @@ $hero = getHero($pageSlug);
 </div>
 
 <!-- Page Content -->
-<section class="page-content">
-    <div class="container" style="max-width: var(--container-lg);">
-        <?php echo sanitizeHtml($customPage['content']); ?>
+<?php if ($hasBlocks): ?>
+    <div class="page-blocks">
+        <?php echo renderBlocks(parseBlocks($customPage['blocks'])); ?>
     </div>
-</section>
+<?php else: ?>
+    <section class="page-content">
+        <div class="container" style="max-width: var(--container-lg);">
+            <?php echo sanitizeHtml($customPage['content']); ?>
+        </div>
+    </section>
+<?php endif; ?>

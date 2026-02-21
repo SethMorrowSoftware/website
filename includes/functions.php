@@ -17,6 +17,11 @@ require_once __DIR__ . '/blog.php';
 require_once __DIR__ . '/plugins.php';
 require_once __DIR__ . '/themes.php';
 require_once __DIR__ . '/permissions.php';
+require_once __DIR__ . '/i18n.php';
+require_once __DIR__ . '/blocks.php';
+
+// Initialize i18n (before plugins, so translations are available to them)
+initI18n();
 
 // Load active plugins (after all core modules are available)
 loadActivePlugins();

@@ -22,7 +22,7 @@ $pageTitle = $pageData ? ($pageData['title'] ?? '') . ' | ' . $companyName : $co
 $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagline')) ?? '';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo e(getLocale()); ?>" dir="<?php echo getTextDirection(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">

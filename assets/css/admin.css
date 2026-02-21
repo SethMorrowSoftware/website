@@ -1705,3 +1705,257 @@ textarea.form-control {
 .editor-panel .panel-link:hover {
     text-decoration: underline;
 }
+
+/* ============================================
+   Block Editor Styles
+   ============================================ */
+
+.block-editor-list {
+    border: 2px dashed var(--color-gray-200);
+    border-radius: 8px;
+    min-height: 120px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--color-bg);
+}
+
+.block-editor-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-gray-400);
+}
+.block-editor-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.block-editor-item {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+.block-editor-item:hover {
+    border-color: var(--color-primary-light);
+}
+.block-editor-item.dragging {
+    opacity: 0.5;
+}
+.block-editor-item.drag-over {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.block-editor-item-header {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--color-gray-100);
+    cursor: move;
+    user-select: none;
+    gap: 0.5rem;
+}
+.block-editor-item-drag {
+    color: var(--color-gray-400);
+    cursor: grab;
+}
+.block-editor-item-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-dark);
+}
+.block-editor-item-title i {
+    color: var(--color-primary);
+    margin-right: 0.3rem;
+}
+.block-editor-item-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+.block-editor-item-actions button {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--color-gray-500);
+    cursor: pointer;
+    padding: 0.25rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+}
+.block-editor-item-actions button:hover {
+    background: var(--color-gray-100);
+    color: var(--color-dark);
+    border-color: var(--color-gray-200);
+}
+.block-editor-item-actions .block-btn-delete:hover {
+    color: var(--color-error);
+    background: #fff5f5;
+}
+
+.block-editor-item-body {
+    padding: 1rem;
+}
+.block-editor-item-body .form-group {
+    margin-bottom: 0.75rem;
+}
+.block-editor-item-body .form-group:last-child {
+    margin-bottom: 0;
+}
+.block-editor-item-body label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.block-editor-add {
+    text-align: center;
+    padding: 0.5rem;
+}
+.block-editor-add button {
+    font-size: 0.95rem;
+}
+
+/* Block Image Field */
+.block-image-field {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.block-image-field .form-control {
+    flex: 1;
+    min-width: 200px;
+}
+.block-image-preview {
+    border: 1px solid var(--color-gray-200);
+}
+
+/* Block Repeater */
+.block-repeater {
+    border: 1px solid var(--color-gray-200);
+    border-radius: 6px;
+    padding: 0.75rem;
+    background: var(--color-bg);
+}
+.block-repeater-item {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.block-repeater-item:last-of-type {
+    margin-bottom: 0.75rem;
+}
+
+/* Block Picker Modal */
+.block-picker-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.block-picker-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+}
+.block-picker-content {
+    position: relative;
+    background: var(--color-white);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.block-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+    position: sticky;
+    top: 0;
+    background: var(--color-white);
+    z-index: 1;
+    border-radius: 12px 12px 0 0;
+}
+.block-picker-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+.block-picker-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--color-gray-500);
+    padding: 0.25rem;
+}
+.block-picker-close:hover {
+    color: var(--color-dark);
+}
+.block-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+    padding: 1.5rem;
+}
+.block-picker-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem 0.75rem;
+    border: 2px solid var(--color-gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--color-white);
+    transition: all 0.2s;
+    gap: 0.4rem;
+}
+.block-picker-item:hover {
+    border-color: var(--color-primary);
+    background: #f8faff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+.block-picker-item i {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+}
+.block-picker-item span {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-dark);
+}
+.block-picker-item small {
+    font-size: 0.75rem;
+    color: var(--color-gray-500);
+    line-height: 1.3;
+}
+
+/* Responsive block editor */
+@media (max-width: 768px) {
+    .block-picker-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .block-editor-item-actions {
+        flex-wrap: wrap;
+    }
+}

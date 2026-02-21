@@ -2805,3 +2805,271 @@ select.form-control {
 @media (max-width: 768px) {
     .sticky-atc-bar.visible { display: flex; }
 }
+
+/* ============================================
+   Content Block Styles (front-end)
+   ============================================ */
+
+.page-blocks section,
+.page-blocks .block-classic,
+.page-blocks .block-html {
+    padding: var(--space-2xl) 0;
+}
+
+/* Block: Text */
+.block-text .block-heading {
+    margin-bottom: var(--space-lg);
+}
+
+/* Block: Image + Text */
+.block-image-text-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2xl);
+    align-items: center;
+}
+.block-image-text--reverse .block-image-text-grid {
+    direction: rtl;
+}
+.block-image-text--reverse .block-image-text-grid > * {
+    direction: ltr;
+}
+.block-image-text-image img {
+    width: 100%;
+    border-radius: var(--border-radius);
+}
+
+/* Block: Hero */
+.block-hero {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    text-align: center;
+    padding: var(--space-2xl);
+}
+.block-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+}
+.block-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+}
+.block-hero-heading {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: var(--space-md);
+    color: #fff;
+}
+.block-hero-subheading {
+    font-size: 1.2rem;
+    margin-bottom: var(--space-lg);
+    opacity: 0.9;
+}
+
+/* Block: Product Grid */
+.block-products {
+    display: grid;
+    gap: var(--space-lg);
+}
+
+/* Block: Testimonials */
+.block-testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+}
+.block-testimonials .testimonial-card {
+    background: var(--color-white, #fff);
+    border-radius: var(--border-radius);
+    padding: var(--space-xl);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.block-testimonials .testimonial-rating {
+    margin-bottom: var(--space-sm);
+}
+.block-testimonials blockquote {
+    font-style: italic;
+    margin: 0 0 var(--space-md) 0;
+    line-height: 1.6;
+}
+.block-testimonials .testimonial-author strong {
+    display: block;
+}
+.block-testimonials .testimonial-author span {
+    font-size: 0.85rem;
+    color: var(--color-gray, #888);
+}
+
+/* Block: CTA */
+.block-cta {
+    text-align: center;
+}
+.block-cta-inner {
+    padding: var(--space-2xl);
+    border-radius: var(--border-radius);
+}
+.block-cta--primary .block-cta-inner {
+    background: var(--color-primary);
+    color: #fff;
+}
+.block-cta--secondary .block-cta-inner {
+    background: var(--color-secondary);
+    color: #fff;
+}
+.block-cta--dark .block-cta-inner {
+    background: var(--color-dark, #1a1a1a);
+    color: #fff;
+}
+.block-cta h2 {
+    color: inherit;
+    margin-bottom: var(--space-sm);
+}
+.block-cta p {
+    margin-bottom: var(--space-lg);
+    opacity: 0.9;
+}
+.btn-cta {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    background: #fff;
+    color: var(--color-primary);
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Block: FAQ */
+.faq-accordion {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.faq-item {
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-sm);
+    overflow: hidden;
+}
+.faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    gap: 1rem;
+}
+.faq-question:hover {
+    background: var(--color-gray-50, #f9f9f9);
+}
+.faq-question i {
+    transition: transform 0.3s;
+    font-size: 0.8rem;
+    color: var(--color-gray, #888);
+}
+.faq-question[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+.faq-answer {
+    padding: 0 1.25rem 1rem;
+    color: var(--color-text-secondary, #666);
+    line-height: 1.6;
+}
+
+/* Block: Gallery */
+.block-gallery-grid {
+    display: grid;
+    gap: var(--space-md);
+}
+.block-gallery-item {
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+}
+.block-gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 1;
+    transition: transform 0.3s;
+}
+.block-gallery-item:hover img {
+    transform: scale(1.05);
+}
+.block-gallery-item figcaption {
+    padding: var(--space-sm);
+    font-size: 0.85rem;
+    text-align: center;
+    color: var(--color-gray, #888);
+}
+
+/* Block: Video */
+.block-video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+}
+.block-video--16-9 { aspect-ratio: 16/9; }
+.block-video--4-3 { aspect-ratio: 4/3; }
+.block-video--1-1 { aspect-ratio: 1/1; }
+.block-video-wrapper iframe,
+.block-video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Block: Map */
+.block-map-wrapper {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+/* Block: Contact Form (embedded) */
+.block-contact-form .contact-form {
+    max-width: 600px;
+    margin: var(--space-lg) auto 0;
+}
+
+/* Block heading helper */
+.block-heading {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+/* Responsive blocks */
+@media (max-width: 768px) {
+    .block-image-text-grid {
+        grid-template-columns: 1fr;
+    }
+    .block-image-text--reverse .block-image-text-grid {
+        direction: ltr;
+    }
+    .block-products {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .block-gallery-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}

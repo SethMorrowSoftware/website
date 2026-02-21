@@ -35,6 +35,11 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ index.php?page=blog-post&slug=$1 [L,QSA]
 
+# REST API v1: route all /api/v1/* requests to the API router
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/v1/(.*)$ api/v1/index.php [L,QSA]
+
 # Protect downloads directory (digital product files served via PHP)
 <IfModule mod_rewrite.c>
     RewriteRule ^uploads/downloads/ - [F,L]

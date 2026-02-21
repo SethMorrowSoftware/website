@@ -121,6 +121,9 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/themes.php'); ?>" class="<?php echo $adminPage === 'themes' ? 'active' : ''; ?>">
             <i class="fas fa-palette"></i> Themes
         </a>
+        <a href="<?php echo url('admin/api-keys.php'); ?>" class="<?php echo $adminPage === 'api-keys' ? 'active' : ''; ?>">
+            <i class="fas fa-key"></i> API Keys
+        </a>
         <a href="<?php echo url('admin/media.php'); ?>" class="<?php echo $adminPage === 'media' ? 'active' : ''; ?>">
             <i class="fas fa-photo-video"></i> Media Library
         </a>

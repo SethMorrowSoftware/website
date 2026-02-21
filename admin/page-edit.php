@@ -1,6 +1,10 @@
 <?php
 /**
  * Admin — Page Editor
+ *
+ * Supports both the classic WYSIWYG editor and the block-based content builder.
+ * Existing pages with HTML content use the classic editor by default.
+ * New pages and pages with blocks use the block editor.
  */
 
 require_once __DIR__ . '/../config.php';
@@ -25,20 +29,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     $title = trim($_POST['title'] ?? '');
     $slug = createSlug($_POST['slug'] ?? $title);
     $content = $_POST['content'] ?? '';
+    $blocksJson = $_POST['blocks_json'] ?? '';
+    $editorMode = $_POST['editor_mode'] ?? 'classic';
     $meta_description = trim($_POST['meta_description'] ?? '');
     $is_published = isset($_POST['is_published']) ? 1 : 0;
     $show_in_nav = isset($_POST['show_in_nav']) ? 1 : 0;
     $template = $_POST['template'] ?? 'default';
     $sort_order = (int)($_POST['sort_order'] ?? 0);
 
+    // Validate blocks JSON if using block editor
+    $blocks = null;
+    if ($editorMode === 'blocks' && $blocksJson) {
+        $decoded = json_decode($blocksJson, true);
+        if (is_array($decoded)) {
+            $blocks = $blocksJson;
+        }
+    }
+
     if ($title && $slug) {
         if ($id && $page) {
-            $stmt = $db->prepare('UPDATE pages SET title=?, slug=?, content=?, meta_description=?, is_published=?, show_in_nav=?, template=?, sort_order=?, updated_at=CURRENT_TIMESTAMP WHERE id=?');
-            $stmt->execute([$title, $slug, $content, $meta_description, $is_published, $show_in_nav, $template, $sort_order, $id]);
+            $stmt = $db->prepare('UPDATE pages SET title=?, slug=?, content=?, blocks=?, meta_description=?, is_published=?, show_in_nav=?, template=?, sort_order=?, updated_at=CURRENT_TIMESTAMP WHERE id=?');
+            $stmt->execute([$title, $slug, $content, $blocks, $meta_description, $is_published, $show_in_nav, $template, $sort_order, $id]);
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Page updated!'];
         } else {
-            $stmt = $db->prepare('INSERT INTO pages (title, slug, content, meta_description, is_published, show_in_nav, template, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->execute([$title, $slug, $content, $meta_description, $is_published, $show_in_nav, $template, $sort_order]);
+            $stmt = $db->prepare('INSERT INTO pages (title, slug, content, blocks, meta_description, is_published, show_in_nav, template, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$title, $slug, $content, $blocks, $meta_description, $is_published, $show_in_nav, $template, $sort_order]);
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Page created!'];
         }
@@ -46,17 +61,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     }
 }
 
+// Determine editor mode
+$hasBlocks = $page && pageHasBlocks($page['blocks'] ?? null);
+$editorMode = $hasBlocks ? 'blocks' : 'classic';
+// Allow switching via query param
+if (isset($_GET['editor'])) {
+    $editorMode = $_GET['editor'] === 'blocks' ? 'blocks' : 'classic';
+}
+
+$currentBlocks = $hasBlocks ? parseBlocks($page['blocks']) : [];
+$blockTypes = getBlockTypes();
+
 $csrfToken = generateCSRFToken();
 require_once __DIR__ . '/header.php';
 ?>
 
 <div class="admin-page-header">
     <h1><i class="fas fa-file-alt"></i> <?php echo $page ? 'Edit Page' : 'Add New Page'; ?></h1>
-    <a href="<?php echo url('admin/pages.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Pages</a>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <?php if ($editorMode === 'classic'): ?>
+            <a href="<?php echo url('admin/page-edit.php') . ($id ? '?id=' . $id . '&editor=blocks' : '?editor=blocks'); ?>" class="btn-admin btn-outline" title="Switch to Block Editor">
+                <i class="fas fa-th-large"></i> Block Editor
+            </a>
+        <?php else: ?>
+            <a href="<?php echo url('admin/page-edit.php') . ($id ? '?id=' . $id . '&editor=classic' : '?editor=classic'); ?>" class="btn-admin btn-outline" title="Switch to Classic Editor">
+                <i class="fas fa-file-alt"></i> Classic Editor
+            </a>
+        <?php endif; ?>
+        <a href="<?php echo url('admin/pages.php'); ?>" class="btn-admin btn-back"><i class="fas fa-arrow-left"></i> Back to Pages</a>
+    </div>
 </div>
 
-<form method="POST" class="admin-form">
+<form method="POST" class="admin-form" id="pageForm">
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+    <input type="hidden" name="editor_mode" value="<?php echo e($editorMode); ?>">
+    <input type="hidden" name="blocks_json" id="blocksJsonField" value="<?php echo e(json_encode($currentBlocks)); ?>">
 
     <div class="form-layout-sidebar">
         <div class="form-main">
@@ -71,7 +110,9 @@ require_once __DIR__ . '/header.php';
                     <input type="text" name="slug" class="form-control" value="<?php echo e($page['slug'] ?? ''); ?>" placeholder="auto-generated from title">
                 </div>
 
-                <div class="form-group">
+                <?php if ($editorMode === 'classic'): ?>
+                <!-- Classic WYSIWYG Editor -->
+                <div class="form-group" id="classicEditor">
                     <label>Page Content</label>
                     <div class="editor-toolbar" id="editorToolbar">
                         <button type="button" onclick="execCmd('bold')" title="Bold"><i class="fas fa-bold"></i></button>
@@ -93,6 +134,44 @@ require_once __DIR__ . '/header.php';
                     <div class="editor-area" id="editorArea" contenteditable="true"><?php echo $page['content'] ?? ''; ?></div>
                     <textarea name="content" id="contentField" style="display:none;"><?php echo e($page['content'] ?? ''); ?></textarea>
                 </div>
+                <?php else: ?>
+                <!-- Block Editor -->
+                <div class="form-group" id="blockEditor">
+                    <label>Page Content (Blocks)</label>
+                    <div id="blockList" class="block-editor-list">
+                        <!-- Blocks rendered by JS -->
+                    </div>
+                    <div class="block-editor-add">
+                        <button type="button" class="btn-admin btn-outline" id="addBlockBtn">
+                            <i class="fas fa-plus-circle"></i> Add Block
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Block Type Picker Modal -->
+                <div id="blockPickerModal" class="block-picker-modal" style="display: none;">
+                    <div class="block-picker-overlay" onclick="closeBlockPicker()"></div>
+                    <div class="block-picker-content">
+                        <div class="block-picker-header">
+                            <h3>Add Block</h3>
+                            <button type="button" onclick="closeBlockPicker()" class="block-picker-close"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="block-picker-grid">
+                            <?php foreach ($blockTypes as $type => $def): ?>
+                                <?php if ($type === 'classic') continue; // Don't show classic in picker ?>
+                                <button type="button" class="block-picker-item" onclick="addBlock('<?php echo e($type); ?>')">
+                                    <i class="<?php echo e($def['icon']); ?>"></i>
+                                    <span><?php echo e($def['label']); ?></span>
+                                    <small><?php echo e($def['description']); ?></small>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden textarea for classic content fallback -->
+                <textarea name="content" id="contentField" style="display:none;"><?php echo e($page['content'] ?? ''); ?></textarea>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label>Meta Description (SEO)</label>
@@ -140,6 +219,22 @@ require_once __DIR__ . '/header.php';
     </div>
 </form>
 
+<?php if ($editorMode === 'classic'): ?>
 <script src="<?php echo asset('js/editor.js'); ?>"></script>
+<?php else: ?>
+<!-- Block type definitions for JS -->
+<script>
+window.blockTypeDefinitions = <?php echo json_encode(array_map(function($def) {
+    return [
+        'label' => $def['label'],
+        'icon' => $def['icon'],
+        'description' => $def['description'],
+        'fields' => $def['fields'] ?? [],
+    ];
+}, $blockTypes)); ?>;
+window.initialBlocks = <?php echo json_encode($currentBlocks); ?>;
+</script>
+<script src="<?php echo asset('js/block-editor.js'); ?>"></script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/footer.php'; ?>
