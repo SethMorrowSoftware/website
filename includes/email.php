@@ -21,13 +21,14 @@ function sendEmail(string $to, string $subject, string $htmlBody, string $fromNa
         return sendSmtpEmail($smtpHost, $smtpPort, $smtpUser, $smtpPass, $smtpEncryption, $fromName, $fromEmail, $to, $subject, $htmlBody);
     }
 
-    // Fallback to PHP mail()
+    // Fallback to PHP mail() — sanitize header fields to prevent injection
+    $sanitize = fn($s) => str_replace(["\r", "\n", "\0"], '', $s);
     $headers = "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: $fromName <$fromEmail>\r\n";
-    $headers .= "Reply-To: $fromEmail\r\n";
+    $headers .= "From: " . $sanitize($fromName) . " <" . $sanitize($fromEmail) . ">\r\n";
+    $headers .= "Reply-To: " . $sanitize($fromEmail) . "\r\n";
 
-    return @mail($to, $subject, $htmlBody, $headers);
+    return @mail($sanitize($to), $sanitize($subject), $htmlBody, $headers);
 }
 
 /**
@@ -141,8 +142,15 @@ function sendSmtpEmail(string $host, int $port, string $user, string $pass, stri
         $message .= "Date: " . date('r') . "\r\n";
         $message .= "Message-ID: <" . uniqid() . "@" . gethostname() . ">\r\n";
         $message .= "\r\n";
+        // Normalize line endings to \r\n before dot-stuffing, so bare \n
+        // doesn't bypass the escape and cause premature end-of-DATA.
+        $normalizedBody = str_replace(["\r\n", "\r", "\n"], ["\n", "\n", "\r\n"], $htmlBody);
         // SMTP dot-stuffing: lines starting with "." must be escaped as ".."
-        $stuffedBody = str_replace("\r\n.", "\r\n..", $htmlBody);
+        $stuffedBody = str_replace("\r\n.", "\r\n..", $normalizedBody);
+        // Also handle body starting with "." (no preceding \r\n)
+        if (str_starts_with($stuffedBody, '.')) {
+            $stuffedBody = '.' . $stuffedBody;
+        }
         $message .= $stuffedBody . "\r\n";
         $message .= ".";
 

@@ -78,7 +78,8 @@ function decrementStock(int $productId, int $quantity): bool {
 function incrementStock(int $productId, int $quantity): bool {
     $db = getDB();
     $stmt = $db->prepare('UPDATE products SET stock_quantity = stock_quantity + ? WHERE id = ? AND track_inventory = 1');
-    return $stmt->execute([$quantity, $productId]);
+    $stmt->execute([$quantity, $productId]);
+    return $stmt->rowCount() > 0;
 }
 
 /**

@@ -757,7 +757,7 @@ function submitBlogComment(int $postId, array $data): int {
     $stmt->execute([
         $postId,
         $parentId ?: null,
-        $data['customer_id'] ?: null,
+        $data['customer_id'] ?? null,
         $authorName,
         $authorEmail,
         $content,

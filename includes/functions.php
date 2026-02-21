@@ -945,7 +945,7 @@ function handleDownloadUpload(array $file): ?string {
         'image/png' => 'png',
         'image/gif' => 'gif',
         'image/webp' => 'webp',
-        'image/svg+xml' => 'svg',
+        // 'image/svg+xml' removed — SVG can carry active content (XSS vectors)
         // 'application/octet-stream' removed — catch-all MIME type could allow executables
         'text/plain' => 'txt',
         'text/csv' => 'csv',
@@ -964,9 +964,11 @@ function handleDownloadUpload(array $file): ?string {
     $mimeType = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    // Use detected extension or fall back to original extension
-    $ext = $allowedMimes[$mimeType] ?? pathinfo($file['name'], PATHINFO_EXTENSION);
-    if (!$ext) return null;
+    // Only allow files whose detected MIME type is in the allowlist.
+    // Never fall back to the user-supplied filename extension — that would
+    // bypass the MIME-based security check entirely.
+    if (!isset($allowedMimes[$mimeType])) return null;
+    $ext = $allowedMimes[$mimeType];
 
     // Max 500MB for download files
     if ($file['size'] > 500 * 1024 * 1024) return null;

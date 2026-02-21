@@ -46,15 +46,24 @@ function submitReview(int $productId, array $data): bool {
         $isVerified = (int)$stmt->fetchColumn() > 0 ? 1 : 0;
     }
 
+    // Validate required fields and clamp rating to 1-5
+    $name = trim($data['name'] ?? '');
+    $email = trim($data['email'] ?? '');
+    $rating = max(1, min(5, (int)($data['rating'] ?? 0)));
+    $title = trim($data['title'] ?? '');
+    $body = trim($data['body'] ?? '');
+
+    if (!$name || !$email || $rating < 1) return false;
+
     $stmt = $db->prepare('INSERT INTO reviews (product_id, customer_id, customer_name, customer_email, rating, title, body, is_verified_purchase, is_approved, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())');
     return $stmt->execute([
         $productId,
         $customerId,
-        $data['name'],
-        $data['email'],
-        (int)$data['rating'],
-        $data['title'],
-        $data['body'],
+        $name,
+        $email,
+        $rating,
+        $title,
+        $body,
         $isVerified,
     ]);
 }
