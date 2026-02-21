@@ -111,7 +111,16 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         </a>
         <?php endif; ?>
 
+        <?php // Plugin hook: allow plugins to add admin menu items
+        do_action('admin_menu'); ?>
+
         <div class="nav-section">System</div>
+        <a href="<?php echo url('admin/plugins.php'); ?>" class="<?php echo $adminPage === 'plugins' ? 'active' : ''; ?>">
+            <i class="fas fa-puzzle-piece"></i> Plugins
+        </a>
+        <a href="<?php echo url('admin/themes.php'); ?>" class="<?php echo $adminPage === 'themes' ? 'active' : ''; ?>">
+            <i class="fas fa-palette"></i> Themes
+        </a>
         <a href="<?php echo url('admin/media.php'); ?>" class="<?php echo $adminPage === 'media' ? 'active' : ''; ?>">
             <i class="fas fa-photo-video"></i> Media Library
         </a>
@@ -121,6 +130,11 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/audit-log.php'); ?>" class="<?php echo $adminPage === 'audit-log' ? 'active' : ''; ?>">
             <i class="fas fa-clipboard-list"></i> Audit Log
         </a>
+        <?php if (hasPermission('manage_users')): ?>
+        <a href="<?php echo url('admin/users.php'); ?>" class="<?php echo $adminPage === 'users' ? 'active' : ''; ?>">
+            <i class="fas fa-users-cog"></i> Team
+        </a>
+        <?php endif; ?>
         <a href="<?php echo url('admin/settings.php'); ?>" class="<?php echo $adminPage === 'settings' ? 'active' : ''; ?>">
             <i class="fas fa-cog"></i> Settings
         </a>

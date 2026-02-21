@@ -107,4 +107,13 @@
     /* Header */
     --header-height: 80px;
     --header-height-scrolled: 64px;
+
+    /* Theme-overridable properties (set via Themes admin) */
+    --color-background: #ffffff;
+    --color-text: #1e293b;
+    --color-accent: #22c55e;
+    --border-radius: 8px;
+    --header-bg: #ffffff;
+    --footer-bg: #1e293b;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

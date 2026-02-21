@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
+requirePermission('manage_settings');
 
 // Handle test email
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['test_email']) && verifyCSRFToken($_POST['csrf_token'] ?? '')) {

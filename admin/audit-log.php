@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
+requirePermission('view_audit_log');
 
 // Purge old logs (older than 90 days)
 purgeOldAuditLogs(90);

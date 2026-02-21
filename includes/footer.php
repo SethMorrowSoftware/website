@@ -191,5 +191,8 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <?php endif; ?>
 </nav>
 
+<?php // Plugin hook: inject scripts/HTML before closing body
+do_action('wp_footer'); ?>
+
 </body>
 </html>

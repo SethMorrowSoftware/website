@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
+requirePermission('export_data');
 
 $db = getDB();
 $csrfToken = generateCSRFToken();

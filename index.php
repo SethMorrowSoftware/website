@@ -12,6 +12,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Plugin hook: early init (after session, before routing)
+do_action('init');
+
 // Maintenance mode check
 if (getSetting('maintenance_mode') === '1' || getSetting('enable_maintenance') === '1') {
     // Allow admin access
@@ -700,6 +703,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Plugin hook: before routing
+do_action('before_route');
+
 // Route to correct page
 $page = $_GET['page'] ?? 'home';
 $allowedPages = [
@@ -738,20 +744,21 @@ if (isset($featurePageMap[$page]) && !isFeatureEnabled($featurePageMap[$page])) 
 
 // Check if it's a system page or a custom page
 if (in_array($page, $allowedPages)) {
-    $template = __DIR__ . '/pages/' . $page . '.php';
+    // Theme template override: check active theme first, fall back to default
+    $template = resolveTemplate('pages/' . $page . '.php');
     if (!file_exists($template)) {
         http_response_code(404);
-        $template = __DIR__ . '/pages/home.php';
+        $template = resolveTemplate('pages/home.php');
         $page = 'home';
     }
 } else {
     // Check for custom page in database
     $customPage = getPage($page);
     if ($customPage) {
-        $template = __DIR__ . '/pages/custom.php';
+        $template = resolveTemplate('pages/custom.php');
     } else {
         http_response_code(404);
-        $template = __DIR__ . '/pages/home.php';
+        $template = resolveTemplate('pages/home.php');
         $page = 'home';
     }
 }
@@ -761,9 +768,16 @@ $flashMessage = $_SESSION['flash_message'] ?? null;
 $flashType = $_SESSION['flash_type'] ?? 'info';
 unset($_SESSION['flash_message'], $_SESSION['flash_type']);
 
+// Plugin hook: allow plugins to modify the template path
+$template = apply_filters('page_template', $template, $page);
+
+// Plugin hook: before page render
+do_action('before_render', $page);
+
 // Load the page with output buffering so template-level redirects work
 ob_start();
-require_once __DIR__ . '/includes/header.php';
+require_once resolveTemplate('includes/header.php');
 require_once $template;
-require_once __DIR__ . '/includes/footer.php';
+require_once resolveTemplate('includes/footer.php');
+do_action('after_render', $page);
 ob_end_flush();

@@ -124,6 +124,12 @@ function attemptLogin(string $username, string $password): bool {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password_hash'])) {
+        // Check if account is active (roles/permissions migration)
+        if (isset($user['is_active']) && !$user['is_active']) {
+            recordLoginAttempt($ip, $username);
+            return false;
+        }
+
         clearLoginAttempts($ip, $username);
         ensureSession();
         session_regenerate_id(true);
@@ -131,6 +137,13 @@ function attemptLogin(string $username, string $password): bool {
         $_SESSION['admin_user_id'] = $user['id'];
         $_SESSION['admin_username'] = $user['username'];
         $_SESSION['last_activity'] = time();
+
+        // Update last login timestamp
+        try {
+            $db->prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?')->execute([$user['id']]);
+        } catch (\Throwable $e) {
+            // Column may not exist pre-migration — ignore
+        }
 
         // Auto-delete bootstrap credential file after first successful login
         $credFile = BASE_PATH . '/ADMIN_CREDENTIALS.txt';

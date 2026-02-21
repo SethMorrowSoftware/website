@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
+requirePermission('manage_orders');
 
 $db = getDB();
 $type = $_GET['type'] ?? 'all';
