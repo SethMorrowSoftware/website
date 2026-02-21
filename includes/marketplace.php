@@ -115,6 +115,13 @@ function createVendorSlug(string $name): string {
     $slug = preg_replace('/-+/', '-', $slug);
     $slug = trim($slug, '-');
 
+    // Non-Latin/emoji-only names can normalize into an empty slug, which
+    // breaks registration once the first empty slug is used. Always keep a
+    // deterministic fallback base to guarantee uniqueness checks can succeed.
+    if ($slug === '') {
+        $slug = 'vendor';
+    }
+
     // Ensure uniqueness
     $db = getDB();
     $base = $slug;
@@ -314,18 +321,36 @@ function createVendorPayout(int $vendorId, float $amount, string $method = 'manu
 function completeVendorPayout(int $payoutId): bool {
     try {
         $db = getDB();
-        $payout = $db->prepare("SELECT * FROM vendor_payouts WHERE id = ? AND status = 'pending'");
+
+        // Ensure payout completion and vendor total updates happen atomically.
+        // Without a lock, concurrent requests can both complete the same
+        // payout and double-increment total_payouts.
+        $db->beginTransaction();
+
+        $payout = $db->prepare("SELECT * FROM vendor_payouts WHERE id = ? AND status = 'pending' FOR UPDATE");
         $payout->execute([$payoutId]);
         $p = $payout->fetch(PDO::FETCH_ASSOC);
-        if (!$p) return false;
+        if (!$p) {
+            $db->rollBack();
+            return false;
+        }
 
-        $db->prepare("UPDATE vendor_payouts SET status = 'completed', completed_at = CURRENT_TIMESTAMP WHERE id = ?")
-            ->execute([$payoutId]);
+        $updateStmt = $db->prepare("UPDATE vendor_payouts SET status = 'completed', completed_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'pending'");
+        $updateStmt->execute([$payoutId]);
+        if ($updateStmt->rowCount() !== 1) {
+            $db->rollBack();
+            return false;
+        }
+
         $db->prepare("UPDATE vendors SET total_payouts = total_payouts + ? WHERE id = ?")
             ->execute([$p['amount'], $p['vendor_id']]);
 
+        $db->commit();
         return true;
     } catch (Exception $e) {
+        if (isset($db) && $db instanceof PDO && $db->inTransaction()) {
+            $db->rollBack();
+        }
         return false;
     }
 }
