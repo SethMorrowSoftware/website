@@ -269,11 +269,41 @@ function getVendorPayouts(int $vendorId): array {
  */
 function createVendorPayout(int $vendorId, float $amount, string $method = 'manual', string $reference = '', string $notes = ''): ?int {
     try {
+        if ($amount <= 0) {
+            return null;
+        }
+
         $db = getDB();
+
+        // Make payout creation atomic so concurrent admin actions cannot
+        // overpay a vendor by racing against each other.
+        $db->beginTransaction();
+
+        $vendorStmt = $db->prepare("SELECT total_sales, total_commission, total_payouts FROM vendors WHERE id = ? FOR UPDATE");
+        $vendorStmt->execute([$vendorId]);
+        $vendor = $vendorStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$vendor) {
+            $db->rollBack();
+            return null;
+        }
+
+        $balance = round(((float)$vendor['total_sales'] - (float)$vendor['total_commission']) - (float)$vendor['total_payouts'], 2);
+        if ($amount > $balance) {
+            $db->rollBack();
+            return null;
+        }
+
         $stmt = $db->prepare("INSERT INTO vendor_payouts (vendor_id, amount, method, reference, notes) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$vendorId, $amount, $method, $reference, $notes]);
-        return (int)$db->lastInsertId();
+        $id = (int)$db->lastInsertId();
+
+        $db->commit();
+        return $id;
     } catch (Exception $e) {
+        if (isset($db) && $db instanceof PDO && $db->inTransaction()) {
+            $db->rollBack();
+        }
         return null;
     }
 }

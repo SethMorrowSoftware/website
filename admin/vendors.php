@@ -55,7 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
             if ($payoutId) {
                 completeVendorPayout($payoutId);
                 $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Payout of ' . formatCurrency($amount) . ' recorded.'];
+            } else {
+                $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'Payout could not be recorded. Please verify vendor balance and try again.'];
             }
+        } else {
+            $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'Payout amount must be greater than zero.'];
         }
         redirect('admin/vendors.php');
     }
