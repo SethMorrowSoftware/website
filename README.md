@@ -60,14 +60,16 @@ define('BASE_URL', '/mysite');
 ```
 .
 ├── admin/                     # Admin panel
-│   ├── api/                   # AJAX endpoints
+│   ├── api/                   # AJAX endpoints & webhooks
 │   │   ├── upload.php         #   Media file upload
 │   │   ├── delete.php         #   Media file deletion
 │   │   ├── reorder.php        #   Drag-and-drop reordering
 │   │   ├── paypal-create.php  #   PayPal order creation
 │   │   ├── paypal-capture.php #   PayPal payment capture
+│   │   ├── stripe-webhook.php #   Stripe payment webhook
 │   │   ├── btcpay-webhook.php #   BTCPay Server webhook
-│   │   └── square-webhook.php #   Square payment webhook
+│   │   ├── square-webhook.php #   Square payment webhook
+│   │   └── healthcheck.php    #   Liveness probe & diagnostics
 │   ├── index.php              # Dashboard
 │   ├── login.php              # Login page
 │   ├── settings.php           # Global site settings
@@ -154,9 +156,15 @@ define('BASE_URL', '/mysite');
 │   ├── reset-password.php     # Password reset form
 │   ├── download.php           # Digital product downloads
 │   └── custom.php             # Template for admin-created pages
+├── database/
+│   ├── migrations/            # Numbered migration files (.sql and .php)
+│   ├── schema.sql             # Initial database schema
+│   └── seed.php               # Seed data (settings, sample content)
 ├── uploads/                   # User-uploaded media (gitignored)
+│   ├── .htaccess              # Blocks PHP execution in uploads
 │   ├── images/
-│   └── videos/
+│   ├── videos/
+│   └── downloads/             # Digital product files (blocked from direct access)
 ├── config.php                 # Database connection, constants, helpers
 ├── index.php                  # Front controller / router
 ├── sitemap.php                # Dynamic XML sitemap
@@ -180,6 +188,18 @@ All runtime configuration is in `config.php`:
 | `BASE_URL` | Auto-detected | URL prefix if site is in a subdirectory |
 | `SITE_NAME` | `Your Business Name` | Fallback site name |
 | `ADMIN_SESSION_TIMEOUT` | `3600` (1 hour) | Admin session inactivity timeout in seconds |
+
+Additional settings configured through the admin panel:
+
+| Setting Key | Default | Description |
+|---|---|---|
+| `site_url` | _(empty)_ | Canonical base URL for external links (payment callbacks, emails). Auto-detected if blank. |
+| `currency_code` | _(empty)_ | ISO currency code (e.g. `USD`) |
+| `currency_symbol` | `$` | Currency symbol displayed in prices |
+| `tax_rate` | `0` | Tax rate percentage applied to cart orders |
+| `trusted_proxy_enabled` | `0` | Trust `X-Forwarded-*` headers from proxy IPs |
+| `trusted_proxy_ips` | _(empty)_ | Comma-separated allowlist of proxy IPs (supports CIDR) |
+| `healthcheck_token` | _(empty)_ | Bearer token for authenticated healthcheck diagnostics |
 
 Error display is off by default (`display_errors = 0`). Errors are written to the PHP error log (`log_errors = 1`).
 
@@ -206,6 +226,17 @@ Features are toggled via admin settings. Each flag maps to a setting key:
 | `business_hours` | `show_business_hours` | Business hours display |
 | `map` | `show_map` | Google Maps embed |
 
+Blog-specific settings:
+
+| Setting Key | Default | Controls |
+|---|---|---|
+| `blog_page_title` | `Blog` | Blog listing page title |
+| `blog_posts_per_page` | `9` | Number of posts per page |
+| `blog_allow_comments` | `1` | Enable comment system on posts |
+| `blog_comment_moderation` | `1` | Require approval before comments are published |
+| `blog_show_author` | `1` | Display author name on posts |
+| `blog_show_sidebar` | `1` | Show sidebar with categories, tags, and popular posts |
+
 The store type setting (`store_type`) controls the overall business model: `products_and_services`, `products_only`, `services_only`, `digital_only`, or `informational`.
 
 ## Admin Panel
@@ -220,11 +251,16 @@ Overview counts for products, orders, blog posts, testimonials, and media. Displ
 
 Key-value configuration for:
 
+- **Store Configuration**: store type, business type, feature toggles
 - **Company Info**: name, phone, email, address, business hours
 - **Branding**: logo, favicon, primary/secondary colors, tagline
 - **Social Media**: Facebook, Instagram, Twitter URLs
-- **Payment Gateways**: Stripe, PayPal, Square, BTCPay Server configuration
-- **Email**: notification address, SMTP settings
+- **E-commerce**: currency code/symbol, tax rate
+- **Payment Gateways**: Stripe, PayPal, Square, BTCPay Server, SwipeSimple configuration
+- **Email**: notification address, full SMTP configuration (host, port, encryption, credentials), test email sender
+- **Blog**: page title, posts per page, comments, moderation, author display, sidebar
+- **Maintenance Mode**: enable/disable with custom message (admin panel remains accessible)
+- **Advanced**: canonical site URL, trusted proxy configuration (IP allowlist with CIDR support)
 - **Features**: toggle individual features on/off
 
 ### Content Management
@@ -240,7 +276,7 @@ Key-value configuration for:
 
 ### E-commerce
 
-- **Orders**: view and manage customer orders with status tracking (pending, processing, shipped, delivered, cancelled). Supports multiple payment providers.
+- **Orders**: view and manage customer orders with status tracking (pending, processing, shipped, delivered, cancelled, needs_review). Supports multiple payment providers.
 - **Coupons**: percentage or fixed-amount discounts, minimum order amounts, usage limits, expiration dates. Can be restricted to specific products or categories.
 - **Shipping**: zone-based shipping with configurable methods (flat rate, free shipping thresholds).
 
@@ -301,12 +337,13 @@ Registration, login, password reset, order history, and account management.
 
 | Provider | Type | Configuration |
 |---|---|---|
-| Stripe | Credit/debit cards | `stripe_publishable_key`, `stripe_secret_key` |
-| PayPal | PayPal + cards | `paypal_client_id`, `paypal_secret`, `paypal_sandbox` |
-| Square | Credit/debit cards | `square_application_id` |
-| BTCPay Server | Bitcoin (on-chain + Lightning) | `btcpay_url`, `btcpay_api_key`, `btcpay_store_id`, `btcpay_webhook_secret` |
+| Stripe | Credit/debit cards | `stripe_enabled`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret` |
+| PayPal | PayPal + cards | `paypal_enabled`, `paypal_client_id`, `paypal_secret`, `paypal_sandbox` |
+| Square | Credit/debit cards | `square_enabled`, `square_application_id`, `square_access_token`, `square_location_id`, `square_sandbox`, `square_webhook_signature_key` |
+| BTCPay Server | Bitcoin (on-chain + Lightning) | `btcpay_enabled`, `btcpay_url`, `btcpay_api_key`, `btcpay_store_id`, `btcpay_webhook_secret` |
+| SwipeSimple | Manual payment link | `swipesimple_link`, `swipesimple_embed` |
 
-Each gateway is enabled individually via admin settings. Multiple gateways can be active simultaneously.
+Each gateway is enabled individually via admin settings. Multiple gateways can be active simultaneously. Stripe and Square use webhook endpoints for payment confirmation (`admin/api/stripe-webhook.php`, `admin/api/square-webhook.php`). BTCPay Server uses `admin/api/btcpay-webhook.php`. Webhooks verify signatures using the configured secrets to prevent spoofing.
 
 ## Database
 
@@ -314,13 +351,17 @@ MySQL database with 30+ tables, automatically created on first request. Key tabl
 
 - **Core**: `settings`, `users`, `pages`, `navigation`, `hero_sections`, `media`
 - **Catalog**: `product_categories`, `products`, `product_images`, `product_options`, `product_option_values`
-- **E-commerce**: `orders`, `order_items`, `coupons`, `coupon_products`, `coupon_categories`, `shipping_zones`, `shipping_methods`, `download_tokens`
+- **E-commerce**: `orders`, `order_items`, `coupons`, `coupon_products`, `coupon_categories`, `shipping_zones`, `shipping_methods`, `download_tokens`, `webhook_events`
 - **Customers**: `customers`, `wishlists`, `password_resets`
 - **Blog**: `blog_posts`, `blog_categories`, `blog_tags`, `blog_post_tags`, `blog_comments`, `blog_post_products`
 - **Engagement**: `testimonials`, `contact_submissions`, `order_inquiries`, `reviews`
 - **System**: `login_attempts`, `form_submissions`, `audit_log`, `migrations`
 
-The database migration system (`includes/migrations.php`) handles schema evolution. Migrations run automatically on each request.
+### Migrations
+
+The database migration system (`includes/migrations.php`) handles schema evolution. Migration files live in `database/migrations/` and support both `.sql` and `.php` formats. PHP migrations return a closure that receives the `$db` (PDO) instance. Migrations are tracked in the `migrations` table and run automatically on each request.
+
+Migrations are protected by a MySQL advisory lock (`GET_LOCK`) so concurrent requests never execute DDL simultaneously. If the lock cannot be acquired within 10 seconds, migrations are skipped for that request. Schema introspection helpers (`columnExists()`, `tableExists()`, `indexExists()`) use `INFORMATION_SCHEMA` for idempotent DDL checks.
 
 ## Security
 
@@ -347,6 +388,8 @@ The database migration system (`includes/migrations.php`) handles schema evoluti
 - SVG uploads blocked (XSS vector)
 - 50MB size limit
 - Files stored with generated filenames (no user-controlled paths)
+- PHP execution disabled in `uploads/` via `.htaccess` (engine off, CGI disabled)
+- Direct access to `uploads/downloads/` blocked (digital files served through PHP)
 
 ### HTTP Headers (via `.htaccess`)
 - `Content-Security-Policy`: restricts scripts, styles, fonts, frames
@@ -357,19 +400,29 @@ The database migration system (`includes/migrations.php`) handles schema evoluti
 - `Strict-Transport-Security`: enabled when HTTPS is active
 
 ### Access Control
-- `database/` and `includes/` directories blocked from direct web access
+- `database/`, `includes/`, and `uploads/downloads/` directories blocked from direct web access
 - `.sqlite`, `.sql`, `.md`, `.log`, `.txt` files blocked from download
 - Directory listing disabled
 
 ### Session Cookies
 - `HttpOnly`, `SameSite=Lax`
 - `Secure` flag set automatically over HTTPS
+- Strict mode enabled (`session.use_strict_mode = 1`)
+
+### Trusted Proxy
+- `X-Forwarded-For` and `X-Forwarded-Proto` headers are only trusted when `trusted_proxy_enabled` is on and `REMOTE_ADDR` matches the `trusted_proxy_ips` allowlist
+- Supports exact IP matching and CIDR notation (IPv4 and IPv6)
+- Fail-closed: enabling trusted proxy without an allowlist does not trust any peer
+- `getClientIp()` resolves the real client IP with proxy awareness
+- `isRequestSecure()` detects HTTPS through direct connection or trusted proxy headers
 
 ## Email Notifications
 
-Contact and order inquiry submissions send email to the configured `contact_email` address. Order confirmation and password reset emails are sent to customers. Uses PHP `mail()` by default. Failures are logged to the PHP error log.
+Contact and order inquiry submissions send email to the configured `contact_email` address. Order confirmation and password reset emails are sent to customers.
 
-If `mail()` is not configured on your server, submissions and orders are still saved to the database. Configure a local MTA (Postfix, msmtp) or use an SMTP wrapper.
+Email is sent via SMTP when configured (host, port, encryption, credentials in admin settings). Falls back to PHP `mail()` if SMTP is not configured. A test email sender in the admin panel verifies that email delivery is working. Failures are logged to the PHP error log.
+
+If neither SMTP nor `mail()` is configured on your server, submissions and orders are still saved to the database.
 
 ## Theming
 
@@ -422,6 +475,17 @@ Drop and recreate the database, then reload the site. A fresh schema will be app
 mysql -u cms_user -p -e "DROP DATABASE business_cms; CREATE DATABASE business_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
+## Maintenance Mode
+
+Enable maintenance mode from admin settings to display a maintenance page to all public visitors. The admin panel (`/admin/`) remains accessible during maintenance. Configure a custom maintenance message from the settings page.
+
+## Healthcheck
+
+A healthcheck endpoint is available at `/admin/api/healthcheck.php`:
+
+- **Unauthenticated requests** receive a minimal liveness response (`200 OK` or `503`) with no internal details. Checks database connectivity and uploads directory writability.
+- **Authenticated requests** (admin session or `Authorization: Bearer <token>` matching the `healthcheck_token` setting) receive full diagnostics: migration drift detection, webhook/payment gateway readiness, and mail configuration status.
+
 ## HTTPS
 
 The `.htaccess` file includes a commented-out HTTPS redirect rule. To enforce HTTPS in production, uncomment the redirect lines in `.htaccess`:
@@ -443,6 +507,6 @@ The `Strict-Transport-Security` header is automatically applied when HTTPS is ac
 
 **Uploads failing**: Check that `uploads/` is writable by the web server user. Check PHP `upload_max_filesize` and `post_max_size` settings.
 
-**Email not sending**: Check PHP error log for `[MAIL FAILURE]` entries. Ensure a mail transfer agent is installed.
+**Email not sending**: Check PHP error log for `[MAIL FAILURE]` entries. If using SMTP, verify host, port, and credentials in admin settings. Use the test email feature in admin settings to diagnose. If not using SMTP, ensure a local mail transfer agent is installed.
 
-**Admin credentials file not found**: If you deleted `ADMIN_CREDENTIALS.txt` before saving the password, delete `database/database.sqlite` to regenerate everything.
+**Admin credentials file not found**: If you deleted `ADMIN_CREDENTIALS.txt` before saving the password, drop and recreate the MySQL database (see "Resetting the Database" above) to regenerate everything.
