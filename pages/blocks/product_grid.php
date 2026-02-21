@@ -5,7 +5,7 @@
  */
 $catId = (int)($category_id ?? 0);
 $numProducts = (int)($count ?? 6);
-$cols = (int)($columns ?? 3);
+$cols = max(1, min(6, (int)($columns ?? 3)));
 
 if ($catId > 0) {
     $products = getProductsByCategory($catId);

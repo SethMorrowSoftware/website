@@ -3,7 +3,8 @@
  * Block: Divider
  * Horizontal rule separator.
  */
-$divStyle = $style ?? 'solid';
+$allowedStyles = ['solid', 'dashed', 'dotted'];
+$divStyle = in_array($style ?? 'solid', $allowedStyles) ? ($style ?? 'solid') : 'solid';
 $divWidth = $width ?? 'full';
 $widthMap = ['full' => '100%', 'medium' => '60%', 'short' => '30%'];
 $w = $widthMap[$divWidth] ?? '100%';

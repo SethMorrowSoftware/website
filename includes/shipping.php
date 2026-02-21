@@ -183,5 +183,7 @@ function deleteShippingMethod(int $id): bool {
  */
 function deleteShippingZone(int $id): bool {
     $db = getDB();
+    // Delete associated shipping methods first to avoid orphaned records
+    $db->prepare('DELETE FROM shipping_methods WHERE zone_id = ?')->execute([$id]);
     return $db->prepare('DELETE FROM shipping_zones WHERE id = ?')->execute([$id]);
 }

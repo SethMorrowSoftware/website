@@ -79,7 +79,11 @@ function redeemPoints(int $customerId, int $points, string $description = '', ?i
 
     try {
         $db = getDB();
-        $db->prepare("UPDATE loyalty_points SET points_balance = points_balance - ? WHERE customer_id = ? AND points_balance >= ?")->execute([$points, $customerId, $points]);
+        $stmt = $db->prepare("UPDATE loyalty_points SET points_balance = points_balance - ? WHERE customer_id = ? AND points_balance >= ?");
+        $stmt->execute([$points, $customerId, $points]);
+        if ($stmt->rowCount() === 0) {
+            return false; // Balance was insufficient (possible concurrent drain)
+        }
         $db->prepare("INSERT INTO loyalty_transactions (customer_id, points, type, description, order_id) VALUES (?, ?, 'redeem', ?, ?)")->execute([$customerId, -$points, $description, $orderId]);
         return true;
     } catch (Exception $e) {
