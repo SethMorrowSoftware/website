@@ -190,7 +190,8 @@ require_once __DIR__ . '/header.php';
                             <button type="submit" class="btn-admin btn-sm btn-outline" title="Save">%</button>
                         </form>
                     </td>
-                    <td><strong><?php echo formatCurrency(getVendorBalance($v['id'])); ?></strong></td>
+                    <?php $balance = getVendorBalance($v['id']); ?>
+                    <td><strong><?php echo formatCurrency($balance); ?></strong></td>
                     <td style="white-space:nowrap;">
                         <!-- Status actions -->
                         <?php if ($v['status'] === 'pending'): ?>
@@ -227,7 +228,7 @@ require_once __DIR__ . '/header.php';
                         <?php endif; ?>
 
                         <!-- Payout button -->
-                        <?php $balance = getVendorBalance($v['id']); if ($balance > 0): ?>
+                        <?php if ($balance > 0): ?>
                             <button type="button" class="btn-admin btn-sm btn-outline" title="Record Payout"
                                     onclick="document.getElementById('payout-<?php echo $v['id']; ?>').style.display = document.getElementById('payout-<?php echo $v['id']; ?>').style.display === 'none' ? 'table-row' : 'none';">
                                 <i class="fas fa-dollar-sign"></i>

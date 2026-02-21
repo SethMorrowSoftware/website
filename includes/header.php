@@ -289,6 +289,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
 <div class="mobile-overlay" id="mobileOverlay"></div>
 
 <main id="mainContent" role="main">
+<?php $flashMessage = $flashMessage ?? null; $flashType = $flashType ?? 'info'; ?>
 <?php if ($flashMessage): ?>
     <div class="container" style="padding-top: var(--space-xl);">
         <div class="flash-message <?php echo e($flashType); ?>" role="alert">

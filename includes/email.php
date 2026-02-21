@@ -130,7 +130,6 @@ function sendSmtpEmail(string $host, int $port, string $user, string $pass, stri
         }
 
         // Build message
-        $boundary = md5(uniqid(time()));
         $message = "From: $fromName <$fromEmail>\r\n";
         $message .= "To: $to\r\n";
         $message .= "Subject: $subject\r\n";
@@ -139,7 +138,9 @@ function sendSmtpEmail(string $host, int $port, string $user, string $pass, stri
         $message .= "Date: " . date('r') . "\r\n";
         $message .= "Message-ID: <" . uniqid() . "@" . gethostname() . ">\r\n";
         $message .= "\r\n";
-        $message .= $htmlBody . "\r\n";
+        // SMTP dot-stuffing: lines starting with "." must be escaped as ".."
+        $stuffedBody = str_replace("\r\n.", "\r\n..", $htmlBody);
+        $message .= $stuffedBody . "\r\n";
         $message .= ".";
 
         smtpSend($socket, $message);
@@ -242,7 +243,7 @@ function sendOrderEmail(int $orderId): bool {
  */
 function sendPasswordResetEmail(string $toEmail, string $firstName, string $token): bool {
     $baseUrl = getCanonicalBaseUrl();
-    $resetUrl = $baseUrl . '/reset-password?token=' . urlencode($token);
+    $resetUrl = $baseUrl . '/index.php?page=reset-password&token=' . urlencode($token);
     $companyName = getSetting('company_name', 'Our Store');
 
     $bodyHtml = '<p>Hi ' . e($firstName) . ',</p>';

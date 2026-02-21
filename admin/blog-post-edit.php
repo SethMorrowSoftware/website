@@ -169,7 +169,7 @@ require_once __DIR__ . '/header.php';
                 <div class="form-group">
                     <label for="published_at">Publish Date</label>
                     <input type="datetime-local" name="published_at" id="published_at"
-                           value="<?php echo $post['published_at'] ? date('Y-m-d\TH:i', strtotime($post['published_at'])) : ''; ?>"
+                           value="<?php echo ($post['published_at'] ?? null) ? date('Y-m-d\TH:i', strtotime($post['published_at'])) : ''; ?>"
                            class="form-control">
                 </div>
                 <div class="form-group">

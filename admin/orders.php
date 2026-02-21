@@ -19,7 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $newStatus = $_POST['new_status'] ?? '';
         $validStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded'];
         if (in_array($newStatus, $validStatuses)) {
+            $oldOrder = $db->prepare('SELECT order_status FROM orders WHERE id = ?');
+            $oldOrder->execute([$orderId]);
+            $oldStatus = $oldOrder->fetchColumn();
+
             $db->prepare('UPDATE orders SET order_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')->execute([$newStatus, $orderId]);
+
+            if (in_array($newStatus, ['cancelled', 'refunded']) && !in_array($oldStatus, ['cancelled', 'refunded'])) {
+                restoreOrderInventory($orderId);
+            }
+
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Order status updated.'];
         }
         redirect('admin/orders.php');

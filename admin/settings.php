@@ -15,15 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['test_email']) && veri
     $testTo = trim($_POST['test_email_to'] ?? '');
     if (filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
         if (sendTestEmail($testTo)) {
-            $_SESSION['flash_message'] = 'Test email sent successfully!';
-            $_SESSION['flash_type'] = 'success';
+            $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Test email sent successfully!'];
         } else {
-            $_SESSION['flash_message'] = 'Failed to send test email. Check your SMTP settings.';
-            $_SESSION['flash_type'] = 'error';
+            $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'Failed to send test email. Check your SMTP settings.'];
         }
     } else {
-        $_SESSION['flash_message'] = 'Please enter a valid email address.';
-        $_SESSION['flash_type'] = 'error';
+        $_SESSION['admin_flash'] = ['type' => 'error', 'message' => 'Please enter a valid email address.'];
     }
     header('Location: ' . url('admin/settings.php') . '#email');
     exit;
@@ -647,29 +644,6 @@ require_once __DIR__ . '/header.php';
         </div>
     </div>
 
-    <!-- Close main settings form before test email (to avoid nested forms) -->
-    </form>
-
-    <!-- Test Email (separate form) -->
-    <div class="admin-section">
-        <h2><i class="fas fa-paper-plane"></i> Test Email</h2>
-        <div class="admin-card">
-            <form method="POST" style="display:flex;gap:var(--space-md);align-items:flex-end;">
-                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                <input type="hidden" name="test_email" value="1">
-                <div class="form-group" style="flex:1;margin:0;">
-                    <label for="test_email_to">Send test email to</label>
-                    <input type="email" id="test_email_to" name="test_email_to" class="form-control" placeholder="test@example.com" required>
-                </div>
-                <button type="submit" class="btn-admin btn-primary"><i class="fas fa-paper-plane"></i> Send Test</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Reopen main settings form for remaining sections -->
-    <form method="POST" enctype="multipart/form-data" class="admin-form">
-    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-
     <!-- Blog Settings -->
     <div class="admin-section" id="blog">
         <h2><i class="fas fa-blog"></i> Blog</h2>
@@ -799,5 +773,21 @@ require_once __DIR__ . '/header.php';
         <button type="submit" class="btn-admin btn-save"><i class="fas fa-save"></i> Save Settings</button>
     </div>
 </form>
+
+<!-- Test Email (separate form outside main settings form) -->
+<div class="admin-section">
+    <h2><i class="fas fa-paper-plane"></i> Test Email</h2>
+    <div class="admin-card">
+        <form method="POST" style="display:flex;gap:var(--space-md);align-items:flex-end;">
+            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+            <input type="hidden" name="test_email" value="1">
+            <div class="form-group" style="flex:1;margin:0;">
+                <label for="test_email_to">Send test email to</label>
+                <input type="email" id="test_email_to" name="test_email_to" class="form-control" placeholder="test@example.com" required>
+            </div>
+            <button type="submit" class="btn-admin btn-primary"><i class="fas fa-paper-plane"></i> Send Test</button>
+        </form>
+    </div>
+</div>
 
 <?php require_once __DIR__ . '/footer.php'; ?>
