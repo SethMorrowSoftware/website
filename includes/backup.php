@@ -23,7 +23,7 @@
  * @return string|false Backup file path, or false on failure
  */
 function createDatabaseBackup(): string|false {
-    $backupDir = BASE_PATH . '/backups';
+    $backupDir = BACKUPS_PATH;
     if (!is_dir($backupDir)) {
         mkdir($backupDir, 0755, true);
         file_put_contents($backupDir . '/.htaccess', "Deny from all\n");
@@ -80,7 +80,7 @@ function createDatabaseBackup(): string|false {
  * @return string|false Backup file path, or false on failure
  */
 function createFileBackup(): string|false {
-    $backupDir = BASE_PATH . '/backups';
+    $backupDir = BACKUPS_PATH;
     if (!is_dir($backupDir)) {
         mkdir($backupDir, 0755, true);
         file_put_contents($backupDir . '/.htaccess', "Deny from all\n");
@@ -142,7 +142,7 @@ function deleteBackup(int $id): bool {
         $filename = $stmt->fetchColumn();
 
         if ($filename) {
-            $filepath = BASE_PATH . '/backups/' . $filename;
+            $filepath = BACKUPS_PATH . '/' . $filename;
             if (file_exists($filepath)) unlink($filepath);
         }
 

@@ -58,7 +58,7 @@ if (isset($_GET['download'])) {
     $filename = $stmt->fetchColumn();
     if ($filename) {
         $filename = basename($filename); // Prevent path traversal
-        $filepath = BASE_PATH . '/backups/' . $filename;
+        $filepath = BACKUPS_PATH . '/' . $filename;
         if (file_exists($filepath)) {
             header('Content-Type: application/octet-stream');
             header('Content-Disposition: attachment; filename="' . basename($filename) . '"');

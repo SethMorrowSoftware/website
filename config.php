@@ -5,6 +5,11 @@
  */
 
 // Load .env file if present (before any getenv() calls)
+// Supports:
+//   - Single/double quoted values: KEY="value with spaces"
+//   - Inline comments: KEY=value  # comment
+//   - Escaped quotes within quoted values
+//   - Empty values: KEY= or KEY=""
 $_envFile = __DIR__ . '/.env';
 if (file_exists($_envFile)) {
     $_envLines = file($_envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -15,6 +20,26 @@ if (file_exists($_envFile)) {
         [$_envKey, $_envVal] = explode('=', $_envLine, 2);
         $_envKey = trim($_envKey);
         $_envVal = trim($_envVal);
+
+        // Handle quoted values
+        if (strlen($_envVal) >= 2) {
+            $firstChar = $_envVal[0];
+            if ($firstChar === '"' && str_ends_with($_envVal, '"')) {
+                // Double-quoted: strip quotes, process escape sequences
+                $_envVal = substr($_envVal, 1, -1);
+                $_envVal = str_replace(['\\n', '\\t', '\\"', '\\\\'], ["\n", "\t", '"', '\\'], $_envVal);
+            } elseif ($firstChar === "'" && str_ends_with($_envVal, "'")) {
+                // Single-quoted: strip quotes, no escape processing
+                $_envVal = substr($_envVal, 1, -1);
+            } else {
+                // Unquoted: strip inline comments (# preceded by whitespace)
+                $_envVal = preg_replace('/\s+#.*$/', '', $_envVal);
+            }
+        } else {
+            // Single char or empty — strip inline comments
+            $_envVal = preg_replace('/\s+#.*$/', '', $_envVal);
+        }
+
         if (!getenv($_envKey)) {
             putenv("$_envKey=$_envVal");
         }
@@ -172,6 +197,10 @@ if (isRequestSecure()) {
 // Base path configuration
 define('BASE_PATH', __DIR__);
 define('UPLOADS_PATH', BASE_PATH . '/uploads');
+// Backups are stored outside the document root by default to prevent
+// accidental exposure via web server misconfiguration.
+// Override via BACKUPS_PATH env var if needed.
+define('BACKUPS_PATH', getenv('BACKUPS_PATH') ?: dirname(BASE_PATH) . '/backups');
 
 // MySQL Database Configuration
 define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
@@ -224,9 +253,9 @@ function getClientIp(): string {
 /**
  * Get database connection (singleton)
  *
- * Connection-only in the request path. Schema migrations are NOT run
- * here — they are handled by ensureMigrations(), which is called once
- * per process and uses a MySQL advisory lock to prevent concurrent DDL.
+ * Connection-only — no schema DDL is executed here.
+ * Migrations must be run explicitly via `php cli/migrate.php`
+ * as a deploy step before routing traffic to the new code.
  */
 function getDB(): PDO {
     static $db = null;
@@ -236,8 +265,6 @@ function getDB(): PDO {
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-
-        ensureMigrations($db);
     }
     return $db;
 }
@@ -585,26 +612,202 @@ function e(?string $str): string {
 /**
  * Sanitize stored HTML — allows safe formatting tags, strips everything else.
  * Used for admin-authored content (custom pages, footer text, embeds).
+ *
+ * Uses DOM-based parsing instead of regex to avoid bypass-prone pattern matching.
+ * The DOM parser handles malformed markup, entity encoding, and browser parser
+ * edge cases that regex sanitizers historically miss.
  */
 function sanitizeHtml(?string $html): string {
-    if ($html === null) return '';
-    $allowed = '<p><br><strong><b><em><i><u><ul><ol><li><h1><h2><h3><h4><h5><h6><a><img><blockquote><hr><span><div><table><thead><tbody><tr><th><td><figure><figcaption><pre><code>';
-    $clean = strip_tags($html, $allowed);
-    // Strip event handlers — match on + any whitespace/control chars + word chars + =
-    // Handles bypass attempts with tabs/newlines between "on" and the event name
-    $clean = preg_replace('/\s+on[\s\x00-\x1f]*\w+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);
-    // Strip javascript:, data:, and vbscript: URIs from href/src/action attributes
-    // Handles whitespace padding and entity-encoded variations
-    $clean = preg_replace_callback('/(href|src|action)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', function($m) {
-        $val = trim($m[2], '"\'');
-        $decoded = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
-        $stripped = preg_replace('/[\s\x00-\x1f]+/', '', $decoded);
-        if (preg_match('/^(javascript|data|vbscript):/i', $stripped)) {
-            return $m[1] . '=""';
+    if ($html === null || trim($html) === '') return '';
+
+    // Allowed tags and their permitted attributes
+    $allowedTags = [
+        'p' => ['class', 'style'],
+        'br' => [],
+        'strong' => [],
+        'b' => [],
+        'em' => [],
+        'i' => ['class'],  // class for icon fonts like Font Awesome
+        'u' => [],
+        'ul' => ['class'],
+        'ol' => ['class', 'start', 'type'],
+        'li' => ['class'],
+        'h1' => ['class', 'id'],
+        'h2' => ['class', 'id'],
+        'h3' => ['class', 'id'],
+        'h4' => ['class', 'id'],
+        'h5' => ['class', 'id'],
+        'h6' => ['class', 'id'],
+        'a' => ['href', 'title', 'target', 'rel', 'class'],
+        'img' => ['src', 'alt', 'title', 'width', 'height', 'class', 'loading'],
+        'blockquote' => ['class'],
+        'hr' => [],
+        'span' => ['class', 'style'],
+        'div' => ['class', 'style', 'id'],
+        'table' => ['class'],
+        'thead' => [],
+        'tbody' => [],
+        'tr' => ['class'],
+        'th' => ['class', 'colspan', 'rowspan'],
+        'td' => ['class', 'colspan', 'rowspan'],
+        'figure' => ['class'],
+        'figcaption' => [],
+        'pre' => ['class'],
+        'code' => ['class'],
+    ];
+
+    // URI schemes allowed in href/src attributes
+    $allowedSchemes = ['http', 'https', 'mailto', 'tel', ''];
+
+    // Parse the HTML fragment via DOMDocument
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    // Suppress warnings for malformed HTML; wrap in a root element
+    $wrapped = '<div>' . $html . '</div>';
+    @$dom->loadHTML(
+        '<?xml encoding="UTF-8"><body>' . $wrapped . '</body>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING
+    );
+
+    // Walk the DOM and sanitize
+    _sanitizeDomNode($dom->documentElement, $allowedTags, $allowedSchemes, $dom);
+
+    // Extract the inner HTML of our wrapper div
+    $body = $dom->getElementsByTagName('body')->item(0);
+    if (!$body) return '';
+
+    // Find our wrapper div
+    $wrapper = null;
+    foreach ($body->childNodes as $child) {
+        if ($child->nodeType === XML_ELEMENT_NODE && $child->nodeName === 'div') {
+            $wrapper = $child;
+            break;
         }
-        return $m[0];
-    }, $clean);
-    return $clean;
+    }
+    if (!$wrapper) return '';
+
+    $output = '';
+    foreach ($wrapper->childNodes as $child) {
+        $output .= $dom->saveHTML($child);
+    }
+    return $output;
+}
+
+/**
+ * Recursively sanitize a DOM node: remove disallowed elements/attributes,
+ * neutralize dangerous URI schemes.
+ */
+function _sanitizeDomNode(DOMNode $node, array $allowedTags, array $allowedSchemes, DOMDocument $dom): void {
+    if ($node->nodeType === XML_TEXT_NODE || $node->nodeType === XML_CDATA_SECTION_NODE) {
+        return;
+    }
+
+    // Process children first (collect into array to avoid mutation issues)
+    $children = [];
+    if ($node->hasChildNodes()) {
+        foreach ($node->childNodes as $child) {
+            $children[] = $child;
+        }
+    }
+    foreach ($children as $child) {
+        _sanitizeDomNode($child, $allowedTags, $allowedSchemes, $dom);
+    }
+
+    // Only filter element nodes; skip the root/body/wrapper structural nodes
+    if ($node->nodeType !== XML_ELEMENT_NODE) return;
+    $tagName = strtolower($node->nodeName);
+
+    // Allow structural nodes used by the parser
+    if (in_array($tagName, ['html', 'body', 'div'], true) && $node->parentNode && $node->parentNode->nodeName === 'body') {
+        return;
+    }
+    if (in_array($tagName, ['html', 'body'], true)) {
+        return;
+    }
+
+    if (!isset($allowedTags[$tagName])) {
+        // Replace disallowed element with its children (unwrap)
+        $parent = $node->parentNode;
+        if ($parent) {
+            while ($node->firstChild) {
+                $parent->insertBefore($node->firstChild, $node);
+            }
+            $parent->removeChild($node);
+        }
+        return;
+    }
+
+    // Filter attributes
+    $allowedAttrs = $allowedTags[$tagName];
+    $attrsToRemove = [];
+    if ($node->hasAttributes()) {
+        foreach ($node->attributes as $attr) {
+            $attrName = strtolower($attr->name);
+            // Remove any event handler attributes (on*)
+            if (str_starts_with($attrName, 'on')) {
+                $attrsToRemove[] = $attr->name;
+                continue;
+            }
+            if (!in_array($attrName, $allowedAttrs, true)) {
+                $attrsToRemove[] = $attr->name;
+                continue;
+            }
+            // Validate URI attributes
+            if (in_array($attrName, ['href', 'src', 'action'], true)) {
+                $val = $attr->value;
+                $decoded = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
+                // Strip whitespace/control chars for scheme check
+                $stripped = preg_replace('/[\s\x00-\x1f]+/', '', $decoded);
+                // Extract scheme
+                if (preg_match('/^([a-zA-Z][a-zA-Z0-9+\-.]*):/', $stripped, $m)) {
+                    $scheme = strtolower($m[1]);
+                    if (!in_array($scheme, $allowedSchemes, true)) {
+                        $attrsToRemove[] = $attr->name;
+                        continue;
+                    }
+                }
+            }
+            // Sanitize style attribute — only allow safe CSS properties
+            if ($attrName === 'style') {
+                $attr->value = _sanitizeCssStyle($attr->value);
+            }
+        }
+    }
+    foreach ($attrsToRemove as $attrName) {
+        $node->removeAttribute($attrName);
+    }
+}
+
+/**
+ * Sanitize inline CSS style values — allow only safe, visual properties.
+ * Strips expression(), url(), and other potentially dangerous CSS.
+ */
+function _sanitizeCssStyle(string $style): string {
+    $safeProperties = [
+        'color', 'background-color', 'background', 'font-size', 'font-weight',
+        'font-style', 'text-align', 'text-decoration', 'line-height',
+        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+        'border', 'border-radius', 'width', 'max-width', 'height', 'max-height',
+        'display', 'float', 'clear', 'vertical-align', 'opacity',
+        'list-style', 'list-style-type', 'white-space', 'overflow',
+    ];
+
+    $declarations = explode(';', $style);
+    $safe = [];
+    foreach ($declarations as $decl) {
+        $decl = trim($decl);
+        if ($decl === '') continue;
+        $parts = explode(':', $decl, 2);
+        if (count($parts) !== 2) continue;
+        $prop = strtolower(trim($parts[0]));
+        $val = trim($parts[1]);
+        if (!in_array($prop, $safeProperties, true)) continue;
+        // Block expression(), url(), and similar dangerous CSS values
+        $valLower = strtolower($val);
+        if (preg_match('/expression\s*\(|url\s*\(|javascript:|import/i', $valLower)) continue;
+        $safe[] = $prop . ': ' . $val;
+    }
+    return implode('; ', $safe);
 }
 
 /**

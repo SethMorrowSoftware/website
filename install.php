@@ -144,12 +144,16 @@ if ($loadDemo === 'y' || $loadDemo === 'yes') {
 
 // Step 6: Directory permissions
 echo "\nChecking directory permissions... ";
-$dirs = ['uploads/images', 'uploads/videos', 'uploads/downloads', 'backups'];
+$dirs = ['uploads/images', 'uploads/videos', 'uploads/downloads'];
 foreach ($dirs as $dir) {
     $full = __DIR__ . '/' . $dir;
     if (!is_dir($full)) {
         mkdir($full, 0755, true);
     }
+}
+// Create backups directory outside document root
+if (!is_dir(BACKUPS_PATH)) {
+    mkdir(BACKUPS_PATH, 0755, true);
 }
 echo "Done\n";
 
