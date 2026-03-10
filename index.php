@@ -17,8 +17,10 @@ do_action('init');
 
 // Maintenance mode check
 if (getSetting('maintenance_mode') === '1' || getSetting('enable_maintenance') === '1') {
-    // Allow admin access
-    $isAdminPath = str_starts_with(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '', '/admin');
+    // Allow admin access (supports subdirectory deployments via BASE_URL)
+    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
+    $adminPrefix = (defined('BASE_URL') ? BASE_URL : '') . '/admin';
+    $isAdminPath = str_starts_with($requestPath, $adminPrefix);
     if (!$isAdminPath) {
         $maintenanceMsg = getSetting('maintenance_message', 'We are currently performing scheduled maintenance. We will be back online shortly.');
         echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maintenance</title>';

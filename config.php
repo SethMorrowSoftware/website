@@ -259,10 +259,14 @@ function ensureMigrations(PDO $db): void {
     $lockStmt->execute([$lockName]);
     $acquired = (int)$lockStmt->fetchColumn();
     if (!$acquired) {
-        // Another process is running migrations — skip silently for this request.
-        // The schema will be up-to-date by the time that lock holder finishes.
-        error_log('[MIGRATION] Could not acquire advisory lock — skipping migrations this request');
-        return;
+        // Another process is running migrations — do not serve traffic against
+        // a potentially inconsistent schema. Return 503 so load balancers and
+        // clients retry after the migration completes.
+        error_log('[MIGRATION] Could not acquire advisory lock — returning 503');
+        http_response_code(503);
+        header('Retry-After: 10');
+        echo 'Service temporarily unavailable — schema migration in progress.';
+        exit;
     }
 
     try {

@@ -11,11 +11,17 @@
 
 require_once __DIR__ . '/../../includes/api.php';
 
-// CORS headers for API consumers
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
-header('Access-Control-Max-Age: 86400');
+// CORS headers — only allow explicitly trusted origins
+$allowedOrigins = array_filter(array_map('trim', explode(',', getSetting('api_allowed_origins', ''))));
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if ($requestOrigin !== '' && in_array($requestOrigin, $allowedOrigins, true)) {
+    header('Access-Control-Allow-Origin: ' . $requestOrigin);
+    header('Vary: Origin');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
+    header('Access-Control-Max-Age: 86400');
+}
 
 // Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

@@ -155,10 +155,11 @@ function getCustomerByEmail(string $email): ?array {
 function createPasswordResetToken(int $customerId): string {
     $db = getDB();
     $token = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $token);
     $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
     $stmt = $db->prepare('INSERT INTO password_resets (customer_id, token, expires_at) VALUES (?, ?, ?)');
-    $stmt->execute([$customerId, $token, $expiresAt]);
+    $stmt->execute([$customerId, $tokenHash, $expiresAt]);
     return $token;
 }
 
@@ -172,10 +173,11 @@ function createPasswordResetToken(int $customerId): string {
  */
 function validatePasswordResetToken(string $token): ?int {
     $db = getDB();
+    $tokenHash = hash('sha256', $token);
 
     // Atomic consume: mark used only if still valid (unused + not expired)
     $stmt = $db->prepare('UPDATE password_resets SET used = 1 WHERE token = ? AND used = 0 AND expires_at > NOW()');
-    $stmt->execute([$token]);
+    $stmt->execute([$tokenHash]);
 
     if ($stmt->rowCount() === 0) {
         return null; // Token invalid, already used, or expired
@@ -183,7 +185,7 @@ function validatePasswordResetToken(string $token): ?int {
 
     // Fetch the customer_id for the consumed token
     $stmt = $db->prepare('SELECT customer_id FROM password_resets WHERE token = ?');
-    $stmt->execute([$token]);
+    $stmt->execute([$tokenHash]);
     $reset = $stmt->fetch();
 
     return $reset ? (int)$reset['customer_id'] : null;

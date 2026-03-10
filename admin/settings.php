@@ -758,6 +758,11 @@ require_once __DIR__ . '/header.php';
                 <input type="text" name="trusted_proxy_ips" class="form-control" value="<?php echo e(getSetting('trusted_proxy_ips')); ?>" placeholder="127.0.0.1, 10.0.0.1, 172.16.0.0">
                 <small class="form-help">Comma-separated list of IP addresses allowed to set forwarded headers. Forwarded headers from other IPs are ignored. <strong>Required</strong> when trusted proxy is enabled — without this, proxy mode stays inactive.</small>
             </div>
+            <div class="form-group" style="margin-top: var(--space-md);">
+                <label>API Allowed Origins (CORS)</label>
+                <input type="text" name="api_allowed_origins" class="form-control" value="<?php echo e(getSetting('api_allowed_origins')); ?>" placeholder="https://www.yourdomain.com, https://app.yourdomain.com">
+                <small class="form-help">Comma-separated list of origins allowed to make cross-origin API requests. Leave blank to deny all CORS requests. Example: <code>https://www.example.com</code></small>
+            </div>
         </div>
     </div>
 
