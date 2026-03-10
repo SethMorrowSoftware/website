@@ -179,8 +179,15 @@ function enforceRateLimit(array $keyRecord): void {
         // Cleanup old rate limit entries (>1 hour old)
         $db->exec("DELETE FROM api_rate_limits WHERE window_start < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
     } catch (\Throwable $e) {
-        // If rate limiting fails, allow the request (fail-open for availability)
-        error_log('[API] Rate limiting error: ' . $e->getMessage());
+        // Rate limiter backend failed — fail closed for write operations to
+        // prevent abuse during DB degradation when pressure is highest.
+        error_log('[API] Rate limiting error (fail-closed): ' . $e->getMessage());
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if (in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'], true)) {
+            header('Retry-After: 30');
+            apiError('Service temporarily unavailable — please retry shortly', 503, 'rate_limit_unavailable');
+        }
+        // Allow read-only (GET/HEAD/OPTIONS) requests through for availability
     }
 }
 

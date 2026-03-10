@@ -743,6 +743,11 @@ require_once __DIR__ . '/header.php';
                 <input type="url" name="site_url" class="form-control" value="<?php echo e(getSetting('site_url')); ?>" placeholder="https://www.yourdomain.com">
                 <small class="form-help">The public-facing base URL of your site. Used for payment redirect URLs, webhook URLs, and email links. Leave blank to auto-detect from the request. <strong>Recommended for production.</strong></small>
             </div>
+            <div class="form-group" style="margin-top: var(--space-md);">
+                <label>Allowed Hosts</label>
+                <input type="text" name="allowed_hosts" class="form-control" value="<?php echo e(getSetting('allowed_hosts')); ?>" placeholder="www.yourdomain.com, yourdomain.com">
+                <small class="form-help">Comma-separated list of valid hostnames for this site. When set, requests with unrecognized <code>Host</code> headers will be redirected to the first listed host. <strong>Recommended for production</strong> to prevent host-header poisoning.</small>
+            </div>
             <div class="toggle-group" style="margin-top: var(--space-md);">
                 <label class="toggle-switch">
                     <input type="checkbox" name="trusted_proxy_enabled" value="1" <?php echo getSetting('trusted_proxy_enabled') === '1' ? 'checked' : ''; ?>>
