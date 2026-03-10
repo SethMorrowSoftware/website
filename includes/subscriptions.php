@@ -21,7 +21,7 @@ function getSubscriptionPlans(bool $activeOnly = true): array {
     $db = getDB();
     $sql = "SELECT sp.*, p.name as product_name
             FROM subscription_plans sp
-            LEFT JOIN products p ON sp.product_id = p.id";
+            LEFT JOIN products p ON sp.product_id = p.id AND p.deleted_at IS NULL";
     if ($activeOnly) $sql .= " WHERE sp.is_active = 1";
     $sql .= " ORDER BY sp.price ASC";
     return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -32,7 +32,7 @@ function getSubscriptionPlans(bool $activeOnly = true): array {
  */
 function getSubscriptionPlan(int $id): ?array {
     $db = getDB();
-    $stmt = $db->prepare("SELECT sp.*, p.name as product_name FROM subscription_plans sp LEFT JOIN products p ON sp.product_id = p.id WHERE sp.id = ?");
+    $stmt = $db->prepare("SELECT sp.*, p.name as product_name FROM subscription_plans sp LEFT JOIN products p ON sp.product_id = p.id AND p.deleted_at IS NULL WHERE sp.id = ?");
     $stmt->execute([$id]);
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }

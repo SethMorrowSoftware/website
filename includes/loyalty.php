@@ -288,7 +288,7 @@ function getActiveFlashSales(): array {
         return $db->query("
             SELECT fs.*, p.name as product_name, p.price as original_price, p.image
             FROM flash_sales fs
-            JOIN products p ON fs.product_id = p.id
+            JOIN products p ON fs.product_id = p.id AND p.deleted_at IS NULL
             WHERE fs.is_active = 1 AND NOW() BETWEEN fs.starts_at AND fs.ends_at
             ORDER BY fs.ends_at ASC
         ")->fetchAll(PDO::FETCH_ASSOC);
@@ -306,7 +306,7 @@ function getAllFlashSales(): array {
         return $db->query("
             SELECT fs.*, p.name as product_name, p.price as original_price
             FROM flash_sales fs
-            JOIN products p ON fs.product_id = p.id
+            JOIN products p ON fs.product_id = p.id AND p.deleted_at IS NULL
             ORDER BY fs.created_at DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {

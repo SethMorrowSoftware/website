@@ -23,7 +23,7 @@ function getBlogPosts(int $page = 1, int $perPage = 9, array $filters = []): arr
 
     $where = [BLOG_PUBLISHED_CONDITION_PREFIXED];
     $params = [];
-    $where[] = 'bp.published_at <= NOW()';
+    $where[] = '(bp.published_at IS NULL OR bp.published_at <= NOW())';
 
     if (!empty($filters['category'])) {
         $where[] = 'bc.slug = ?';
@@ -397,7 +397,7 @@ function processBlogShortcodes(string $content): string {
     // Batch-fetch all products in one query
     $db = getDB();
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $stmt = $db->prepare("SELECT * FROM products WHERE id IN ($placeholders) AND is_visible = 1");
+    $stmt = $db->prepare("SELECT * FROM products WHERE id IN ($placeholders) AND is_visible = 1 AND deleted_at IS NULL");
     $stmt->execute($ids);
     $products = [];
     foreach ($stmt->fetchAll() as $row) {
@@ -821,7 +821,7 @@ function getPostProducts(int $postId): array {
     $stmt = $db->prepare(
         'SELECT p.* FROM products p
          JOIN blog_post_products bpp ON bpp.product_id = p.id
-         WHERE bpp.post_id = ? AND p.is_visible = 1
+         WHERE bpp.post_id = ? AND p.is_visible = 1 AND p.deleted_at IS NULL
          ORDER BY bpp.sort_order ASC'
     );
     $stmt->execute([$postId]);

@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && verifyCS
     redirect('admin/categories.php');
 }
 
-$categories = $db->query('SELECT pc.*, (SELECT COUNT(*) FROM products WHERE category_id = pc.id) as product_count FROM product_categories pc ORDER BY pc.sort_order')->fetchAll();
+$categories = $db->query('SELECT pc.*, (SELECT COUNT(*) FROM products WHERE category_id = pc.id AND deleted_at IS NULL) as product_count FROM product_categories pc ORDER BY pc.sort_order')->fetchAll();
 $csrfToken = generateCSRFToken();
 
 require_once __DIR__ . '/header.php';

@@ -26,7 +26,7 @@ $customPages = $db->query("SELECT slug, updated_at FROM pages WHERE is_published
 $products = [];
 $categories = [];
 if (isFeatureEnabled('catalog')) {
-    $products = $db->query("SELECT slug, created_at FROM products WHERE is_visible = 1 AND is_available = 1")->fetchAll();
+    $products = $db->query("SELECT slug, created_at FROM products WHERE is_visible = 1 AND is_available = 1 AND deleted_at IS NULL")->fetchAll();
     $categories = $db->query("SELECT slug FROM product_categories WHERE is_visible = 1")->fetchAll();
 }
 

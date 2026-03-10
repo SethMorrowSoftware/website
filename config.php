@@ -461,7 +461,7 @@ function migrateDatabase(PDO $db): void {
         $containers = $db->query('SELECT * FROM containers')->fetchAll();
         $insertStmt = $db->prepare('INSERT IGNORE INTO products (category_id, name, slug, description, image, price, unit, specifications, features, price_note, is_visible, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
         foreach ($containers as $c) {
-            $slug = strtolower(trim(preg_replace('/[^a-z0-9-]/', '-', preg_replace('/-+/', '-', strtolower($c['name'])))));
+            $slug = trim(preg_replace('/-+/', '-', preg_replace('/[^a-z0-9-]/', '-', strtolower($c['name']))), '-');
             $specs = $c['dimensions'] ?? '';
             $features = $c['use_cases'] ?? '';
             $insertStmt->execute([

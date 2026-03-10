@@ -32,7 +32,7 @@ function getGlobalCommissionRate(): float {
 function getAllVendors(string $status = ''): array {
     try {
         $db = getDB();
-        $sql = "SELECT v.*, (SELECT COUNT(*) FROM products WHERE vendor_id = v.id AND is_visible = 1) AS product_count FROM vendors v";
+        $sql = "SELECT v.*, (SELECT COUNT(*) FROM products WHERE vendor_id = v.id AND is_visible = 1 AND deleted_at IS NULL) AS product_count FROM vendors v";
         $params = [];
         if ($status) {
             $sql .= " WHERE v.status = ?";
@@ -187,7 +187,7 @@ function updateVendor(int $vendorId, array $data): bool {
 function getVendorProducts(int $vendorId, bool $visibleOnly = true): array {
     try {
         $db = getDB();
-        $sql = "SELECT p.*, pc.name AS category_name FROM products p LEFT JOIN product_categories pc ON p.category_id = pc.id WHERE p.vendor_id = ?";
+        $sql = "SELECT p.*, pc.name AS category_name FROM products p LEFT JOIN product_categories pc ON p.category_id = pc.id WHERE p.vendor_id = ? AND p.deleted_at IS NULL";
         if ($visibleOnly) $sql .= " AND p.is_visible = 1";
         $sql .= " ORDER BY p.sort_order ASC, p.id DESC";
         $stmt = $db->prepare($sql);

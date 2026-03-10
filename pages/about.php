@@ -9,7 +9,7 @@ $serviceArea = getSetting('service_area');
 $_catalogEnabled = isFeatureEnabled('catalog');
 $_contactFormEnabled = isFeatureEnabled('contact_form');
 $categories = $_catalogEnabled ? getCategories() : [];
-$totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1')->fetchColumn() : 0;
+$totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1 AND deleted_at IS NULL')->fetchColumn() : 0;
 ?>
 
 <!-- Hero -->

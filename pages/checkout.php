@@ -4,7 +4,8 @@
  */
 
 $cart = getCart();
-$totals = getCartTotals();
+$totals = getCartTotalsWithCoupon();
+$appliedCoupon = getAppliedCoupon();
 $csrfToken = generateCSRFToken();
 $enabledProviders = getEnabledPaymentProviders();
 $hasPhysical = cartHasPhysicalItems();
@@ -219,6 +220,12 @@ if (empty($cart)) {
                         <span>Subtotal</span>
                         <span><?php echo formatCurrency($totals['subtotal']); ?></span>
                     </div>
+                    <?php if ($appliedCoupon && !empty($totals['discount']) && $totals['discount'] > 0): ?>
+                        <div class="summary-row" style="color: var(--color-success);">
+                            <span>Discount (<?php echo e($appliedCoupon['code']); ?>)</span>
+                            <span>-<?php echo formatCurrency($totals['discount']); ?></span>
+                        </div>
+                    <?php endif; ?>
                     <?php if ($totals['tax'] > 0): ?>
                         <div class="summary-row">
                             <span>Tax (<?php echo $totals['tax_rate']; ?>%)</span>

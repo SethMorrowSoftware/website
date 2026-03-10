@@ -138,7 +138,7 @@ function calculateCartWeight(array $cartItems): float {
     $db = getDB();
     $totalWeight = 0.0;
     foreach ($cartItems as $item) {
-        $stmt = $db->prepare("SELECT weight FROM products WHERE id = ?");
+        $stmt = $db->prepare("SELECT weight FROM products WHERE id = ? AND deleted_at IS NULL");
         $stmt->execute([$item['product_id']]);
         $weight = $stmt->fetchColumn();
         $totalWeight += ((float)$weight ?: 0) * ($item['quantity'] ?? 1);
