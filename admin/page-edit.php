@@ -28,7 +28,7 @@ if ($id) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     $title = trim($_POST['title'] ?? '');
     $slug = createSlug($_POST['slug'] ?? $title);
-    $content = $_POST['content'] ?? '';
+    $content = sanitizeHtml($_POST['content'] ?? '');
     $blocksJson = $_POST['blocks_json'] ?? '';
     $editorMode = $_POST['editor_mode'] ?? 'classic';
     $meta_description = trim($_POST['meta_description'] ?? '');
