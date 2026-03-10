@@ -29,8 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['totp_code'])) {
         $error = 'Invalid session. Please try again.';
     } else {
         $code = trim($_POST['totp_code'] ?? '');
-        if (completeTwoFactorLogin($code)) {
+        $result = completeTwoFactorLogin($code);
+        if ($result === true) {
             redirect('admin/');
+        } elseif ($result === 'lockout') {
+            $error = 'Too many verification attempts. Please log in again.';
         } else {
             $error = 'Invalid verification code or session expired.';
             // Check if still pending

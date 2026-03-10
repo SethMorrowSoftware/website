@@ -492,8 +492,13 @@ function migrateDatabase(PDO $db): void {
 /**
  * Get a site setting
  */
-function getSetting(string $key, string $default = ''): string {
+function &_getSettingCacheRef(): array {
     static $cache = [];
+    return $cache;
+}
+
+function getSetting(string $key, string $default = ''): string {
+    $cache = &_getSettingCacheRef();
     if (isset($cache[$key])) {
         return $cache[$key];
     }
@@ -516,9 +521,27 @@ function updateSetting(string $key, string $value, string $type = 'text'): bool 
     try {
         $db = getDB();
         $stmt = $db->prepare('INSERT INTO settings (`key`, `value`, `type`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `type` = VALUES(`type`)');
-        return $stmt->execute([$key, $value, $type]);
+        $result = $stmt->execute([$key, $value, $type]);
+        if ($result) {
+            // Invalidate the in-process cache so subsequent reads in the same
+            // request see the updated value (important for security toggles).
+            invalidateSettingCache($key, $value);
+        }
+        return $result;
     } catch (Exception $e) {
         return false;
+    }
+}
+
+/**
+ * Invalidate the getSetting() static cache for a specific key.
+ */
+function invalidateSettingCache(string $key, ?string $newValue = null): void {
+    $cache = &_getSettingCacheRef();
+    if ($newValue !== null) {
+        $cache[$key] = $newValue;
+    } else {
+        unset($cache[$key]);
     }
 }
 
@@ -621,13 +644,31 @@ function getCanonicalBaseUrl(): string {
         return $cached;
     }
 
-    // 2. Auto-detect from request with proxy awareness
+    // 2. Auto-detect from request with host validation
     $scheme = isRequestSecure() ? 'https' : 'http';
 
     // Use X-Forwarded-Host when behind a trusted proxy, otherwise HTTP_HOST
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     if (isTrustedProxy() && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         $host = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]);
+    }
+
+    // Validate host against allowed_hosts setting to prevent host-header poisoning.
+    // If allowed_hosts is configured, reject unrecognized hosts.
+    try {
+        $allowedHosts = getSetting('allowed_hosts', '');
+    } catch (\Throwable $e) {
+        $allowedHosts = '';
+    }
+    if ($allowedHosts !== '') {
+        $hostList = array_map('trim', explode(',', $allowedHosts));
+        // Compare host without port for matching
+        $hostWithoutPort = strtolower(explode(':', $host)[0]);
+        if (!in_array($hostWithoutPort, array_map('strtolower', $hostList), true)) {
+            error_log('[SECURITY] Rejected unrecognized Host header: ' . $host);
+            $cached = $scheme . '://' . $hostList[0] . BASE_URL;
+            return $cached;
+        }
     }
 
     $cached = $scheme . '://' . $host . BASE_URL;

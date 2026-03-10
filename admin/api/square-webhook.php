@@ -42,14 +42,11 @@ $signature = $_SERVER['HTTP_SQUARE_SIGNATURE'] ?? '';
 // request data using the centralized proxy-aware helpers.
 $canonicalUrl = getSetting('square_webhook_url');
 if (!$canonicalUrl) {
-    $scheme = isRequestSecure() ? 'https' : 'http';
-
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    if (isTrustedProxy() && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-        $host = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]);
-    }
-
-    $canonicalUrl = $scheme . '://' . $host . ($_SERVER['REQUEST_URI'] ?? '/admin/api/square-webhook.php');
+    // Prefer the canonical base URL (which validates host headers) over raw
+    // request reconstruction, and log a warning since production should always
+    // have an explicit webhook URL configured.
+    error_log('[SQUARE WEBHOOK] No explicit square_webhook_url configured — falling back to auto-detected URL. Set square_webhook_url in admin settings for production.');
+    $canonicalUrl = getCanonicalBaseUrl() . '/admin/api/square-webhook.php';
 }
 
 if ($signatureKey) {

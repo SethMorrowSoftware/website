@@ -192,7 +192,7 @@ function completeLogin(array $user): void {
 /**
  * Complete 2FA verification and finalize login.
  */
-function completeTwoFactorLogin(string $code): bool {
+function completeTwoFactorLogin(string $code): bool|string {
     ensureSession();
     $userId = $_SESSION['2fa_pending_user_id'] ?? null;
     $pendingTime = $_SESSION['2fa_pending_time'] ?? 0;
@@ -203,8 +203,19 @@ function completeTwoFactorLogin(string $code): bool {
         return false;
     }
 
+    // Brute-force protection: limit 2FA attempts per session
+    $maxAttempts = 5;
+    $attempts = $_SESSION['2fa_attempts'] ?? 0;
+
+    if ($attempts >= $maxAttempts) {
+        error_log('[AUTH] 2FA lockout for user ID ' . $userId . ' — exceeded ' . $maxAttempts . ' attempts');
+        unset($_SESSION['2fa_pending_user_id'], $_SESSION['2fa_pending_username'], $_SESSION['2fa_pending_time'], $_SESSION['2fa_attempts']);
+        return 'lockout';
+    }
+
     require_once __DIR__ . '/two-factor.php';
     if (verifyTwoFactorCode($userId, $code)) {
+        unset($_SESSION['2fa_attempts']);
         $db = getDB();
         $stmt = $db->prepare('SELECT * FROM users WHERE id = ?');
         $stmt->execute([$userId]);
@@ -213,6 +224,13 @@ function completeTwoFactorLogin(string $code): bool {
             completeLogin($user);
             return true;
         }
+    }
+
+    $_SESSION['2fa_attempts'] = $attempts + 1;
+    $remaining = $maxAttempts - $attempts - 1;
+    error_log('[AUTH] Failed 2FA attempt ' . ($attempts + 1) . '/' . $maxAttempts . ' for user ID ' . $userId);
+    if ($remaining <= 0) {
+        // Will be locked out on next attempt check above
     }
 
     return false;
