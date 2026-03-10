@@ -79,7 +79,8 @@ if ($orderNumber) {
         // For Square, mark as processing — actual payment confirmation should come
         // via Square webhooks. We do NOT auto-mark as completed on redirect since
         // Square handles capture asynchronously and the redirect alone is not proof.
-        if ($paymentMethod === 'square' && $order['payment_status'] === 'pending') {
+        if ($paymentMethod === 'square' && $order['payment_status'] === 'pending'
+            && isset($_SESSION['pending_checkout_order']) && $_SESSION['pending_checkout_order'] === $order['id']) {
             updateOrderPayment($order['id'], 'processing', $order['payment_id'] ?? '', 'square');
             $order = getOrderByNumber($orderNumber);
         }
