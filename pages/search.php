@@ -67,7 +67,7 @@ $catalogPageTitle = getSetting('catalog_page_title', 'Our Catalog');
                         <div class="card-body">
                             <div class="card-category"><i class="fas <?php echo e($product['category_icon'] ?? 'fa-tag'); ?>"></i> <?php echo e($product['category_name']); ?></div>
                             <h4><?php echo e($product['name']); ?></h4>
-                            <p><?php echo e(substr($product['description'], 0, 100)); ?><?php if (strlen($product['description']) > 100) echo '...'; ?></p>
+                            <p><?php echo e(substr($product['description'] ?? '', 0, 100)); ?><?php if (strlen($product['description'] ?? '') > 100) echo '...'; ?></p>
                         </div>
                         <div class="card-footer">
                             <span class="card-price"><?php echo e($product['price'] ?: 'Contact for Pricing'); ?></span>

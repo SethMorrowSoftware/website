@@ -18,7 +18,7 @@ do_action('init');
 // Maintenance mode check
 if (getSetting('maintenance_mode') === '1' || getSetting('enable_maintenance') === '1') {
     // Allow admin access
-    $isAdminPath = str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin');
+    $isAdminPath = str_starts_with(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '', '/admin');
     if (!$isAdminPath) {
         $maintenanceMsg = getSetting('maintenance_message', 'We are currently performing scheduled maintenance. We will be back online shortly.');
         echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Maintenance</title>';
@@ -582,7 +582,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             recordFormSubmission('customer_register');
             $customerId = registerCustomer($email, $password, $firstName, $lastName, $phone);
             if ($customerId) {
-                $customer = getLoggedInCustomer() ?: ['id' => $customerId, 'email' => $email, 'first_name' => $firstName, 'last_name' => $lastName];
                 loginCustomer(['id' => $customerId, 'email' => $email, 'first_name' => $firstName, 'last_name' => $lastName]);
                 $_SESSION['flash_message'] = 'Account created successfully! Welcome, ' . e($firstName) . '!';
                 $_SESSION['flash_type'] = 'success';
@@ -739,9 +738,7 @@ $featurePageMap = [
     'blog-post'       => 'blog',
 ];
 if (isset($featurePageMap[$page]) && !isFeatureEnabled($featurePageMap[$page])) {
-    if (!in_array($page, ['order-complete', 'download'])) {
-        redirect('/');
-    }
+    redirect('/');
 }
 
 // Check if it's a system page or a custom page

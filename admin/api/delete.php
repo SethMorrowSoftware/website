@@ -41,6 +41,18 @@ if (!in_array($table, $allowedTables) || !$id) {
     exit;
 }
 
+// Enforce granular permissions per table
+$tablePermissions = [
+    'products' => 'manage_products', 'containers' => 'manage_products',
+    'testimonials' => 'manage_pages', 'media' => 'manage_products',
+    'navigation' => 'manage_pages', 'orders' => 'manage_orders',
+];
+if (!hasPermission($tablePermissions[$table] ?? 'manage_products')) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Insufficient permissions']);
+    exit;
+}
+
 $db = getDB();
 
 try {

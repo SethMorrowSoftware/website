@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
 $categories = getBlogCategories(true);
 $allTags = getBlogTags();
-$allProducts = $db->query('SELECT id, name, image, price FROM products WHERE is_visible = 1 ORDER BY name ASC')->fetchAll();
+$allProducts = $db->query('SELECT id, name, image, price FROM products WHERE is_visible = 1 AND deleted_at IS NULL ORDER BY name ASC')->fetchAll();
 $csrfToken = generateCSRFToken();
 
 require_once __DIR__ . '/header.php';

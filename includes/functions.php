@@ -964,9 +964,9 @@ function handleDownloadUpload(array $file): ?string {
     $mimeType = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    // Use detected extension or fall back to original extension
-    $ext = $allowedMimes[$mimeType] ?? pathinfo($file['name'], PATHINFO_EXTENSION);
-    if (!$ext) return null;
+    // Use detected extension from allowlist, or reject unrecognized MIME types
+    if (!isset($allowedMimes[$mimeType])) return null;
+    $ext = $allowedMimes[$mimeType];
 
     // Max 500MB for download files
     if ($file['size'] > 500 * 1024 * 1024) return null;

@@ -43,11 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         // E-commerce settings
         'currency_code', 'currency_symbol', 'tax_rate',
         // Stripe
-        'stripe_publishable_key', 'stripe_secret_key',
+        'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
         // PayPal
         'paypal_client_id', 'paypal_secret',
         // Square
         'square_application_id', 'square_access_token', 'square_location_id',
+        'square_webhook_signature_key', 'square_webhook_url',
         // BTCPay Server
         'btcpay_url', 'btcpay_api_key', 'btcpay_store_id', 'btcpay_webhook_secret',
         // SMTP
