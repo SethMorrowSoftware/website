@@ -10,7 +10,7 @@ function logAudit(string $action, string $entityType = '', int $entityId = 0, ar
 
         // Try to get admin user ID
         if (session_status() === PHP_SESSION_NONE) session_start();
-        $userId = $_SESSION['admin_id'] ?? $_SESSION['customer_id'] ?? null;
+        $userId = $_SESSION['admin_user_id'] ?? $_SESSION['customer_id'] ?? null;
 
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
