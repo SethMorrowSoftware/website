@@ -63,7 +63,7 @@ function invalidateSettingsCache(): void {
  * Get the settings cache file path.
  */
 function getSettingsCacheFile(): string {
-    return BASE_PATH . '/backups/.settings_cache.php';
+    return BACKUPS_PATH . '/.settings_cache.php';
 }
 
 // ============================================================

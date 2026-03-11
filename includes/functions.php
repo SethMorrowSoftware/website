@@ -869,8 +869,10 @@ function processDownload(string $token): void {
     }
 
     $filePath = realpath(BASE_PATH . '/' . $download['download_file']);
-    // Ensure the resolved path stays within the project directory (prevent path traversal)
-    if (!$filePath || !str_starts_with($filePath, BASE_PATH . DIRECTORY_SEPARATOR)) {
+    // Ensure the resolved path stays strictly within the downloads directory (prevent path traversal / file disclosure)
+    $downloadsRoot = realpath(BASE_PATH . '/uploads/downloads');
+    if (!$filePath || !$downloadsRoot || !str_starts_with($filePath, $downloadsRoot . DIRECTORY_SEPARATOR)) {
+        error_log('[SECURITY] Download path rejected — outside downloads directory: ' . ($filePath ?: $download['download_file']));
         return;
     }
     if (!file_exists($filePath)) {
