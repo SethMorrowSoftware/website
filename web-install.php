@@ -48,20 +48,21 @@ function installerVerifyCsrf(): bool {
 }
 
 // ─── Utility ─────────────────────────────────────────────────
-function e(string $val): string {
+// Named _esc() to avoid collision with e() in config.php when we require it later
+function _esc(string $val): string {
     return htmlspecialchars($val, ENT_QUOTES, 'UTF-8');
 }
 
 function installerError(string $msg): string {
-    return '<div class="alert alert-error">' . e($msg) . '</div>';
+    return '<div class="alert alert-error">' . _esc($msg) . '</div>';
 }
 
 function installerSuccess(string $msg): string {
-    return '<div class="alert alert-success">' . e($msg) . '</div>';
+    return '<div class="alert alert-success">' . _esc($msg) . '</div>';
 }
 
 function installerInfo(string $msg): string {
-    return '<div class="alert alert-info">' . e($msg) . '</div>';
+    return '<div class="alert alert-info">' . _esc($msg) . '</div>';
 }
 
 // ─── Check if already installed ──────────────────────────────
@@ -275,14 +276,14 @@ function renderRequirements(): void {
         <tbody>
         <?php foreach ($checks as $c): ?>
             <tr>
-                <td><?= e($c['label']) ?></td>
+                <td><?= _esc($c['label']) ?></td>
                 <td>
                     <?php if ($c['pass']): ?>
-                        <span class="badge badge-pass"><?= e($c['value']) ?></span>
+                        <span class="badge badge-pass"><?= _esc($c['value']) ?></span>
                     <?php elseif ($c['required']): ?>
-                        <span class="badge badge-fail"><?= e($c['value']) ?></span>
+                        <span class="badge badge-fail"><?= _esc($c['value']) ?></span>
                     <?php else: ?>
-                        <span class="badge badge-warn"><?= e($c['value']) ?></span>
+                        <span class="badge badge-warn"><?= _esc($c['value']) ?></span>
                     <?php endif; ?>
                 </td>
             </tr>
@@ -316,35 +317,35 @@ function renderDatabaseForm(string $error = '', array $old = []): void {
     <?php if ($error) echo installerError($error); ?>
 
     <form method="post" action="web-install.php" autocomplete="off">
-        <input type="hidden" name="_csrf" value="<?= e(installerCsrfToken()) ?>">
+        <input type="hidden" name="_csrf" value="<?= _esc(installerCsrfToken()) ?>">
         <input type="hidden" name="action" value="check_db">
 
         <div class="form-group">
             <label for="db_host">Database Host</label>
-            <input type="text" id="db_host" name="db_host" value="<?= e($old['db_host'] ?? 'localhost') ?>" required>
+            <input type="text" id="db_host" name="db_host" value="<?= _esc($old['db_host'] ?? 'localhost') ?>" required>
             <small>Usually <code>localhost</code> on cPanel shared hosting</small>
         </div>
 
         <div class="form-group">
             <label for="db_port">Database Port</label>
-            <input type="text" id="db_port" name="db_port" value="<?= e($old['db_port'] ?? '3306') ?>">
+            <input type="text" id="db_port" name="db_port" value="<?= _esc($old['db_port'] ?? '3306') ?>">
         </div>
 
         <div class="form-group">
             <label for="db_name">Database Name</label>
-            <input type="text" id="db_name" name="db_name" value="<?= e($old['db_name'] ?? '') ?>" required>
+            <input type="text" id="db_name" name="db_name" value="<?= _esc($old['db_name'] ?? '') ?>" required>
             <small>e.g. <code>yourusername_cms</code></small>
         </div>
 
         <div class="form-group">
             <label for="db_user">Database Username</label>
-            <input type="text" id="db_user" name="db_user" value="<?= e($old['db_user'] ?? '') ?>" required>
+            <input type="text" id="db_user" name="db_user" value="<?= _esc($old['db_user'] ?? '') ?>" required>
             <small>e.g. <code>yourusername_cmsuser</code></small>
         </div>
 
         <div class="form-group">
             <label for="db_pass">Database Password</label>
-            <input type="password" id="db_pass" name="db_pass" value="<?= e($old['db_pass'] ?? '') ?>">
+            <input type="password" id="db_pass" name="db_pass" value="<?= _esc($old['db_pass'] ?? '') ?>">
         </div>
 
         <div class="step-nav">
@@ -365,12 +366,12 @@ function renderAdminForm(string $error = '', array $old = []): void {
     <?php if ($error) echo installerError($error); ?>
 
     <form method="post" action="web-install.php" autocomplete="off">
-        <input type="hidden" name="_csrf" value="<?= e(installerCsrfToken()) ?>">
+        <input type="hidden" name="_csrf" value="<?= _esc(installerCsrfToken()) ?>">
         <input type="hidden" name="action" value="create_admin">
 
         <div class="form-group">
             <label for="admin_user">Admin Username</label>
-            <input type="text" id="admin_user" name="admin_user" value="<?= e($old['admin_user'] ?? 'admin') ?>" required minlength="3">
+            <input type="text" id="admin_user" name="admin_user" value="<?= _esc($old['admin_user'] ?? 'admin') ?>" required minlength="3">
         </div>
 
         <div class="form-group">
@@ -401,22 +402,22 @@ function renderSiteSettingsForm(string $error = '', array $old = []): void {
     <?php if ($error) echo installerError($error); ?>
 
     <form method="post" action="web-install.php" autocomplete="off">
-        <input type="hidden" name="_csrf" value="<?= e(installerCsrfToken()) ?>">
+        <input type="hidden" name="_csrf" value="<?= _esc(installerCsrfToken()) ?>">
         <input type="hidden" name="action" value="save_settings">
 
         <div class="form-group">
             <label for="site_name">Company / Site Name</label>
-            <input type="text" id="site_name" name="site_name" value="<?= e($old['site_name'] ?? 'My Business') ?>" required>
+            <input type="text" id="site_name" name="site_name" value="<?= _esc($old['site_name'] ?? 'My Business') ?>" required>
         </div>
 
         <div class="form-group">
             <label for="site_email">Contact Email</label>
-            <input type="email" id="site_email" name="site_email" value="<?= e($old['site_email'] ?? '') ?>">
+            <input type="email" id="site_email" name="site_email" value="<?= _esc($old['site_email'] ?? '') ?>">
         </div>
 
         <div class="form-group">
             <label for="site_phone">Contact Phone</label>
-            <input type="text" id="site_phone" name="site_phone" value="<?= e($old['site_phone'] ?? '') ?>">
+            <input type="text" id="site_phone" name="site_phone" value="<?= _esc($old['site_phone'] ?? '') ?>">
         </div>
 
         <div class="form-group">
@@ -450,8 +451,8 @@ function renderComplete(): void {
     </div>
 
     <div class="links-box">
-        <p><strong>Your site:</strong> <a href="<?= e($baseUrl) ?>/" target="_blank"><?= e($baseUrl) ?>/</a></p>
-        <p><strong>Admin panel:</strong> <a href="<?= e($baseUrl) ?>/admin/" target="_blank"><?= e($baseUrl) ?>/admin/</a></p>
+        <p><strong>Your site:</strong> <a href="<?= _esc($baseUrl) ?>/" target="_blank"><?= _esc($baseUrl) ?>/</a></p>
+        <p><strong>Admin panel:</strong> <a href="<?= _esc($baseUrl) ?>/admin/" target="_blank"><?= _esc($baseUrl) ?>/admin/</a></p>
     </div>
 
     <div class="alert alert-error">
@@ -460,13 +461,13 @@ function renderComplete(): void {
     </div>
 
     <form method="post" action="web-install.php" class="delete-form">
-        <input type="hidden" name="_csrf" value="<?= e(installerCsrfToken()) ?>">
+        <input type="hidden" name="_csrf" value="<?= _esc(installerCsrfToken()) ?>">
         <input type="hidden" name="action" value="delete_installer">
         <div class="step-nav">
             <button type="submit" class="btn btn-danger" onclick="return confirm('This will permanently delete web-install.php. Continue?')">
                 Delete Installer File Now
             </button>
-            <a href="<?= e($baseUrl) ?>/admin/" class="btn btn-primary">Go to Admin Panel &rarr;</a>
+            <a href="<?= _esc($baseUrl) ?>/admin/" class="btn btn-primary">Go to Admin Panel &rarr;</a>
         </div>
     </form>
     <?php
@@ -870,7 +871,7 @@ function renderPage(string $stepTitle, string $body): void {
                 <li class="<?php
                     if ($currentIdx !== false && $i < $currentIdx) echo 'done';
                     elseif ($currentIdx !== false && $i === $currentIdx) echo 'active';
-                ?>"><?= e($label) ?></li>
+                ?>"><?= _esc($label) ?></li>
             <?php endforeach; ?>
         </ul>
 
