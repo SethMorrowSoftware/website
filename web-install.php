@@ -67,6 +67,11 @@ function installerInfo(string $msg): string {
 
 // ─── Check if already installed ──────────────────────────────
 function isAlreadyInstalled(): bool {
+    // If the current session is mid-install, don't block it
+    if (!empty($_SESSION['installer_db_done'])) {
+        return false;
+    }
+
     $envFile = BASE_PATH_INSTALL . '/.env';
     if (!file_exists($envFile)) {
         return false;
@@ -95,8 +100,11 @@ function isAlreadyInstalled(): bool {
         $pdo = new PDO($dsn, $env['DB_USER'], $env['DB_PASS'] ?? '');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Check if settings table has data (indicates completed install)
-        $count = $pdo->query('SELECT COUNT(*) FROM settings')->fetchColumn();
+        // Only consider "installed" if an admin user exists — that's the
+        // final proof the installer ran to completion.  Checking settings
+        // alone causes false positives because migrations seed default rows
+        // during the database step, before admin/settings steps finish.
+        $count = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
         if ($count > 0) {
             return true;
         }
