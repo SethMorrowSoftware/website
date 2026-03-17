@@ -20,6 +20,28 @@ $offeringsSubtext = getSetting('homepage_offerings_subtext', 'Explore our produc
 $featuredHeading = getSetting('homepage_featured_heading', 'Featured Products & Services');
 $featuredSubtext = getSetting('homepage_featured_subtext', 'A selection of what we have to offer');
 $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
+
+$wuzabusPhotoFiles = [];
+$wuzabusPhotoPatterns = [
+    __DIR__ . '/../wuzabus photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    __DIR__ . '/../wuzabus_photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    __DIR__ . '/../uploads/images/wuzabus photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    __DIR__ . '/../uploads/images/wuzabus_photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+];
+foreach ($wuzabusPhotoPatterns as $pattern) {
+    $matches = glob($pattern, GLOB_BRACE) ?: [];
+    if (!empty($matches)) {
+        sort($matches);
+        $wuzabusPhotoFiles = $matches;
+        break;
+    }
+}
+$wuzabusPhotoUrls = array_map(function ($file) {
+    $relative = str_replace(realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR, '', $file);
+    $parts = array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $relative));
+    return url(implode('/', $parts));
+}, $wuzabusPhotoFiles);
+$wuzabusHeroPhoto = $wuzabusPhotoUrls[0] ?? '';
 ?>
 
 <!-- Hero Section -->
@@ -31,6 +53,8 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <?php endif; ?>
     <?php if ($hero && $hero['background_image']): ?>
         <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+    <?php elseif ($wuzabusHeroPhoto): ?>
+        <div class="hero-image" style="background-image: url('<?php echo e($wuzabusHeroPhoto); ?>');"></div>
     <?php endif; ?>
     <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
     <div class="hero-content">
@@ -135,6 +159,25 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     </div>
 </section>
 <?php endif; ?>
+
+<?php if (!empty($wuzabusPhotoUrls)): ?>
+<section class="section section-light">
+    <div class="container">
+        <div class="section-header fade-in">
+            <h2>Wuzabus Build Gallery</h2>
+            <p>Real project photos from our bus, truck, and RV conversions.</p>
+        </div>
+        <div class="block-gallery-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <?php foreach (array_slice($wuzabusPhotoUrls, 0, 12) as $idx => $photoUrl): ?>
+                <figure class="block-gallery-item fade-in">
+                    <img src="<?php echo e($photoUrl); ?>" alt="Wuzabus conversion photo <?php echo $idx + 1; ?>" loading="lazy">
+                </figure>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 
 <!-- Why Choose Us -->
 <section class="section section-dark">

@@ -10,6 +10,24 @@ $_catalogEnabled = isFeatureEnabled('catalog');
 $_contactFormEnabled = isFeatureEnabled('contact_form');
 $categories = $_catalogEnabled ? getCategories() : [];
 $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1 AND deleted_at IS NULL')->fetchColumn() : 0;
+
+$wuzabusAboutPhoto = '';
+$wuzabusAboutPatterns = [
+    __DIR__ . '/../wuzabus photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    __DIR__ . '/../wuzabus_photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    __DIR__ . '/../uploads/images/wuzabus photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    __DIR__ . '/../uploads/images/wuzabus_photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+];
+foreach ($wuzabusAboutPatterns as $pattern) {
+    $matches = glob($pattern, GLOB_BRACE) ?: [];
+    if (!empty($matches)) {
+        sort($matches);
+        $relative = str_replace(realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR, '', $matches[0]);
+        $parts = array_map('rawurlencode', explode(DIRECTORY_SEPARATOR, $relative));
+        $wuzabusAboutPhoto = url(implode('/', $parts));
+        break;
+    }
+}
 ?>
 
 <!-- Hero -->
@@ -38,9 +56,13 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <div class="container">
         <div class="about-content">
             <div class="about-image fade-in">
-                <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));">
-                    <i class="fas fa-building"></i>
-                </div>
+                <?php if ($wuzabusAboutPhoto): ?>
+                    <img src="<?php echo e($wuzabusAboutPhoto); ?>" alt="Wuzabus conversion interior" style="width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); max-height: 460px; object-fit: cover;">
+                <?php else: ?>
+                    <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));">
+                        <i class="fas fa-building"></i>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="about-text fade-in">
                 <h2>Our Build Philosophy</h2>
