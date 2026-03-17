@@ -7,7 +7,7 @@ $hero = getHero('order');
 $categories = getCategories();
 $allProducts = getAllProducts();
 $csrfToken = generateCSRFToken();
-$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Project Inquiry');
 ?>
 
 <!-- Hero -->
@@ -18,7 +18,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? $orderInquiryTitle); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Tell Us What You Need — We\'ll Get Back to You Fast'); ?></p>
+        <p><?php echo e($hero['subtitle'] ?? 'Tell us about your rig and goals — we\'ll map your build'); ?></p>
     </div>
 </section>
 
@@ -65,7 +65,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 
                 <!-- Step 1: Category Selection -->
                 <div class="form-step active" data-step="1">
-                    <h3>What are you looking for?</h3>
+                    <h3>What type of conversion are you planning?</h3>
                     <div class="service-options">
                         <?php foreach ($categories as $cat): ?>
                             <label class="service-option" data-value="<?php echo e($cat['slug']); ?>">
@@ -80,7 +80,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 
                 <!-- Step 2: Product Details -->
                 <div class="form-step" data-step="2">
-                    <h3>Tell us the details</h3>
+                    <h3>Share your project details</h3>
 
                     <!-- Dynamic product options per category -->
                     <?php foreach ($categories as $cat): ?>

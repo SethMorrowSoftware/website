@@ -35,21 +35,21 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'Your Business Name')); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Quality Products & Services You Can Count On')); ?></p>
+        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Custom Bus, Truck & RV Conversions Built for Real Life')); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text'] && isHeroCtaLinkEnabled($hero['cta_link'] ?: 'index.php?page=order')): ?>
                 <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
                     <?php echo e($hero['cta_text']); ?>
                 </a>
             <?php elseif ($_orderInquiryEnabled): ?>
-                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Get a Free Quote</a>
+                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Start Your Build</a>
             <?php elseif ($_cartEnabled && $_catalogEnabled): ?>
-                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">Shop Now</a>
+                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">Explore Build Options</a>
             <?php elseif ($_catalogEnabled): ?>
-                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">View Our Catalog</a>
+                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">See Build Services</a>
             <?php endif; ?>
             <?php if ($_contactFormEnabled): ?>
-                <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
+                <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Talk to Wuzabus</a>
             <?php endif; ?>
         </div>
     </div>
@@ -130,7 +130,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
         </div>
 
         <div class="text-center mt-3">
-            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View Full <?php echo e(getSetting('catalog_page_title', 'Catalog')); ?></a>
+            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View Full <?php echo e(getSetting('catalog_page_title', 'Build Options')); ?></a>
         </div>
     </div>
 </section>
@@ -140,29 +140,29 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 <section class="section section-dark">
     <div class="container">
         <div class="section-header fade-in">
-            <h2 style="color: var(--color-white);">Why Choose Us?</h2>
+            <h2 style="color: var(--color-white);">Why Wuzabus?</h2>
         </div>
 
         <div class="features-grid">
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-handshake"></i></div>
-                <h4>Locally Owned</h4>
-                <p>A locally owned business proudly serving our community.</p>
+                <h4>Conversion Specialists</h4>
+                <p>Focused exclusively on bus, truck, and RV conversions for full-time livability.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-clock"></i></div>
-                <h4>Fast Service</h4>
-                <p>Quick turnaround and reliable service you can count on.</p>
+                <h4>Builds That Last</h4>
+                <p>Crafted interiors and systems designed for daily use on and off the road.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-dollar-sign"></i></div>
-                <h4>Competitive Pricing</h4>
-                <p>Fair, transparent pricing with no hidden fees or surprises.</p>
+                <h4>Transparent Process</h4>
+                <p>Clear proposals, milestone updates, and practical recommendations from start to finish.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-star"></i></div>
-                <h4>Quality Guaranteed</h4>
-                <p>Premium products and dependable service, every single time.</p>
+                <h4>Off-Grid Expertise</h4>
+                <p>Solar, battery, inverter, and ventilation integrations engineered for dependable mobile living.</p>
             </div>
         </div>
     </div>
@@ -173,7 +173,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>What Our Customers Say</h2>
+            <h2>Client Build Stories</h2>
         </div>
 
         <div class="testimonials-slider" id="testimonialSlider">

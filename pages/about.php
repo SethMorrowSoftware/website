@@ -19,8 +19,8 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'About Us'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Locally Owned & Operated — Serving Our Community'); ?></p>
+        <h1><?php echo e($hero['title'] ?? 'About Wuzabus'); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? 'Craftsmanship for Life on the Road'); ?></p>
     </div>
 </section>
 
@@ -29,7 +29,7 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <div class="breadcrumb">
         <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
-        <span class="current">About Us</span>
+        <span class="current">About Wuzabus</span>
     </div>
 </div>
 
@@ -43,9 +43,9 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
                 </div>
             </div>
             <div class="about-text fade-in">
-                <h2>Our Story</h2>
+                <h2>Our Build Philosophy</h2>
                 <p><?php echo nl2br(e($aboutText)); ?></p>
-                <p>We take pride in offering top-quality products and services at competitive prices, backed by the kind of personal attention that only a local business can provide.</p>
+                <p>Every Wuzabus conversion balances comfort, storage, durability, and serviceability—so your rig works in the real world, not just in photos.</p>
             </div>
         </div>
     </div>
@@ -77,34 +77,34 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Our Mission</h2>
+            <h2>Our Mission at Wuzabus</h2>
         </div>
         <div style="max-width: 800px; margin: 0 auto; text-align: center;" class="fade-in">
             <p style="font-size: var(--text-lg); color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                To provide our community with reliable, high-quality products and services at fair prices. We are committed to exceptional customer service and supporting local growth through dependable partnerships.
+                To transform buses, trucks, and RVs into livable spaces that feel like home—built with honest craftsmanship, dependable systems, and thoughtful design.
             </p>
         </div>
 
         <div class="features-grid features-grid-light mt-3">
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-leaf"></i></div>
-                <h4>Eco-Friendly</h4>
-                <p>Committed to sustainable practices and responsible operations.</p>
+                <h4>Smart Energy Design</h4>
+                <p>Efficient power systems, solar integration, and energy-aware planning for longer off-grid stays.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-shield-alt"></i></div>
-                <h4>Licensed &amp; Insured</h4>
-                <p>Fully licensed and insured for your peace of mind.</p>
+                <h4>Professional Craftsmanship</h4>
+                <p>Precision cabinetry, finish carpentry, and systems integration completed with workshop discipline.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-users"></i></div>
-                <h4>Community First</h4>
-                <p>Proud to serve our neighbors throughout the community.</p>
+                <h4>Client-First Process</h4>
+                <p>Collaborative planning, clear communication, and practical recommendations at every stage.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-thumbs-up"></i></div>
-                <h4>Reliable Service</h4>
-                <p>Dependable quality and service you can always count on.</p>
+                <h4>Road-Tested Reliability</h4>
+                <p>Builds designed to handle everyday travel demands with serviceable, maintainable components.</p>
             </div>
         </div>
     </div>

@@ -11,9 +11,9 @@ $_cartEnabled = isFeatureEnabled('cart');
 $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
 $_contactFormEnabled = isFeatureEnabled('contact_form');
 
-$catalogPageTitle = getSetting('catalog_page_title', 'Our Catalog');
-$catalogSectionTitle = getSetting('catalog_section_title', 'Browse Our Offerings');
-$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
+$catalogPageTitle = getSetting('catalog_page_title', 'Build Options');
+$catalogSectionTitle = getSetting('catalog_section_title', 'Explore Wuzabus Conversion Services');
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Project Inquiry');
 ?>
 
 <!-- Hero -->
@@ -45,7 +45,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <div class="container">
         <div class="section-header fade-in">
             <h2><?php echo e($catalogSectionTitle); ?></h2>
-            <p>Select a category below or browse everything we have available</p>
+            <p>Choose a category to explore conversion services and upgrade packages</p>
         </div>
 
         <?php if (count($categories) > 1): ?>
@@ -156,38 +156,38 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <div class="container">
         <div class="about-content">
             <div class="fade-in">
-                <h2>Ready to Order?</h2>
+                <h2>Ready to Start Your Conversion?</h2>
                 <p style="color: var(--color-gray-600); line-height: var(--leading-relaxed);">
                     <?php if ($_cartEnabled && $_orderInquiryEnabled): ?>
-                        Browse our catalog above and add items to your cart, or submit an order inquiry for custom requests. We offer competitive pricing and reliable service. Contact us for bulk orders, custom requests, or any questions.
+                        Browse our build options above and submit a project inquiry for your vehicle. We provide transparent estimates, realistic timelines, and custom conversion planning.
                     <?php elseif ($_cartEnabled): ?>
-                        Browse our catalog above and add items to your cart. We offer competitive pricing and reliable service.
+                        Browse our build options and request a custom scope for your project.
                     <?php elseif ($_orderInquiryEnabled): ?>
-                        Browse our catalog above and submit an inquiry for any items you're interested in. We offer competitive pricing and reliable service.
+                        Browse our build options above and submit a project inquiry for the services that fit your rig.
                     <?php else: ?>
-                        Browse our catalog above and contact us about any items you're interested in. We offer competitive pricing and reliable service.
+                        Browse our build options above and contact us to discuss your conversion goals.
                     <?php endif; ?>
                 </p>
                 <ul style="list-style: none; margin: var(--space-xl) 0;">
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Competitive pricing</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Fast, reliable service</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Digital downloads delivered instantly</li>
-                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Serving our local community</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Transparent project quotes</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Milestone-based build process</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Off-grid electrical expertise</li>
+                    <li style="padding: var(--space-sm) 0; color: var(--color-gray-700);"><i class="fas fa-check" style="color: var(--color-primary); margin-right: var(--space-sm);"></i> Nationwide conversion clients</li>
                 </ul>
                 <div class="cta-buttons-inline">
                     <?php if ($_cartEnabled): ?>
                         <a href="<?php echo url('index.php?page=cart'); ?>" class="btn btn-primary"><i class="fas fa-shopping-cart"></i> View Cart</a>
                     <?php endif; ?>
                     <?php if ($_orderInquiryEnabled): ?>
-                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark">Submit an Inquiry</a>
+                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-outline-dark">Send Project Inquiry</a>
                     <?php elseif ($_contactFormEnabled): ?>
-                        <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline-dark">Contact Us</a>
+                        <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline-dark">Contact Wuzabus</a>
                     <?php endif; ?>
                 </div>
             </div>
             <div class="about-image fade-in">
                 <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));">
-                    <i class="fas fa-store" style="color: rgba(255,255,255,0.3);"></i>
+                    <i class="fas fa-bus" style="color: rgba(255,255,255,0.3);"></i>
                 </div>
             </div>
         </div>
