@@ -112,21 +112,21 @@ $categories = [
         <!-- Filter Buttons -->
         <div class="text-center" style="margin-bottom: var(--space-2xl);">
             <?php foreach ($categories as $key => $label): ?>
-                <button class="btn <?php echo $key === 'all' ? 'btn-primary' : 'btn-outline-dark'; ?> gallery-filter-btn" data-filter="<?php echo e($key); ?>" style="margin: 4px;">
+                <button class="btn btn-sm <?php echo $key === 'all' ? 'btn-primary' : 'btn-outline-dark'; ?> gallery-filter-btn" data-filter="<?php echo e($key); ?>" style="margin: 4px;">
                     <?php echo e($label); ?>
                 </button>
             <?php endforeach; ?>
         </div>
 
         <!-- Gallery Grid -->
-        <div class="grid grid-3" id="galleryGrid">
+        <div class="grid grid-3" id="galleryGrid" style="gap: var(--space-xl);">
             <?php foreach ($galleryImages as $index => $image): ?>
                 <div class="card fade-in gallery-item" data-category="<?php echo e($image['category']); ?>">
-                    <div class="card-image" style="cursor: pointer;" data-lightbox="<?php echo e(url($image['src'])); ?>" data-caption="<?php echo e($image['caption']); ?>">
+                    <div class="card-image" style="height: 260px; cursor: pointer;" data-lightbox="<?php echo e(url($image['src'])); ?>" data-caption="<?php echo e($image['caption']); ?>">
                         <img src="<?php echo e(url($image['src'])); ?>" alt="<?php echo e($image['alt']); ?>" loading="lazy">
                     </div>
-                    <div class="card-body" style="padding: var(--space-md);">
-                        <p style="margin:0; font-size: var(--text-sm); color: var(--color-gray-600);"><?php echo e($image['caption']); ?></p>
+                    <div class="card-body" style="padding: var(--space-md) var(--space-lg);">
+                        <p style="margin:0; font-size: var(--text-sm); color: var(--color-gray-600); line-height: var(--leading-normal);"><?php echo e($image['caption']); ?></p>
                     </div>
                 </div>
             <?php endforeach; ?>

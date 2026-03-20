@@ -119,7 +119,7 @@
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 .blog-card-featured {
-    border: 2px solid var(--color-secondary, #F59E0B);
+    border: 2px solid var(--color-primary, #D97706);
 }
 .blog-card-image {
     display: block;
@@ -147,7 +147,7 @@
     color: #fff;
 }
 .blog-card-badge-featured {
-    background: var(--color-secondary, #F59E0B);
+    background: var(--color-primary, #D97706);
 }
 .blog-card-body {
     padding: 20px;

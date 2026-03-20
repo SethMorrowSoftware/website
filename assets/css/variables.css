@@ -113,7 +113,7 @@
     --color-text: #1e293b;
     --color-accent: #D97706;
     --border-radius: 8px;
-    --header-bg: #1a1a1a;
-    --footer-bg: #111111;
+    --header-bg: #ffffff;
+    --footer-bg: #1a1a1a;
     --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

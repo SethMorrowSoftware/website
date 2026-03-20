@@ -39,7 +39,7 @@ $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
     <div class="container">
         <div class="about-content">
             <div class="about-image fade-in">
-                <img src="<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>" alt="Wuzabus converted bus with solar panels" style="width:100%; border-radius: var(--radius-lg);">
+                <img src="<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>" alt="Wuzabus converted bus with solar panels">
             </div>
             <div class="about-text fade-in">
                 <h2>The Story</h2>
@@ -62,9 +62,9 @@ $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
             <h2>What I Work With</h2>
         </div>
 
-        <div class="grid grid-3 fade-in">
-            <div class="card">
-                <div class="card-image">
+        <div class="grid grid-3" style="gap: var(--space-xl);">
+            <div class="card fade-in">
+                <div class="card-image" style="height: 240px;">
                     <img src="<?php echo e(url('uploads/images/wuzabus/battery-bank-victron.jpg')); ?>" alt="Victron battery system with MPPT controllers" loading="lazy">
                 </div>
                 <div class="card-body">
@@ -72,8 +72,8 @@ $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
                     <p>MultiPlus inverter/chargers, SmartSolar MPPT controllers, Lynx distributors, and Cerbo GX monitoring.</p>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-image">
+            <div class="card fade-in">
+                <div class="card-image" style="height: 240px;">
                     <img src="<?php echo e(url('uploads/images/wuzabus/full-system-sok-batteries.jpg')); ?>" alt="SOK lithium batteries with Victron system" loading="lazy">
                 </div>
                 <div class="card-body">
@@ -81,13 +81,13 @@ $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
                     <p>SOK, Battle Born, and other quality lithium iron phosphate batteries. Sized right for your build.</p>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-image">
+            <div class="card fade-in">
+                <div class="card-image" style="height: 240px;">
                     <img src="<?php echo e(url('uploads/images/wuzabus/desert-inverter-install.jpg')); ?>" alt="EG4 6000XP inverter installation" loading="lazy">
                 </div>
                 <div class="card-body">
                     <h3>EG4 & More</h3>
-                    <p>EG4 6000XP inverters, breaker panels, shore power inlets, and everything else needed for a complete system.</p>
+                    <p>EG4 6000XP inverters, breaker panels, shore power inlets, and everything needed for a complete system.</p>
                 </div>
             </div>
         </div>
@@ -133,10 +133,10 @@ $_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
 
 <?php if ($serviceArea): ?>
 <!-- Service Area -->
-<section class="section section-primary">
+<section class="section section-dark">
     <div class="container text-center">
         <h2 style="color: var(--color-white);" class="fade-in">Service Area</h2>
-        <p style="font-size: var(--text-lg); margin: var(--space-lg) auto; max-width: 700px; opacity: 0.9;" class="fade-in">
+        <p style="font-size: var(--text-lg); margin: var(--space-lg) auto; max-width: 700px; color: var(--color-gray-300);" class="fade-in">
             <?php echo e($serviceArea); ?>
         </p>
         <?php if ($_orderInquiryEnabled): ?>

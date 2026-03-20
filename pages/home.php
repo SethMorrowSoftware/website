@@ -61,25 +61,25 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Get a Quote');
             <p>Clean, reliable power — designed for real-world use</p>
         </div>
 
-        <div class="services-grid">
-            <div class="service-card fade-in">
-                <div class="icon"><i class="fas fa-bus"></i></div>
-                <h3>Buses</h3>
+        <div class="features-grid features-grid-light">
+            <div class="feature-item fade-in" style="background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-2xl);">
+                <div class="icon" style="color: var(--color-primary);"><i class="fas fa-bus"></i></div>
+                <h4>Buses</h4>
                 <p>Skoolie and shuttle bus conversions with full electrical systems designed for full-time living.</p>
             </div>
-            <div class="service-card fade-in">
-                <div class="icon"><i class="fas fa-shuttle-van"></i></div>
-                <h3>Vans</h3>
+            <div class="feature-item fade-in" style="background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-2xl);">
+                <div class="icon" style="color: var(--color-primary);"><i class="fas fa-shuttle-van"></i></div>
+                <h4>Vans</h4>
                 <p>Sprinter, Transit, ProMaster — compact but capable electrical systems for van life.</p>
             </div>
-            <div class="service-card fade-in">
-                <div class="icon"><i class="fas fa-truck"></i></div>
-                <h3>Box Trucks</h3>
+            <div class="feature-item fade-in" style="background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-2xl);">
+                <div class="icon" style="color: var(--color-primary);"><i class="fas fa-truck"></i></div>
+                <h4>Box Trucks</h4>
                 <p>Box truck conversions with the power capacity to run everything you need off-grid.</p>
             </div>
-            <div class="service-card fade-in">
-                <div class="icon"><i class="fas fa-music"></i></div>
-                <h3>Mobile Stage Builds</h3>
+            <div class="feature-item fade-in" style="background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-2xl);">
+                <div class="icon" style="color: var(--color-primary);"><i class="fas fa-music"></i></div>
+                <h4>Mobile Stages</h4>
                 <p>High-capacity electrical for mobile stages and event vehicles. Built to handle the load.</p>
             </div>
         </div>
@@ -94,59 +94,59 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Get a Quote');
             <p><?php echo e($offeringsSubtext); ?></p>
         </div>
 
-        <div class="grid grid-3">
+        <div class="grid grid-3" style="gap: var(--space-xl);">
             <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/battery-bank-victron.jpg')); ?>" alt="Lithium battery bank with Victron components">
+                <div class="card-image" style="height: 240px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/battery-bank-victron.jpg')); ?>" alt="Lithium battery bank with Victron components" loading="lazy">
                 </div>
                 <div class="card-body">
                     <h3>Lithium Battery Systems</h3>
-                    <p>Custom LiFePO4 battery banks — SOK, Battle Born, and other top brands. Properly sized, fused, and wired for your build.</p>
+                    <p>Custom LiFePO4 battery banks. SOK, Battle Born, and other top brands — properly sized, fused, and wired.</p>
                 </div>
             </div>
             <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>" alt="Solar panels installed on converted bus">
+                <div class="card-image" style="height: 240px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>" alt="Solar panels installed on converted bus" loading="lazy">
                 </div>
                 <div class="card-body">
                     <h3>Solar Installs</h3>
-                    <p>Rooftop solar with MPPT charge controllers. Designed for maximum output in real-world conditions.</p>
+                    <p>Rooftop solar with MPPT charge controllers. Maximum output in real-world conditions.</p>
                 </div>
             </div>
             <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/victron-multiplus-rack.jpg')); ?>" alt="Victron MultiPlus inverter rack installation">
+                <div class="card-image" style="height: 240px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/victron-multiplus-rack.jpg')); ?>" alt="Victron MultiPlus inverter rack installation" loading="lazy">
                 </div>
                 <div class="card-body">
                     <h3>Inverters & Shore Power</h3>
-                    <p>Victron MultiPlus, EG4, and other quality inverter/charger systems with proper shore power hookup.</p>
+                    <p>Victron MultiPlus, EG4, and quality inverter/charger systems with shore power hookup.</p>
                 </div>
             </div>
             <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/electrical-victron-panel.jpg')); ?>" alt="Clean Victron electrical panel installation">
+                <div class="card-image" style="height: 240px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/electrical-victron-panel.jpg')); ?>" alt="Clean Victron electrical panel installation" loading="lazy">
                 </div>
                 <div class="card-body">
                     <h3>System Upgrades & Fixes</h3>
-                    <p>Upgrading outdated systems or fixing someone else's wiring. Clean, safe, and done right.</p>
+                    <p>Upgrading outdated systems or fixing someone else's wiring. Clean, safe, done right.</p>
                 </div>
             </div>
             <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/full-system-sok-batteries.jpg')); ?>" alt="Complete off-grid electrical system with SOK batteries">
+                <div class="card-image" style="height: 240px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/full-system-sok-batteries.jpg')); ?>" alt="Complete off-grid electrical system with SOK batteries" loading="lazy">
                 </div>
                 <div class="card-body">
                     <h3>Full Build Electrical</h3>
-                    <p>Complete electrical from scratch — batteries, solar, inverter, shore power, DC distribution, lighting, everything.</p>
+                    <p>Complete electrical from scratch — batteries, solar, inverter, shore power, distribution, everything.</p>
                 </div>
             </div>
             <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/desert-inverter-install.jpg')); ?>" alt="Off-grid inverter installation in desert setting">
+                <div class="card-image" style="height: 240px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/desert-inverter-install.jpg')); ?>" alt="Off-grid inverter installation in desert setting" loading="lazy">
                 </div>
                 <div class="card-body">
-                    <h3>Off-Grid Living Ready</h3>
-                    <p>Systems built for real off-grid use. No second chances when your power setup fails in the middle of nowhere.</p>
+                    <h3>Off-Grid Ready</h3>
+                    <p>Systems built for real off-grid use. No second chances when your power fails out there.</p>
                 </div>
             </div>
         </div>
@@ -199,20 +199,29 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Get a Quote');
             <p>Real builds. Real results.</p>
         </div>
 
-        <div class="grid grid-3">
+        <div class="grid grid-3" style="gap: var(--space-xl);">
             <div class="card fade-in">
-                <div class="card-image">
+                <div class="card-image" style="height: 280px;">
                     <img src="<?php echo e(url('uploads/images/wuzabus/bus-interior-kitchen.jpg')); ?>" alt="Converted bus interior with live-edge countertop" loading="lazy">
                 </div>
-            </div>
-            <div class="card fade-in">
-                <div class="card-image">
-                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-interior-bedroom.jpg')); ?>" alt="Bus conversion bedroom with mini-split AC" loading="lazy">
+                <div class="card-body" style="padding: var(--space-md) var(--space-lg);">
+                    <p style="margin: 0; font-size: var(--text-sm); color: var(--color-gray-600);">Bus interior — live-edge countertop, pine walls</p>
                 </div>
             </div>
             <div class="card fade-in">
-                <div class="card-image">
+                <div class="card-image" style="height: 280px;">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-interior-bedroom.jpg')); ?>" alt="Bus conversion bedroom with mini-split AC" loading="lazy">
+                </div>
+                <div class="card-body" style="padding: var(--space-md) var(--space-lg);">
+                    <p style="margin: 0; font-size: var(--text-sm); color: var(--color-gray-600);">Bedroom with mini-split AC — off-grid powered</p>
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image" style="height: 280px;">
                     <img src="<?php echo e(url('uploads/images/wuzabus/bus-workshop-build.jpg')); ?>" alt="Bus conversion in workshop" loading="lazy">
+                </div>
+                <div class="card-body" style="padding: var(--space-md) var(--space-lg);">
+                    <p style="margin: 0; font-size: var(--text-sm); color: var(--color-gray-600);">Build in progress — fully loaded and ready</p>
                 </div>
             </div>
         </div>

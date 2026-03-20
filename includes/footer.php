@@ -74,7 +74,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
         <div class="footer-grid">
             <div class="footer-about">
                 <div class="footer-logo">
-                    <i class="fas fa-bolt"></i> <?php echo e($companyName); ?>
+                    <i class="fas fa-bolt" style="color: var(--color-primary-light);"></i> <?php echo e($companyName); ?>
                 </div>
                 <p><?php echo e(getSetting('tagline', '')); ?></p>
                 <div class="footer-social-links">
