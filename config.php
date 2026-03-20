@@ -223,7 +223,7 @@ if (!defined('BASE_URL')) {
 define('UPLOADS_URL', BASE_URL . '/uploads');
 
 // Site defaults
-define('SITE_NAME', 'Your Business Name');
+define('SITE_NAME', 'Wuzabus');
 define('ADMIN_SESSION_TIMEOUT', 3600); // 1 hour
 
 /**

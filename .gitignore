@@ -10,6 +10,7 @@ uploads/images/*
 uploads/videos/*
 uploads/downloads/*
 !uploads/images/.gitkeep
+!uploads/images/wuzabus/
 !uploads/videos/.gitkeep
 !uploads/downloads/.htaccess
 

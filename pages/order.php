@@ -18,7 +18,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? $orderInquiryTitle); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Tell Us What You Need — We\'ll Get Back to You Fast'); ?></p>
+        <p><?php echo e($hero['subtitle'] ?? 'Tell Me About Your Build — I\'ll Design the Right System'); ?></p>
     </div>
 </section>
 

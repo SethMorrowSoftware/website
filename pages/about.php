@@ -1,6 +1,6 @@
 <?php
 /**
- * About Page
+ * About Page — Wuzabus Off-Grid Electrical
  */
 
 $hero = getHero('about');
@@ -8,19 +8,20 @@ $aboutText = getSetting('about_text');
 $serviceArea = getSetting('service_area');
 $_catalogEnabled = isFeatureEnabled('catalog');
 $_contactFormEnabled = isFeatureEnabled('contact_form');
-$categories = $_catalogEnabled ? getCategories() : [];
-$totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1 AND deleted_at IS NULL')->fetchColumn() : 0;
+$_orderInquiryEnabled = isFeatureEnabled('order_inquiry');
 ?>
 
 <!-- Hero -->
 <section class="hero">
     <?php if ($hero && $hero['background_image']): ?>
         <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+    <?php else: ?>
+        <div class="hero-image" style="background-image: url('<?php echo e(url('uploads/images/wuzabus/bus-workshop-build.jpg')); ?>');"></div>
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'About Us'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'Locally Owned & Operated — Serving Our Community'); ?></p>
+        <h1><?php echo e($hero['title'] ?? 'About Wuzabus'); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? 'Built From Experience. Powered by Passion.'); ?></p>
     </div>
 </section>
 
@@ -29,7 +30,7 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <div class="breadcrumb">
         <a href="<?php echo url('/'); ?>">Home</a>
         <span>/</span>
-        <span class="current">About Us</span>
+        <span class="current">About</span>
     </div>
 </div>
 
@@ -38,73 +39,93 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <div class="container">
         <div class="about-content">
             <div class="about-image fade-in">
-                <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));">
-                    <i class="fas fa-building"></i>
-                </div>
+                <img src="<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>" alt="Wuzabus converted bus with solar panels" style="width:100%; border-radius: var(--radius-lg);">
             </div>
             <div class="about-text fade-in">
-                <h2>Our Story</h2>
-                <p><?php echo nl2br(e($aboutText)); ?></p>
-                <p>We take pride in offering top-quality products and services at competitive prices, backed by the kind of personal attention that only a local business can provide.</p>
+                <h2>The Story</h2>
+                <?php if ($aboutText): ?>
+                    <p><?php echo nl2br(e($aboutText)); ?></p>
+                <?php else: ?>
+                    <p>Wuzabus designs and installs clean, reliable off-grid electrical systems for buses, vans, box trucks, and mobile stage builds.</p>
+                    <p>From lithium battery banks to full solar installs, inverters, shore power, and system upgrades — every build is done safely and correctly the first time. No shortcuts. No guesswork. Just stress-free power for life on the road.</p>
+                <?php endif; ?>
+                <p>Living the off-grid life means your electrical system better be built right. Out here there's no second chance if your power setup fails.</p>
             </div>
         </div>
     </div>
 </section>
 
-<?php if ($_catalogEnabled && ($totalProducts > 0 || !empty($categories))): ?>
-<!-- Stats -->
+<!-- What I Work With -->
 <section class="section section-light">
     <div class="container">
-        <div class="stats-grid fade-in">
-            <div class="stat-item">
-                <div class="number"><?php echo count($categories); ?>+</div>
-                <div class="label">Categories</div>
+        <div class="section-header fade-in">
+            <h2>What I Work With</h2>
+        </div>
+
+        <div class="grid grid-3 fade-in">
+            <div class="card">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/battery-bank-victron.jpg')); ?>" alt="Victron battery system with MPPT controllers" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <h3>Victron Energy</h3>
+                    <p>MultiPlus inverter/chargers, SmartSolar MPPT controllers, Lynx distributors, and Cerbo GX monitoring.</p>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="number"><?php echo $totalProducts; ?>+</div>
-                <div class="label">Products &amp; Services</div>
+            <div class="card">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/full-system-sok-batteries.jpg')); ?>" alt="SOK lithium batteries with Victron system" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <h3>SOK & LiFePO4 Batteries</h3>
+                    <p>SOK, Battle Born, and other quality lithium iron phosphate batteries. Sized right for your build.</p>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="number">100%</div>
-                <div class="label">Customer Satisfaction</div>
+            <div class="card">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/desert-inverter-install.jpg')); ?>" alt="EG4 6000XP inverter installation" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <h3>EG4 & More</h3>
+                    <p>EG4 6000XP inverters, breaker panels, shore power inlets, and everything else needed for a complete system.</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
-<?php endif; ?>
 
-<!-- Mission & Values -->
+<!-- Mission -->
 <section class="section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>Our Mission</h2>
+            <h2>The Approach</h2>
         </div>
         <div style="max-width: 800px; margin: 0 auto; text-align: center;" class="fade-in">
             <p style="font-size: var(--text-lg); color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                To provide our community with reliable, high-quality products and services at fair prices. We are committed to exceptional customer service and supporting local growth through dependable partnerships.
+                Every system I build starts with understanding how you actually use your rig. There's no one-size-fits-all when it comes to off-grid power. I design around your real needs — your appliances, your travel style, your climate — and build a system that just works.
             </p>
         </div>
 
         <div class="features-grid features-grid-light mt-3">
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-leaf"></i></div>
-                <h4>Eco-Friendly</h4>
-                <p>Committed to sustainable practices and responsible operations.</p>
+                <div class="icon"><i class="fas fa-solar-panel"></i></div>
+                <h4>Solar Done Right</h4>
+                <p>Properly mounted panels with MPPT controllers sized to your battery bank. Maximum harvest, minimum headaches.</p>
             </div>
             <div class="feature-item fade-in">
                 <div class="icon"><i class="fas fa-shield-alt"></i></div>
-                <h4>Licensed &amp; Insured</h4>
-                <p>Fully licensed and insured for your peace of mind.</p>
+                <h4>Safety First</h4>
+                <p>Every circuit fused. Every connection torqued. Proper wire gauge throughout. Your safety isn't optional.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-users"></i></div>
-                <h4>Community First</h4>
-                <p>Proud to serve our neighbors throughout the community.</p>
+                <div class="icon"><i class="fas fa-tools"></i></div>
+                <h4>Quality Components</h4>
+                <p>Victron, SOK, Blue Sea, and other brands that hold up. No cheap Amazon mystery brands in your electrical system.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-thumbs-up"></i></div>
-                <h4>Reliable Service</h4>
-                <p>Dependable quality and service you can always count on.</p>
+                <div class="icon"><i class="fas fa-road"></i></div>
+                <h4>Road Tested</h4>
+                <p>I live this life. Every system I build is something I'd trust in my own rig, out in the middle of nowhere.</p>
             </div>
         </div>
     </div>
@@ -118,7 +139,9 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
         <p style="font-size: var(--text-lg); margin: var(--space-lg) auto; max-width: 700px; opacity: 0.9;" class="fade-in">
             <?php echo e($serviceArea); ?>
         </p>
-        <?php if ($_contactFormEnabled): ?>
+        <?php if ($_orderInquiryEnabled): ?>
+            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg fade-in">Get a Quote</a>
+        <?php elseif ($_contactFormEnabled): ?>
             <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-primary btn-lg fade-in">Get in Touch</a>
         <?php endif; ?>
     </div>

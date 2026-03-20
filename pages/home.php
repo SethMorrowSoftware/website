@@ -1,6 +1,6 @@
 <?php
 /**
- * Home Page
+ * Home Page — Wuzabus Off-Grid Electrical
  */
 
 $hero = getHero('home');
@@ -15,11 +15,11 @@ $categories = $_catalogEnabled ? getCategories() : [];
 $testimonials = $_testimonialsEnabled ? getTestimonials() : [];
 $featuredProducts = $_catalogEnabled ? getFeaturedProducts(6) : [];
 
-$offeringsHeading = getSetting('homepage_offerings_heading', 'What We Offer');
-$offeringsSubtext = getSetting('homepage_offerings_subtext', 'Explore our products and services');
-$featuredHeading = getSetting('homepage_featured_heading', 'Featured Products & Services');
-$featuredSubtext = getSetting('homepage_featured_subtext', 'A selection of what we have to offer');
-$orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
+$offeringsHeading = getSetting('homepage_offerings_heading', 'What We Build');
+$offeringsSubtext = getSetting('homepage_offerings_subtext', 'Off-grid electrical systems built right the first time');
+$featuredHeading = getSetting('homepage_featured_heading', 'Our Services');
+$featuredSubtext = getSetting('homepage_featured_subtext', 'Everything you need to go off-grid with confidence');
+$orderInquiryTitle = getSetting('order_inquiry_title', 'Get a Quote');
 ?>
 
 <!-- Hero Section -->
@@ -31,11 +31,13 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <?php endif; ?>
     <?php if ($hero && $hero['background_image']): ?>
         <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+    <?php else: ?>
+        <div class="hero-image" style="background-image: url('<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>');"></div>
     <?php endif; ?>
-    <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
+    <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : 'opacity:0.55'; ?>"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'Your Business Name')); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Quality Products & Services You Can Count On')); ?></p>
+        <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'Wuzabus')); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Your electrical system shouldn\'t be the reason your trip ends early.')); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text'] && isHeroCtaLinkEnabled($hero['cta_link'] ?: 'index.php?page=order')): ?>
                 <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
@@ -43,137 +45,190 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                 </a>
             <?php elseif ($_orderInquiryEnabled): ?>
                 <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Get a Free Quote</a>
-            <?php elseif ($_cartEnabled && $_catalogEnabled): ?>
-                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">Shop Now</a>
-            <?php elseif ($_catalogEnabled): ?>
-                <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-primary btn-lg">View Our Catalog</a>
             <?php endif; ?>
             <?php if ($_contactFormEnabled): ?>
-                <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
+                <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Message Me</a>
             <?php endif; ?>
         </div>
     </div>
 </section>
 
-<!-- Categories Overview -->
-<?php if ($_catalogEnabled && !empty($categories)): ?>
+<!-- What I Build -->
 <section class="section">
+    <div class="container">
+        <div class="section-header fade-in">
+            <h2>I Build Off-Grid Electrical Systems For</h2>
+            <p>Clean, reliable power — designed for real-world use</p>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card fade-in">
+                <div class="icon"><i class="fas fa-bus"></i></div>
+                <h3>Buses</h3>
+                <p>Skoolie and shuttle bus conversions with full electrical systems designed for full-time living.</p>
+            </div>
+            <div class="service-card fade-in">
+                <div class="icon"><i class="fas fa-shuttle-van"></i></div>
+                <h3>Vans</h3>
+                <p>Sprinter, Transit, ProMaster — compact but capable electrical systems for van life.</p>
+            </div>
+            <div class="service-card fade-in">
+                <div class="icon"><i class="fas fa-truck"></i></div>
+                <h3>Box Trucks</h3>
+                <p>Box truck conversions with the power capacity to run everything you need off-grid.</p>
+            </div>
+            <div class="service-card fade-in">
+                <div class="icon"><i class="fas fa-music"></i></div>
+                <h3>Mobile Stage Builds</h3>
+                <p>High-capacity electrical for mobile stages and event vehicles. Built to handle the load.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Showcase with Photos -->
+<section class="section section-light">
     <div class="container">
         <div class="section-header fade-in">
             <h2><?php echo e($offeringsHeading); ?></h2>
             <p><?php echo e($offeringsSubtext); ?></p>
         </div>
 
-        <div class="services-grid">
-            <?php foreach ($categories as $cat): ?>
-                <a href="<?php echo url('index.php?page=catalog'); ?>#<?php echo e($cat['slug']); ?>" class="service-card fade-in">
-                    <div class="icon">
-                        <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>"></i>
-                    </div>
-                    <h3><?php echo e($cat['name']); ?></h3>
-                    <p><?php echo e($cat['description']); ?></p>
-                    <span class="btn btn-sm btn-outline-dark">Learn More</span>
-                </a>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-<?php endif; ?>
-
-<!-- Featured Products -->
-<?php if ($_catalogEnabled && !empty($featuredProducts)): ?>
-<section class="section section-light">
-    <div class="container">
-        <div class="section-header fade-in">
-            <h2><?php echo e($featuredHeading); ?></h2>
-            <p><?php echo e($featuredSubtext); ?></p>
-        </div>
-
         <div class="grid grid-3">
-            <?php $csrfToken = generateCSRFToken(); ?>
-            <?php foreach ($featuredProducts as $product): ?>
-                <div class="card fade-in">
-                    <div class="card-image">
-                        <?php if ($product['image']): ?>
-                            <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>">
-                        <?php else: ?>
-                            <div class="placeholder-icon">
-                                <i class="fas <?php echo e($product['category_icon'] ?? 'fa-tag'); ?>"></i>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="card-body">
-                        <h3><?php echo e($product['name']); ?></h3>
-                        <p><?php echo e($product['description']); ?></p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="card-price"><?php echo e($product['price'] ?: 'Call for Pricing'); ?></span>
-                        <?php
-                        $numericPrice = parsePrice($product['price']);
-                        if ($_cartEnabled && $numericPrice > 0): ?>
-                            <form method="POST" action="<?php echo url('index.php'); ?>" class="add-to-cart-form">
-                                <input type="hidden" name="action" value="add_to_cart">
-                                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                <button type="submit" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-cart-plus"></i> Add to Cart
-                                </button>
-                            </form>
-                        <?php elseif ($_orderInquiryEnabled): ?>
-                            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Order Now</a>
-                        <?php elseif ($_contactFormEnabled): ?>
-                            <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-sm btn-primary">Inquire</a>
-                        <?php endif; ?>
-                    </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/battery-bank-victron.jpg')); ?>" alt="Lithium battery bank with Victron components">
                 </div>
-            <?php endforeach; ?>
+                <div class="card-body">
+                    <h3>Lithium Battery Systems</h3>
+                    <p>Custom LiFePO4 battery banks — SOK, Battle Born, and other top brands. Properly sized, fused, and wired for your build.</p>
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-exterior-solar.jpg')); ?>" alt="Solar panels installed on converted bus">
+                </div>
+                <div class="card-body">
+                    <h3>Solar Installs</h3>
+                    <p>Rooftop solar with MPPT charge controllers. Designed for maximum output in real-world conditions.</p>
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/victron-multiplus-rack.jpg')); ?>" alt="Victron MultiPlus inverter rack installation">
+                </div>
+                <div class="card-body">
+                    <h3>Inverters & Shore Power</h3>
+                    <p>Victron MultiPlus, EG4, and other quality inverter/charger systems with proper shore power hookup.</p>
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/electrical-victron-panel.jpg')); ?>" alt="Clean Victron electrical panel installation">
+                </div>
+                <div class="card-body">
+                    <h3>System Upgrades & Fixes</h3>
+                    <p>Upgrading outdated systems or fixing someone else's wiring. Clean, safe, and done right.</p>
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/full-system-sok-batteries.jpg')); ?>" alt="Complete off-grid electrical system with SOK batteries">
+                </div>
+                <div class="card-body">
+                    <h3>Full Build Electrical</h3>
+                    <p>Complete electrical from scratch — batteries, solar, inverter, shore power, DC distribution, lighting, everything.</p>
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/desert-inverter-install.jpg')); ?>" alt="Off-grid inverter installation in desert setting">
+                </div>
+                <div class="card-body">
+                    <h3>Off-Grid Living Ready</h3>
+                    <p>Systems built for real off-grid use. No second chances when your power setup fails in the middle of nowhere.</p>
+                </div>
+            </div>
         </div>
 
+        <?php if ($_catalogEnabled): ?>
         <div class="text-center mt-3">
-            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View Full <?php echo e(getSetting('catalog_page_title', 'Catalog')); ?></a>
+            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline-dark btn-lg">View All Services</a>
         </div>
+        <?php endif; ?>
     </div>
 </section>
-<?php endif; ?>
 
-<!-- Why Choose Us -->
+<!-- Why Choose Wuzabus -->
 <section class="section section-dark">
     <div class="container">
         <div class="section-header fade-in">
-            <h2 style="color: var(--color-white);">Why Choose Us?</h2>
+            <h2 style="color: var(--color-white);">Why Wuzabus?</h2>
         </div>
 
         <div class="features-grid">
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-handshake"></i></div>
-                <h4>Locally Owned</h4>
-                <p>A locally owned business proudly serving our community.</p>
+                <div class="icon"><i class="fas fa-bolt"></i></div>
+                <h4>Clean Wiring</h4>
+                <p>Every wire routed, labeled, and secured. No rats' nests, no guesswork. It looks as good as it works.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-clock"></i></div>
-                <h4>Fast Service</h4>
-                <p>Quick turnaround and reliable service you can count on.</p>
+                <div class="icon"><i class="fas fa-shield-alt"></i></div>
+                <h4>Proper Fusing</h4>
+                <p>Every circuit properly fused and protected. No cutting corners on safety — your build and your life depend on it.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-dollar-sign"></i></div>
-                <h4>Competitive Pricing</h4>
-                <p>Fair, transparent pricing with no hidden fees or surprises.</p>
+                <div class="icon"><i class="fas fa-campground"></i></div>
+                <h4>Built for Real Use</h4>
+                <p>Systems designed for actual off-grid living, not just showroom looks. Tested in desert heat and mountain cold.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-star"></i></div>
-                <h4>Quality Guaranteed</h4>
-                <p>Premium products and dependable service, every single time.</p>
+                <div class="icon"><i class="fas fa-check-double"></i></div>
+                <h4>Done Right the First Time</h4>
+                <p>No callbacks, no rework. Quality components, proper installation, and a system you can trust from day one.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- Photo Showcase -->
+<section class="section">
+    <div class="container">
+        <div class="section-header fade-in">
+            <h2>Recent Work</h2>
+            <p>Real builds. Real results.</p>
+        </div>
+
+        <div class="grid grid-3">
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-interior-kitchen.jpg')); ?>" alt="Converted bus interior with live-edge countertop" loading="lazy">
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-interior-bedroom.jpg')); ?>" alt="Bus conversion bedroom with mini-split AC" loading="lazy">
+                </div>
+            </div>
+            <div class="card fade-in">
+                <div class="card-image">
+                    <img src="<?php echo e(url('uploads/images/wuzabus/bus-workshop-build.jpg')); ?>" alt="Bus conversion in workshop" loading="lazy">
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="<?php echo url('index.php?page=gallery'); ?>" class="btn btn-outline-dark btn-lg">View Full Gallery</a>
         </div>
     </div>
 </section>
 
 <!-- Testimonials -->
 <?php if (!empty($testimonials)): ?>
-<section class="section">
+<section class="section section-light">
     <div class="container">
         <div class="section-header fade-in">
-            <h2>What Our Customers Say</h2>
+            <h2>What Builders Say</h2>
         </div>
 
         <div class="testimonials-slider" id="testimonialSlider">
@@ -208,8 +263,8 @@ if (isFeatureEnabled('blog')):
 <link rel="stylesheet" href="<?php echo asset('css/blog.css'); ?>">
 <section class="blog-home-section">
     <div class="container">
-        <h2 class="fade-in">Latest from the Blog</h2>
-        <p class="section-subtitle fade-in">News, insights, and stories</p>
+        <h2 class="fade-in">From the Workshop</h2>
+        <p class="section-subtitle fade-in">Build tips, off-grid stories, and project updates</p>
         <div class="blog-home-grid">
             <?php foreach ($latestBlogPosts as $bp): ?>
                 <article class="blog-card fade-in">

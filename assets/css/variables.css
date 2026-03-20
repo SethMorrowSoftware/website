@@ -4,13 +4,13 @@
    ============================================ */
 
 :root {
-    /* Brand Colors — customize via Admin > Settings */
-    --color-primary: #2563EB;
-    --color-primary-dark: #1D4ED8;
-    --color-primary-light: #3B82F6;
-    --color-secondary: #F59E0B;
-    --color-secondary-dark: #D97706;
-    --color-secondary-light: #FBBF24;
+    /* Brand Colors — Wuzabus Off-Grid Electrical */
+    --color-primary: #D97706;
+    --color-primary-dark: #B45309;
+    --color-primary-light: #F59E0B;
+    --color-secondary: #1E3A5F;
+    --color-secondary-dark: #152C4A;
+    --color-secondary-light: #2D5A8E;
 
     /* Neutrals */
     --color-dark: #1a1a1a;
@@ -111,9 +111,9 @@
     /* Theme-overridable properties (set via Themes admin) */
     --color-background: #ffffff;
     --color-text: #1e293b;
-    --color-accent: #22c55e;
+    --color-accent: #D97706;
     --border-radius: 8px;
-    --header-bg: #ffffff;
-    --footer-bg: #1e293b;
+    --header-bg: #1a1a1a;
+    --footer-bg: #111111;
     --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

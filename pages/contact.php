@@ -25,8 +25,8 @@ $_showMap = isFeatureEnabled('map');
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? 'Contact Us'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'We\'re Here to Help — Reach Out Today'); ?></p>
+        <h1><?php echo e($hero['title'] ?? 'Get In Touch'); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? 'Ready to Build? Let\'s Talk About Your Power System'); ?></p>
     </div>
 </section>
 
@@ -45,7 +45,7 @@ $_showMap = isFeatureEnabled('map');
         <div class="contact-grid">
             <!-- Contact Form -->
             <div class="fade-in">
-                <h2 style="margin-bottom: var(--space-xl);">Send Us a Message</h2>
+                <h2 style="margin-bottom: var(--space-xl);">Tell Me About Your Build</h2>
                 <form method="POST" action="<?php echo url('index.php'); ?>" id="contactForm">
                     <input type="hidden" name="action" value="contact">
                     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
@@ -67,7 +67,7 @@ $_showMap = isFeatureEnabled('map');
 
                     <div class="form-group">
                         <label for="message">Message <span class="required">*</span></label>
-                        <textarea id="message" name="message" class="form-control" required placeholder="How can we help you?" rows="5"></textarea>
+                        <textarea id="message" name="message" class="form-control" required placeholder="Tell me about your build — what vehicle, what you need powered, and where you're at in the process." rows="5"></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">

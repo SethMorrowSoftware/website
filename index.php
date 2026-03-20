@@ -715,6 +715,8 @@ $allowedPages = [
     // New pages
     'product', 'search', 'login', 'register', 'account', 'wishlist',
     'forgot-password', 'reset-password', 'order-status',
+    // Gallery
+    'gallery',
     // Blog pages
     'blog', 'blog-post',
     // Marketplace
