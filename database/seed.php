@@ -86,6 +86,7 @@ function seedDatabase(PDO $db): void {
         ['enable_search', '1', 'text'],
         ['enable_wishlists', '1', 'text'],
         ['enable_reviews', '0', 'text'],
+        ['enable_blog', '1', 'text'],
     ];
 
     $stmt = $db->prepare('INSERT INTO settings (`key`, `value`, `type`) VALUES (?, ?, ?)');

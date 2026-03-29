@@ -106,5 +106,19 @@
                 open(imgList, startIdx);
             });
         }
+
+        // Auto-bind to .lightbox-trigger elements (gallery pages, etc.)
+        var triggers = document.querySelectorAll('.lightbox-trigger');
+        if (triggers.length > 0) {
+            var triggerImages = [];
+            triggers.forEach(function(t) { triggerImages.push(t.href || t.querySelector('img').src); });
+            triggers.forEach(function(trigger, idx) {
+                trigger.style.cursor = 'zoom-in';
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    open(triggerImages, idx);
+                });
+            });
+        }
     });
 })();

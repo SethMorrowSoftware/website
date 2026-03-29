@@ -76,7 +76,7 @@ require_once __DIR__ . '/header.php';
                     </div>
                     <?php if ($item['delivery_address']): ?>
                         <div class="detail-row">
-                            <div class="detail-label">Delivery Address</div>
+                            <div class="detail-label">Location</div>
                             <div class="detail-value"><?php echo e($item['delivery_address']); ?></div>
                         </div>
                     <?php endif; ?>

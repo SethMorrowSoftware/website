@@ -81,8 +81,8 @@ $galleryCategories = [
             <?php foreach ($category['photos'] as $photo): ?>
                 <div class="card fade-in">
                     <div class="card-image">
-                        <a href="<?php echo e($photo['src']); ?>" class="lightbox-trigger" data-caption="<?php echo e($photo['caption']); ?>">
-                            <img src="<?php echo e($photo['src']); ?>" alt="<?php echo e($photo['caption']); ?>" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
+                        <a href="<?php echo e(url($photo['src'])); ?>" class="lightbox-trigger" data-caption="<?php echo e($photo['caption']); ?>">
+                            <img src="<?php echo e(url($photo['src'])); ?>" alt="<?php echo e($photo['caption']); ?>" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
                         </a>
                     </div>
                     <div class="card-body">

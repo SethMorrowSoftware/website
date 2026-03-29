@@ -172,7 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
             var email = orderForm.querySelector('#order_email');
             var phone = orderForm.querySelector('#order_phone');
             var address = orderForm.querySelector('#delivery_address');
-            var date = orderForm.querySelector('#preferred_date');
+            var hasBus = orderForm.querySelector('[name="product_details[has_bus]"]');
+            var timeline = orderForm.querySelector('[name="product_details[preferred_time]"]');
+            var busDetails = orderForm.querySelector('[name="product_details[access_notes]"]');
 
             var html = '<table style="width:100%; border-collapse:collapse;">';
 
@@ -202,8 +204,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += reviewRow('Description', descField.value);
             }
 
-            if (address && address.value) html += reviewRow('Delivery Address', address.value);
-            if (date && date.value) html += reviewRow('Preferred Date', date.value);
+            if (address && address.value) html += reviewRow('Location', address.value);
+            if (hasBus && hasBus.value) html += reviewRow('Has a Bus', hasBus.options[hasBus.selectedIndex].text);
+            if (timeline && timeline.value) html += reviewRow('Timeline', timeline.options[timeline.selectedIndex].text);
+            if (busDetails && busDetails.value) html += reviewRow('Bus Details', busDetails.value);
             if (name && name.value) html += reviewRow('Name', name.value);
             if (email && email.value) html += reviewRow('Email', email.value);
             if (phone && phone.value) html += reviewRow('Phone', phone.value);

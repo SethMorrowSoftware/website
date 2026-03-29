@@ -11,7 +11,7 @@ RewriteEngine On
 # Clean URLs: /about -> index.php?page=about
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout|search|login|register|account|wishlist|forgot-password|reset-password|order-status|blog|blog-post)/?$ index.php?page=$1 [L,QSA]
+RewriteRule ^(home|about|catalog|contact|order|payment|cart|checkout|order-complete|download|paypal-checkout|search|login|register|account|wishlist|forgot-password|reset-password|order-status|blog|blog-post|gallery)/?$ index.php?page=$1 [L,QSA]
 
 # Product detail pages: /product/slug -> index.php?page=product&slug=slug
 RewriteCond %{REQUEST_FILENAME} !-f
