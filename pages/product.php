@@ -55,11 +55,11 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
             <div class="product-gallery">
                 <div class="product-main-image" id="mainImage">
                     <?php
-                    $mainImageUrl = $product['image'] ?: asset('images/placeholders/default.jpg');
+                    $mainImageUrl = getImageUrl($product['image']);
                     if (!empty($images)) {
                         foreach ($images as $img) {
                             if ($img['is_primary']) {
-                                $mainImageUrl = $img['image_path'];
+                                $mainImageUrl = getImageUrl($img['image_path']);
                                 break;
                             }
                         }
@@ -77,8 +77,8 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
                     <div class="product-thumbnails">
                         <?php foreach ($images as $img): ?>
                             <button class="product-thumb <?php echo $img['is_primary'] ? 'active' : ''; ?>"
-                                    onclick="document.getElementById('mainProductImage').src='<?php echo e($img['image_path']); ?>'; document.querySelectorAll('.product-thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active');">
-                                <img src="<?php echo e($img['image_path']); ?>" alt="<?php echo e($img['alt_text'] ?? $product['name']); ?>">
+                                    onclick="document.getElementById('mainProductImage').src='<?php echo e(getImageUrl($img['image_path'])); ?>'; document.querySelectorAll('.product-thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active');">
+                                <img src="<?php echo e(getImageUrl($img['image_path'])); ?>" alt="<?php echo e($img['alt_text'] ?? $product['name']); ?>">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -246,7 +246,7 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
                 <a href="<?php echo url('index.php?page=product&slug=' . e($rel['slug'])); ?>" class="card card-link fade-in">
                     <div class="card-image">
                         <?php if ($rel['image']): ?>
-                            <img src="<?php echo e($rel['image']); ?>" alt="<?php echo e($rel['name']); ?>" loading="lazy">
+                            <img src="<?php echo e(getImageUrl($rel['image'])); ?>" alt="<?php echo e($rel['name']); ?>" loading="lazy">
                         <?php else: ?>
                             <div class="placeholder-icon"><i class="fas fa-box"></i></div>
                         <?php endif; ?>

@@ -14,12 +14,18 @@ $_contactFormEnabled = isFeatureEnabled('contact_form');
 $catalogPageTitle = getSetting('catalog_page_title', 'Our Catalog');
 $catalogSectionTitle = getSetting('catalog_section_title', 'Browse Our Offerings');
 $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
+$wuzabusPlaceholderProducts = [
+    ['name' => 'Complete Skoolie Conversion', 'category' => 'Bus Conversion', 'price' => 'Custom Quote', 'image' => 'wuzabus_photos/20210508_162602.jpg'],
+    ['name' => 'Victron Energy System Package', 'category' => 'Electrical', 'price' => '$8,500+', 'image' => 'wuzabus_photos/20241129_191724.jpg'],
+    ['name' => 'Custom Kitchen Build', 'category' => 'Interior Build', 'price' => '$7,500+', 'image' => 'wuzabus_photos/20200508_215108.jpg'],
+];
+$hasVisibleProducts = false;
 ?>
 
 <!-- Hero -->
 <section class="hero">
     <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+        <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'])); ?>');"></div>
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
@@ -60,6 +66,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
         <?php foreach ($categories as $cat): ?>
             <?php $products = getProductsByCategory($cat['id']); ?>
             <?php if (empty($products)) continue; ?>
+            <?php $hasVisibleProducts = true; ?>
             <div class="product-category-section" id="<?php echo e($cat['slug']); ?>" data-category="<?php echo e($cat['slug']); ?>">
                 <h3 style="margin-bottom: var(--space-sm); padding-top: var(--space-xl);">
                     <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>" style="color: var(--color-secondary);"></i>
@@ -86,7 +93,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                                     </span>
                                 <?php endif; ?>
                                 <?php if ($product['image']): ?>
-                                    <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>" loading="lazy">
+                                    <img src="<?php echo e(getImageUrl($product['image'])); ?>" alt="<?php echo e($product['name']); ?>" loading="lazy">
                                 <?php else: ?>
                                     <div class="placeholder-icon">
                                         <?php if ($productType === 'digital'): ?>
@@ -157,6 +164,33 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <?php if (!$hasVisibleProducts): ?>
+            <div class="product-category-section" data-category="all">
+                <h3 style="margin-bottom: var(--space-sm); padding-top: var(--space-xl);">
+                    <i class="fas fa-store" style="color: var(--color-secondary);"></i>
+                    Sample WuzaBus Services
+                </h3>
+                <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);">Your catalog is empty right now. Here are placeholder offerings so the storefront does not appear blank.</p>
+                <div class="grid grid-3">
+                    <?php foreach ($wuzabusPlaceholderProducts as $placeholder): ?>
+                        <div class="card fade-in">
+                            <div class="card-image">
+                                <img src="<?php echo e(getImageUrl($placeholder['image'])); ?>" alt="<?php echo e($placeholder['name']); ?>" loading="lazy">
+                            </div>
+                            <div class="card-body">
+                                <h4><?php echo e($placeholder['name']); ?></h4>
+                                <p><?php echo e($placeholder['category']); ?></p>
+                            </div>
+                            <div class="card-footer">
+                                <span class="card-price"><?php echo e($placeholder['price']); ?></span>
+                                <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Request a Quote</a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 

@@ -41,7 +41,7 @@ $_cartEnabled = isFeatureEnabled('cart');
                         <div class="card-image">
                             <a href="<?php echo url('index.php?page=product&slug=' . e($item['slug'])); ?>">
                                 <?php if ($item['image']): ?>
-                                    <img src="<?php echo e($item['image']); ?>" alt="<?php echo e($item['name']); ?>" loading="lazy">
+                                    <img src="<?php echo e(getImageUrl($item['image'])); ?>" alt="<?php echo e($item['name']); ?>" loading="lazy">
                                 <?php else: ?>
                                     <div class="placeholder-icon"><i class="fas fa-box"></i></div>
                                 <?php endif; ?>
