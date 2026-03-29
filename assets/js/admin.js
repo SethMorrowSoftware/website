@@ -44,24 +44,48 @@ document.addEventListener('DOMContentLoaded', function() {
     var sidebarToggle = document.getElementById('sidebarToggle');
     var sidebarClose = document.getElementById('sidebarClose');
 
+    function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('open');
+        if (sidebarToggle) {
+            sidebarToggle.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function toggleSidebar() {
+        if (!sidebar) return;
+        var isOpen = sidebar.classList.toggle('open');
+        if (sidebarToggle) {
+            sidebarToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+    }
+
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('open');
+            toggleSidebar();
         });
     }
 
     if (sidebarClose) {
         sidebarClose.addEventListener('click', function() {
-            sidebar.classList.remove('open');
+            closeSidebar();
         });
     }
 
     // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function(e) {
         if (sidebar && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(e.target) && e.target !== sidebarToggle) {
-                sidebar.classList.remove('open');
+            var clickedToggle = sidebarToggle && (e.target === sidebarToggle || sidebarToggle.contains(e.target));
+            if (!sidebar.contains(e.target) && !clickedToggle) {
+                closeSidebar();
             }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) {
+            closeSidebar();
+            if (sidebarToggle) sidebarToggle.focus();
         }
     });
 
