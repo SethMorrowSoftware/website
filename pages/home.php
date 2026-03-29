@@ -22,6 +22,7 @@ $featuredSubtext = getSetting('homepage_featured_subtext', 'A selection of what 
 $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 $defaultHeroImage = 'wuzabus_photos/20200615_134615_fx.jpg';
 $galleryPage = getPage('gallery');
+$showGalleryCta = ($galleryPage && !empty($galleryPage['is_published'])) || file_exists(__DIR__ . '/gallery.php');
 ?>
 
 <!-- Hero Section -->
@@ -51,7 +52,7 @@ $galleryPage = getPage('gallery');
             <?php if ($_contactFormEnabled): ?>
                 <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg">Contact Us</a>
             <?php endif; ?>
-            <?php if ($galleryPage && !empty($galleryPage['is_published'])): ?>
+            <?php if ($showGalleryCta): ?>
                 <a href="<?php echo url('index.php?page=gallery'); ?>" class="btn btn-outline btn-lg">View Our Builds</a>
             <?php endif; ?>
         </div>

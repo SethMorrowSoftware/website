@@ -24,7 +24,7 @@ foreach ($navigation as $navItem) {
     }
 }
 $galleryPageForNav = getPage('gallery');
-if (!$hasGalleryNavItem && $galleryPageForNav && !empty($galleryPageForNav['is_published'])) {
+if (!$hasGalleryNavItem && ($galleryPageForNav || file_exists(__DIR__ . '/../pages/gallery.php'))) {
     $navigation[] = [
         'label' => 'Gallery',
         'url' => 'index.php?page=gallery',

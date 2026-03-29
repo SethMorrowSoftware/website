@@ -469,6 +469,19 @@ function getImageUrl(?string $path, ?string $placeholder = null): string {
         return url($normalized);
     }
 
+    if (str_starts_with($normalized, '/wuzabus_photos/')) {
+        $photoName = basename($normalized);
+        $fallbackPaths = [
+            '/uploads/images/wuzabus_photos/' . $photoName,
+            '/uploads/images/' . $photoName,
+        ];
+        foreach ($fallbackPaths as $fallbackPath) {
+            if (file_exists(BASE_PATH . $fallbackPath)) {
+                return url($fallbackPath);
+            }
+        }
+    }
+
     if (str_starts_with($normalized, '/uploads/') || str_starts_with($normalized, '/wuzabus_photos/')) {
         return url($normalized);
     }
