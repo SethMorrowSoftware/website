@@ -15,6 +15,21 @@ $currentPage = $_GET['page'] ?? 'home';
 $cartEnabled = isFeatureEnabled('cart');
 $showPhoneHeader = isFeatureEnabled('phone_header');
 $showEmailHeader = isFeatureEnabled('email_header');
+$hasGalleryNavItem = false;
+foreach ($navigation as $navItem) {
+    $navUrl = $navItem['url'] ?? '';
+    if (strpos($navUrl, 'page=gallery') !== false || trim($navUrl, '/') === 'gallery') {
+        $hasGalleryNavItem = true;
+        break;
+    }
+}
+$galleryPageForNav = getPage('gallery');
+if (!$hasGalleryNavItem && ($galleryPageForNav || file_exists(__DIR__ . '/../pages/gallery.php'))) {
+    $navigation[] = [
+        'label' => 'Gallery',
+        'url' => 'index.php?page=gallery',
+    ];
+}
 
 // Get page meta
 $pageData = getPage($currentPage);

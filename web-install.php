@@ -595,11 +595,24 @@ function handleDatabaseSetup(): void {
     }
 
     // Create upload directories
-    $dirs = ['uploads/images', 'uploads/videos', 'uploads/downloads'];
+    $dirs = ['uploads/images', 'uploads/images/wuzabus_photos', 'uploads/videos', 'uploads/downloads'];
     foreach ($dirs as $dir) {
         $full = BASE_PATH_INSTALL . '/' . $dir;
         if (!is_dir($full)) {
             @mkdir($full, 0755, true);
+        }
+    }
+
+    // Copy bundled WuzaBus gallery photos into uploads for consistent public serving.
+    $bundledPhotoDir = BASE_PATH_INSTALL . '/wuzabus_photos';
+    $installPhotoDir = BASE_PATH_INSTALL . '/uploads/images/wuzabus_photos';
+    if (is_dir($bundledPhotoDir) && is_dir($installPhotoDir)) {
+        $bundledPhotos = glob($bundledPhotoDir . '/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
+        foreach ($bundledPhotos as $sourcePhoto) {
+            $targetPhoto = $installPhotoDir . '/' . basename($sourcePhoto);
+            if (!file_exists($targetPhoto)) {
+                @copy($sourcePhoto, $targetPhoto);
+            }
         }
     }
 

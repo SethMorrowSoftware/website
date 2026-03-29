@@ -22,10 +22,23 @@ $photoMeta = [
 ];
 
 $galleryItems = [];
-$photoFiles = glob(__DIR__ . '/../wuzabus_photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
-sort($photoFiles);
-foreach ($photoFiles as $photoFile) {
-    $baseName = basename($photoFile);
+$photoSourceDirs = [
+    __DIR__ . '/../uploads/images/wuzabus_photos' => 'uploads/images/wuzabus_photos/',
+    __DIR__ . '/../wuzabus_photos' => 'wuzabus_photos/',
+];
+$photoMap = [];
+foreach ($photoSourceDirs as $diskDir => $webPrefix) {
+    $photoFiles = glob($diskDir . '/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
+    sort($photoFiles);
+    foreach ($photoFiles as $photoFile) {
+        $baseName = basename($photoFile);
+        if (!isset($photoMap[$baseName])) {
+            $photoMap[$baseName] = $webPrefix . $baseName;
+        }
+    }
+}
+ksort($photoMap);
+foreach ($photoMap as $baseName => $webPath) {
     $meta = $photoMeta[$baseName] ?? [
         'caption' => 'TheWuzaBus project photo: ' . pathinfo($baseName, PATHINFO_FILENAME),
         'category' => 'completed',
@@ -33,7 +46,7 @@ foreach ($photoFiles as $photoFile) {
     ];
     $galleryItems[] = [
         'type' => 'image',
-        'src' => 'wuzabus_photos/' . $baseName,
+        'src' => $webPath,
         'caption' => $meta['caption'],
         'category' => $meta['category'],
         'featured' => (bool)($meta['featured'] ?? false),
@@ -73,7 +86,7 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
 <!-- Hero -->
 <section class="hero">
     <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+        <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'])); ?>');"></div>
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
