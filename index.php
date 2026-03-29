@@ -719,6 +719,8 @@ $allowedPages = [
     'blog', 'blog-post',
     // Marketplace
     'vendor',
+    // Gallery
+    'gallery',
 ];
 
 // Redirect away from disabled feature pages

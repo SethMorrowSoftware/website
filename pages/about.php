@@ -38,14 +38,12 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <div class="container">
         <div class="about-content">
             <div class="about-image fade-in">
-                <div class="placeholder-banner" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));">
-                    <i class="fas fa-building"></i>
-                </div>
+                <img src="wuzabus_photos/20200615_134615_fx.jpg" alt="TheWuzaBus - Custom Bus Conversion" style="width:100%; border-radius: var(--radius-lg); object-fit: cover;">
             </div>
             <div class="about-text fade-in">
                 <h2>Our Story</h2>
                 <p><?php echo nl2br(e($aboutText)); ?></p>
-                <p>We take pride in offering top-quality products and services at competitive prices, backed by the kind of personal attention that only a local business can provide.</p>
+                <p>What started as a personal project — converting our own bus into a home — quickly grew into a passion for helping others achieve the freedom of mobile living. We have been building, wiring, and crafting custom bus conversions since 2020, and every project we take on gets the same care and attention as if it were our own home.</p>
             </div>
         </div>
     </div>
@@ -58,15 +56,15 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
         <div class="stats-grid fade-in">
             <div class="stat-item">
                 <div class="number"><?php echo count($categories); ?>+</div>
-                <div class="label">Categories</div>
+                <div class="label">Service Categories</div>
             </div>
             <div class="stat-item">
                 <div class="number"><?php echo $totalProducts; ?>+</div>
-                <div class="label">Products &amp; Services</div>
+                <div class="label">Services &amp; Packages</div>
             </div>
             <div class="stat-item">
                 <div class="number">100%</div>
-                <div class="label">Customer Satisfaction</div>
+                <div class="label">Client Satisfaction</div>
             </div>
         </div>
     </div>
@@ -81,30 +79,30 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
         </div>
         <div style="max-width: 800px; margin: 0 auto; text-align: center;" class="fade-in">
             <p style="font-size: var(--text-lg); color: var(--color-gray-600); line-height: var(--leading-relaxed);">
-                To provide our community with reliable, high-quality products and services at fair prices. We are committed to exceptional customer service and supporting local growth through dependable partnerships.
+                To empower people to live freely on their own terms by building safe, beautiful, and reliable bus conversions. We believe everyone deserves a home that moves with them — built with quality materials, expert craftsmanship, and systems you can depend on wherever the road takes you.
             </p>
         </div>
 
         <div class="features-grid features-grid-light mt-3">
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-leaf"></i></div>
-                <h4>Eco-Friendly</h4>
-                <p>Committed to sustainable practices and responsible operations.</p>
+                <div class="icon"><i class="fas fa-solar-panel"></i></div>
+                <h4>Off-Grid Ready</h4>
+                <p>Every build is designed for true energy independence with professional-grade solar and battery systems.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-shield-alt"></i></div>
-                <h4>Licensed &amp; Insured</h4>
-                <p>Fully licensed and insured for your peace of mind.</p>
+                <div class="icon"><i class="fas fa-tools"></i></div>
+                <h4>Quality Materials</h4>
+                <p>We use premium components — Victron electronics, SOK batteries, real wood finishes, and marine-grade hardware.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-users"></i></div>
-                <h4>Community First</h4>
-                <p>Proud to serve our neighbors throughout the community.</p>
+                <div class="icon"><i class="fas fa-heart"></i></div>
+                <h4>Passion-Driven</h4>
+                <p>We live the bus life ourselves. Every build benefits from real-world experience and genuine love for the lifestyle.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-thumbs-up"></i></div>
-                <h4>Reliable Service</h4>
-                <p>Dependable quality and service you can always count on.</p>
+                <div class="icon"><i class="fas fa-handshake"></i></div>
+                <h4>Client-Focused</h4>
+                <p>Your build, your vision. We work closely with every client to create a conversion that fits their unique needs and dreams.</p>
             </div>
         </div>
     </div>

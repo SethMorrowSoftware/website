@@ -455,7 +455,7 @@ function renderComplete(): void {
     <h2>Installation Complete!</h2>
 
     <div class="alert alert-success">
-        Your Business Website CMS has been successfully installed.
+        TheWuzaBus website has been successfully installed.
     </div>
 
     <div class="links-box">
