@@ -73,7 +73,7 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
 <!-- Hero -->
 <section class="hero">
     <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+        <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'])); ?>');"></div>
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">

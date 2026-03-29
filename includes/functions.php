@@ -456,12 +456,23 @@ function getImageUrl(?string $path, ?string $placeholder = null): string {
     if ($placeholder === null) {
         $placeholder = asset('images/placeholders/default.jpg');
     }
-    if ($path && file_exists(BASE_PATH . $path)) {
+    if (!$path) {
+        return $placeholder;
+    }
+
+    if (preg_match('#^(https?:)?//#i', $path) || str_starts_with($path, 'data:')) {
         return $path;
     }
-    if ($path && (str_contains($path, '/uploads/') || str_starts_with($path, 'uploads/'))) {
-        return $path;
+
+    $normalized = '/' . ltrim($path, '/');
+    if (file_exists(BASE_PATH . $normalized)) {
+        return url($normalized);
     }
+
+    if (str_starts_with($normalized, '/uploads/') || str_starts_with($normalized, '/wuzabus_photos/')) {
+        return url($normalized);
+    }
+
     return $placeholder;
 }
 

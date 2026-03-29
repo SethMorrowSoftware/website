@@ -27,11 +27,11 @@ $galleryPage = getPage('gallery');
 <!-- Hero Section -->
 <section class="hero hero-home">
     <?php if ($hero && $hero['background_video']): ?>
-        <video class="hero-video" autoplay muted loop playsinline poster="<?php echo e($hero['background_image'] ?: $defaultHeroImage); ?>">
+        <video class="hero-video" autoplay muted loop playsinline poster="<?php echo e(getImageUrl($hero['background_image'] ?: $defaultHeroImage)); ?>">
             <source src="<?php echo e($hero['background_video']); ?>" type="video/mp4">
         </video>
     <?php endif; ?>
-    <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image'] ?? $defaultHeroImage); ?>');"></div>
+    <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'] ?? $defaultHeroImage)); ?>');"></div>
     <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'TheWuzaBus')); ?></h1>
@@ -98,7 +98,7 @@ $galleryPage = getPage('gallery');
                 <div class="card fade-in">
                     <div class="card-image">
                         <?php if ($product['image']): ?>
-                            <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>">
+                            <img src="<?php echo e(getImageUrl($product['image'])); ?>" alt="<?php echo e($product['name']); ?>">
                         <?php else: ?>
                             <div class="placeholder-icon">
                                 <i class="fas <?php echo e($product['category_icon'] ?? 'fa-tag'); ?>"></i>

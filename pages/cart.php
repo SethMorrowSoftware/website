@@ -39,7 +39,7 @@ $csrfToken = generateCSRFToken();
                         <div class="cart-item" data-product-id="<?php echo (int)$item['product_id']; ?>">
                             <div class="cart-item-image">
                                 <?php if ($item['image']): ?>
-                                    <img src="<?php echo e($item['image']); ?>" alt="<?php echo e($item['name']); ?>">
+                                    <img src="<?php echo e(getImageUrl($item['image'])); ?>" alt="<?php echo e($item['name']); ?>">
                                 <?php else: ?>
                                     <div class="placeholder-icon">
                                         <?php if (($item['product_type'] ?? 'physical') === 'digital'): ?>
