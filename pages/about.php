@@ -38,7 +38,7 @@ $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM product
     <div class="container">
         <div class="about-content">
             <div class="about-image fade-in">
-                <img src="wuzabus_photos/20200615_134615_fx.jpg" alt="TheWuzaBus - Custom Bus Conversion" style="width:100%; border-radius: var(--radius-lg); object-fit: cover;">
+                <img src="<?php echo url('wuzabus_photos/20200615_134615_fx.jpg'); ?>" alt="TheWuzaBus - Custom Bus Conversion" style="width:100%; border-radius: var(--radius-lg); object-fit: cover;">
             </div>
             <div class="about-text fade-in">
                 <h2>Our Story</h2>
