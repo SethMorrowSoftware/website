@@ -14,12 +14,21 @@ $_contactFormEnabled = isFeatureEnabled('contact_form');
 $catalogPageTitle = getSetting('catalog_page_title', 'Our Catalog');
 $catalogSectionTitle = getSetting('catalog_section_title', 'Browse Our Offerings');
 $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
+$wuzabusPlaceholderProducts = [
+    ['name' => 'Complete Skoolie Conversion', 'category' => 'Bus Conversion', 'price' => null, 'price_note' => 'Request Quote', 'request_quote_only' => true, 'image' => 'wuzabus_photos/20210508_162602.jpg'],
+    ['name' => 'Shuttle Bus Conversion Consult', 'category' => 'Bus Conversion', 'price' => '$350', 'price_note' => 'Flat planning session', 'request_quote_only' => false, 'image' => 'wuzabus_photos/20200615_134615_fx.jpg'],
+    ['name' => 'Victron Energy System Package', 'category' => 'Electrical', 'price' => null, 'price_note' => 'Request Quote', 'request_quote_only' => true, 'image' => 'wuzabus_photos/20241129_191724.jpg'],
+    ['name' => 'MaxxAir Fan Install', 'category' => 'Electrical', 'price' => '$650', 'price_note' => 'Parts + labor', 'request_quote_only' => false, 'image' => 'wuzabus_photos/20230519_100424.jpg'],
+    ['name' => 'Custom Kitchen Build', 'category' => 'Interior Build', 'price' => null, 'price_note' => 'Request Quote', 'request_quote_only' => true, 'image' => 'wuzabus_photos/20200508_215108.jpg'],
+    ['name' => 'Solar Array Roof Prep Kit', 'category' => 'Interior Build', 'price' => '$249', 'price_note' => 'Buy it now sample item', 'request_quote_only' => false, 'image' => 'wuzabus_photos/20250420_104130.jpg'],
+];
+$hasVisibleProducts = false;
 ?>
 
 <!-- Hero -->
 <section class="hero">
     <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
+        <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'])); ?>');"></div>
     <?php endif; ?>
     <div class="hero-overlay"></div>
     <div class="hero-content">
@@ -60,6 +69,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
         <?php foreach ($categories as $cat): ?>
             <?php $products = getProductsByCategory($cat['id']); ?>
             <?php if (empty($products)) continue; ?>
+            <?php $hasVisibleProducts = true; ?>
             <div class="product-category-section" id="<?php echo e($cat['slug']); ?>" data-category="<?php echo e($cat['slug']); ?>">
                 <h3 style="margin-bottom: var(--space-sm); padding-top: var(--space-xl);">
                     <i class="fas <?php echo e($cat['icon'] ?? 'fa-tag'); ?>" style="color: var(--color-secondary);"></i>
@@ -86,7 +96,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                                     </span>
                                 <?php endif; ?>
                                 <?php if ($product['image']): ?>
-                                    <img src="<?php echo e($product['image']); ?>" alt="<?php echo e($product['name']); ?>" loading="lazy">
+                                    <img src="<?php echo e(getImageUrl($product['image'])); ?>" alt="<?php echo e($product['name']); ?>" loading="lazy">
                                 <?php else: ?>
                                     <div class="placeholder-icon">
                                         <?php if ($productType === 'digital'): ?>
@@ -157,6 +167,44 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <?php if (!$hasVisibleProducts): ?>
+            <div class="product-category-section" data-category="all">
+                <h3 style="margin-bottom: var(--space-sm); padding-top: var(--space-xl);">
+                    <i class="fas fa-store" style="color: var(--color-secondary);"></i>
+                    Sample WuzaBus Services
+                </h3>
+                <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);">Your catalog is empty right now. Here are placeholder offerings so the storefront does not appear blank.</p>
+                <div class="grid grid-3">
+                    <?php foreach ($wuzabusPlaceholderProducts as $placeholder): ?>
+                        <div class="card fade-in">
+                            <div class="card-image">
+                                <img src="<?php echo e(getImageUrl($placeholder['image'])); ?>" alt="<?php echo e($placeholder['name']); ?>" loading="lazy">
+                            </div>
+                            <div class="card-body">
+                                <h4><?php echo e($placeholder['name']); ?></h4>
+                                <p><?php echo e($placeholder['category']); ?></p>
+                            </div>
+                            <div class="card-footer">
+                                <div>
+                                    <span class="card-price"><?php echo e($placeholder['price'] ?: 'Request a Quote'); ?></span>
+                                    <?php if (!empty($placeholder['price_note'])): ?>
+                                        <br><span class="card-unit"><?php echo e($placeholder['price_note']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if (!empty($placeholder['request_quote_only'])): ?>
+                                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Request a Quote</a>
+                                <?php elseif ($_cartEnabled): ?>
+                                    <button type="button" class="btn btn-sm btn-primary" disabled title="Placeholder item only">Buy It Now</button>
+                                <?php else: ?>
+                                    <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-sm btn-primary">Inquire</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 
