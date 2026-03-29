@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     $download_expiry_hours = (int)($_POST['download_expiry_hours'] ?? 72);
     $is_visible = isset($_POST['is_visible']) ? 1 : 0;
     $is_available = isset($_POST['is_available']) ? 1 : 0;
+    $request_quote_only = isset($_POST['request_quote_only']) ? 1 : 0;
     $sort_order = (int)($_POST['sort_order'] ?? 0);
     $track_inventory = isset($_POST['track_inventory']) ? 1 : 0;
     $stock_quantity = (int)($_POST['stock_quantity'] ?? 0);
@@ -58,12 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 
     if ($name && $category_id) {
         if ($id && $product) {
-            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, product_type=?, download_file=?, download_limit=?, download_expiry_hours=?, is_visible=?, is_available=?, sort_order=?, track_inventory=?, stock_quantity=?, low_stock_threshold=?, allow_backorder=? WHERE id=?');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order, $track_inventory, $stock_quantity, $low_stock_threshold, $allow_backorder, $id]);
+            $stmt = $db->prepare('UPDATE products SET name=?, slug=?, category_id=?, description=?, image=?, price=?, unit=?, specifications=?, features=?, price_note=?, product_type=?, download_file=?, download_limit=?, download_expiry_hours=?, is_visible=?, is_available=?, request_quote_only=?, sort_order=?, track_inventory=?, stock_quantity=?, low_stock_threshold=?, allow_backorder=? WHERE id=?');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $request_quote_only, $sort_order, $track_inventory, $stock_quantity, $low_stock_threshold, $allow_backorder, $id]);
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product updated!'];
         } else {
-            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, product_type, download_file, download_limit, download_expiry_hours, is_visible, is_available, sort_order, track_inventory, stock_quantity, low_stock_threshold, allow_backorder) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $sort_order, $track_inventory, $stock_quantity, $low_stock_threshold, $allow_backorder]);
+            $stmt = $db->prepare('INSERT INTO products (name, slug, category_id, description, image, price, unit, specifications, features, price_note, product_type, download_file, download_limit, download_expiry_hours, is_visible, is_available, request_quote_only, sort_order, track_inventory, stock_quantity, low_stock_threshold, allow_backorder) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $stmt->execute([$name, $slug, $category_id, $description, $image, $price, $unit, $specifications, $features, $price_note, $product_type, $download_file, $download_limit, $download_expiry_hours, $is_visible, $is_available, $request_quote_only, $sort_order, $track_inventory, $stock_quantity, $low_stock_threshold, $allow_backorder]);
             $id = $db->lastInsertId();
             $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Product created!'];
         }
@@ -204,6 +205,13 @@ require_once __DIR__ . '/header.php';
                         <input type="checkbox" name="is_available" value="1" <?php echo (!$product || $product['is_available']) ? 'checked' : ''; ?>>
                         Available for order
                     </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="request_quote_only" value="1" <?php echo ($product['request_quote_only'] ?? 0) ? 'checked' : ''; ?>>
+                        Request a Quote only
+                    </label>
+                    <small class="form-help">Hides pricing/cart and shows a "Request a Quote" button instead.</small>
                 </div>
                 <div class="form-group">
                     <label>Sort Order</label>

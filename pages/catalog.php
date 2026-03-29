@@ -117,6 +117,14 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                                 <?php endif; ?>
                             </div>
                             <div class="card-footer">
+                                <?php if ($product['request_quote_only']): ?>
+                                    <div>
+                                        <span class="card-price">Request a Quote</span>
+                                    </div>
+                                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Request a Quote
+                                    </a>
+                                <?php else: ?>
                                 <div>
                                     <span class="card-price"><?php echo e($product['price'] ?: 'Call for Pricing'); ?></span>
                                     <?php if ($product['unit']): ?>
@@ -141,6 +149,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                                     <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary"><?php echo e($orderInquiryTitle === 'Order Inquiry' ? 'Order' : $orderInquiryTitle); ?></a>
                                 <?php elseif ($_contactFormEnabled): ?>
                                     <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-sm btn-primary">Inquire</a>
+                                <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         </div>

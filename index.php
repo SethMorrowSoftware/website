@@ -46,6 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = max(1, (int)($_POST['quantity'] ?? 1));
 
+        // Block quote-only products from being added to cart
+        if ($productId) {
+            $qStmt = getDB()->prepare('SELECT request_quote_only FROM products WHERE id = ? AND deleted_at IS NULL');
+            $qStmt->execute([$productId]);
+            $qRow = $qStmt->fetch();
+            if ($qRow && $qRow['request_quote_only']) {
+                echo json_encode(['success' => false, 'message' => 'This product requires a quote request. Please use the Request a Quote form.']);
+                exit;
+            }
+        }
+
         if ($productId && !isInStock($productId, $quantity)) {
             $stock = getStockQuantity($productId);
             echo json_encode(['success' => false, 'message' => $stock !== null ? "Sorry, only $stock available in stock." : 'This item is currently out of stock.']);
@@ -166,6 +177,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_to_cart' && isFeatureEnabled('cart') && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $productId = (int)($_POST['product_id'] ?? 0);
         $quantity = max(1, (int)($_POST['quantity'] ?? 1));
+
+        // Block quote-only products from being added to cart
+        if ($productId) {
+            $qStmt = getDB()->prepare('SELECT request_quote_only FROM products WHERE id = ? AND deleted_at IS NULL');
+            $qStmt->execute([$productId]);
+            $qRow = $qStmt->fetch();
+            if ($qRow && $qRow['request_quote_only']) {
+                $_SESSION['flash_message'] = 'This product requires a quote request. Please use the Request a Quote form.';
+                $_SESSION['flash_type'] = 'error';
+                redirectToReferrer('index.php?page=catalog');
+            }
+        }
 
         // Check inventory before adding
         if ($productId && !isInStock($productId, $quantity)) {
