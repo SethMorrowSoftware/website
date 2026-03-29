@@ -6,39 +6,53 @@
 
 $hero = getHero('gallery');
 
-// Gallery media items — photos and videos organized by category
-$galleryItems = [
-    // Completed Builds
-    ['type' => 'image', 'src' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'Shuttle bus conversion exterior with custom roof rack and solar panel setup', 'category' => 'completed', 'featured' => true],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20210508_162602.jpg', 'caption' => 'Custom kitchen with live-edge wood countertop, tile backsplash, and pine paneling', 'category' => 'completed', 'featured' => true],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20210518_213104.jpg', 'caption' => 'Bedroom area with queen bed, mini-split AC, cedar wood paneling, and overhead storage', 'category' => 'completed', 'featured' => false],
-
-    // Interior Builds
-    ['type' => 'image', 'src' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Cozy bus interior with kitchenette, seating area, and warm wood ceiling', 'category' => 'interiors', 'featured' => true],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20210508_162602.jpg', 'caption' => 'Handcrafted kitchen with live-edge countertop and custom cabinetry', 'category' => 'interiors', 'featured' => false],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20210518_213104.jpg', 'caption' => 'Comfortable bedroom with cedar paneling and mini-split climate control', 'category' => 'interiors', 'featured' => false],
-
-    // Electrical & Solar
-    ['type' => 'image', 'src' => 'wuzabus_photos/20241129_191724.jpg', 'caption' => 'Victron MultiPlus inverter with SmartSolar MPPT charge controllers', 'category' => 'electrical', 'featured' => true],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20240515_151250.jpg', 'caption' => 'SOK lithium battery bank with Victron MultiPlus and MPPT controllers', 'category' => 'electrical', 'featured' => false],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20250114_161911.jpg', 'caption' => 'EG4 6000XP inverter with breaker panel installation', 'category' => 'electrical', 'featured' => false],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20250420_104130.jpg', 'caption' => 'Complete Victron energy system with multiple MPPT charge controllers', 'category' => 'electrical', 'featured' => false],
-
-    // Build Process
-    ['type' => 'image', 'src' => 'wuzabus_photos/20201231_153022.jpg', 'caption' => 'Bus conversion in progress at the shop — rear buildout and tool staging', 'category' => 'process', 'featured' => true],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20230519_100424.jpg', 'caption' => 'MaxxAir vent fan prepared for roof installation', 'category' => 'process', 'featured' => false],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20211011_123957.jpg', 'caption' => 'Electrical system layout and wiring during build phase', 'category' => 'process', 'featured' => false],
-
-    // Events
-    ['type' => 'image', 'src' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'TheWuzaBus at a local van life meetup — sharing builds and connecting with the community', 'category' => 'events', 'featured' => true],
-    ['type' => 'image', 'src' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Open house event — clients checking out our latest completed conversion', 'category' => 'events', 'featured' => false],
-
-    // Videos
-    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'Full Shuttle Bus Conversion Walkthrough — See every detail of our latest completed build', 'category' => 'completed', 'featured' => true, 'duration' => '12:34'],
-    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20241129_191724.jpg', 'caption' => 'Victron Energy System Install — Step-by-step solar and electrical system installation', 'category' => 'electrical', 'featured' => false, 'duration' => '18:22'],
-    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20201231_153022.jpg', 'caption' => 'Skoolie Build Timelapse — Watch a bare bus transform into a home in 5 minutes', 'category' => 'process', 'featured' => true, 'duration' => '5:01'],
-    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Custom Kitchen Build — Live-edge countertops and handcrafted cabinetry', 'category' => 'interiors', 'featured' => false, 'duration' => '8:47'],
+$photoMeta = [
+    '20200615_134615_fx.jpg' => ['caption' => 'Shuttle bus conversion exterior with custom roof rack and solar setup', 'category' => 'completed', 'featured' => true],
+    '20210508_162602.jpg' => ['caption' => 'Custom kitchen with live-edge countertop, tile backsplash, and pine paneling', 'category' => 'interiors', 'featured' => true],
+    '20210518_213104.jpg' => ['caption' => 'Bedroom area with queen bed, mini-split climate control, and overhead storage', 'category' => 'interiors', 'featured' => true],
+    '20200508_215108.jpg' => ['caption' => 'Cozy bus interior with kitchenette and warm wood ceiling', 'category' => 'interiors', 'featured' => false],
+    '20241129_191724.jpg' => ['caption' => 'Victron MultiPlus inverter with SmartSolar MPPT charge controllers', 'category' => 'electrical', 'featured' => true],
+    '20240515_151250.jpg' => ['caption' => 'SOK lithium battery bank integrated with Victron controls', 'category' => 'electrical', 'featured' => false],
+    '20250114_161911.jpg' => ['caption' => 'EG4 6000XP inverter and breaker panel installation', 'category' => 'electrical', 'featured' => false],
+    '20250420_104130.jpg' => ['caption' => 'Complete Victron energy system with multiple MPPT controllers', 'category' => 'electrical', 'featured' => false],
+    '20201231_153022.jpg' => ['caption' => 'Conversion in progress at the shop with rear buildout staging', 'category' => 'process', 'featured' => true],
+    '20230519_100424.jpg' => ['caption' => 'MaxxAir vent fan prepared for roof installation', 'category' => 'process', 'featured' => false],
+    '20211011_123957.jpg' => ['caption' => 'Electrical layout and wiring during the build phase', 'category' => 'process', 'featured' => false],
+    '20200508_215108 (1).jpg' => ['caption' => 'Open-house walkthrough with clients touring a finished build', 'category' => 'events', 'featured' => false],
 ];
+
+$galleryItems = [];
+$photoFiles = glob(__DIR__ . '/../wuzabus_photos/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
+sort($photoFiles);
+foreach ($photoFiles as $photoFile) {
+    $baseName = basename($photoFile);
+    $meta = $photoMeta[$baseName] ?? [
+        'caption' => 'TheWuzaBus project photo: ' . pathinfo($baseName, PATHINFO_FILENAME),
+        'category' => 'completed',
+        'featured' => false,
+    ];
+    $galleryItems[] = [
+        'type' => 'image',
+        'src' => 'wuzabus_photos/' . $baseName,
+        'caption' => $meta['caption'],
+        'category' => $meta['category'],
+        'featured' => (bool)($meta['featured'] ?? false),
+    ];
+}
+
+$videoFiles = glob(__DIR__ . '/../uploads/videos/*.{mp4,webm,mov,m4v,MP4,WEBM,MOV,M4V}', GLOB_BRACE) ?: [];
+sort($videoFiles);
+foreach ($videoFiles as $videoFile) {
+    $baseName = basename($videoFile);
+    $galleryItems[] = [
+        'type' => 'video',
+        'src' => 'uploads/videos/' . $baseName,
+        'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg',
+        'caption' => 'TheWuzaBus build video: ' . str_replace(['_', '-'], ' ', pathinfo($baseName, PATHINFO_FILENAME)),
+        'category' => 'videos',
+        'featured' => false,
+    ];
+}
 
 $categories = [
     'all' => ['label' => 'All Media', 'icon' => 'fa-th'],
@@ -108,6 +122,8 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
                 $featuredCount++;
                 $isVideo = $item['type'] === 'video';
                 $imgSrc = $isVideo ? ($item['thumbnail'] ?? '') : $item['src'];
+                $lightboxType = $isVideo ? 'video' : 'image';
+                $lightboxSrc = $isVideo ? ($item['src'] ?? '') : $imgSrc;
                 $sizeClass = $idx === 0 ? 'gallery-featured-large' : 'gallery-featured-small';
             ?>
                 <div class="gallery-featured-item <?php echo $sizeClass; ?>">
@@ -115,7 +131,7 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
                         <?php if ($isVideo): ?>
                             <div class="gallery-video-badge"><i class="fas fa-play"></i> <?php echo e($item['duration'] ?? ''); ?></div>
                         <?php endif; ?>
-                        <a href="<?php echo e(url($imgSrc)); ?>" class="lightbox-trigger" data-caption="<?php echo e($item['caption']); ?>">
+                        <a href="<?php echo e(url($lightboxSrc)); ?>" class="lightbox-trigger" data-lightbox-type="<?php echo e($lightboxType); ?>" data-caption="<?php echo e($item['caption']); ?>">
                             <img src="<?php echo e(url($imgSrc)); ?>" alt="<?php echo e($item['caption']); ?>" loading="lazy">
                         </a>
                         <div class="gallery-featured-overlay">
@@ -138,6 +154,9 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
         <div class="section-header fade-in">
             <h2>Browse Gallery</h2>
             <p>Filter by category or media type</p>
+            <?php if ($totalVideos === 0): ?>
+                <p class="gallery-video-hint"><i class="fas fa-info-circle"></i> No videos uploaded yet. Add MP4/WebM files in <code>uploads/videos</code> and they will appear automatically.</p>
+            <?php endif; ?>
         </div>
 
         <div class="gallery-filter-bar fade-in">
@@ -153,13 +172,15 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
             <?php foreach ($galleryItems as $index => $item):
                 $isVideo = $item['type'] === 'video';
                 $imgSrc = $isVideo ? ($item['thumbnail'] ?? '') : $item['src'];
+                $lightboxType = $isVideo ? 'video' : 'image';
+                $lightboxSrc = $isVideo ? ($item['src'] ?? '') : $imgSrc;
             ?>
                 <div class="gallery-item fade-in" data-category="<?php echo e($item['category']); ?>" data-type="<?php echo e($item['type']); ?>">
                     <div class="gallery-item-inner">
                         <?php if ($isVideo): ?>
-                            <div class="gallery-video-badge"><i class="fas fa-play"></i> <?php echo e($item['duration'] ?? ''); ?></div>
+                            <div class="gallery-video-badge"><i class="fas fa-play"></i> Video</div>
                         <?php endif; ?>
-                        <a href="<?php echo e(url($imgSrc)); ?>" class="lightbox-trigger" data-caption="<?php echo e($item['caption']); ?>">
+                        <a href="<?php echo e(url($lightboxSrc)); ?>" class="lightbox-trigger" data-lightbox-type="<?php echo e($lightboxType); ?>" data-caption="<?php echo e($item['caption']); ?>">
                             <img src="<?php echo e(url($imgSrc)); ?>" alt="<?php echo e($item['caption']); ?>" loading="lazy">
                         </a>
                         <div class="gallery-item-info">

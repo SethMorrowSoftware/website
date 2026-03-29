@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (navToggle) {
         navToggle.addEventListener('click', function() {
+            if (!mainNav || !mobileOverlay) return;
             this.classList.toggle('active');
             mainNav.classList.toggle('open');
             mobileOverlay.classList.toggle('active');
@@ -56,6 +57,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape' && mainNav && mainNav.classList.contains('open')) {
             closeNav();
             if (navToggle) navToggle.focus();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 992 && mainNav && mainNav.classList.contains('open')) {
+            closeNav();
         }
     });
 

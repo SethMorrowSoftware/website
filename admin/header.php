@@ -35,7 +35,7 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
             <i class="fas fa-cog"></i>
             <span>Site Admin</span>
         </a>
-        <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
+        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close sidebar"><i class="fas fa-times"></i></button>
     </div>
 
     <nav class="sidebar-nav">
@@ -181,7 +181,7 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
 <!-- Admin Main -->
 <div class="admin-main">
     <header class="admin-topbar">
-        <button class="sidebar-toggle" id="sidebarToggle">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar navigation" aria-controls="adminSidebar" aria-expanded="false">
             <i class="fas fa-bars"></i>
         </button>
         <div class="topbar-right">
