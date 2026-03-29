@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS products (
     download_limit INT DEFAULT 0,
     download_expiry_hours INT DEFAULT 72,
     is_available TINYINT(1) DEFAULT 1,
+    request_quote_only TINYINT(1) NOT NULL DEFAULT 0,
     is_visible TINYINT(1) DEFAULT 1,
     sort_order INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

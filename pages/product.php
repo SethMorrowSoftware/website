@@ -96,6 +96,11 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
 
                 <h1 class="product-title"><?php echo e($product['name']); ?></h1>
 
+                <?php if ($product['request_quote_only']): ?>
+                <div class="product-price-block">
+                    <span class="product-price-large">Request a Quote</span>
+                </div>
+                <?php else: ?>
                 <div class="product-price-block">
                     <span class="product-price-large"><?php echo e($product['price'] ?: 'Contact for Pricing'); ?></span>
                     <?php if ($product['unit']): ?>
@@ -105,6 +110,7 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
                         <div class="product-price-note"><?php echo e($product['price_note']); ?></div>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
                 <!-- Stock Status -->
                 <?php if ($trackingInventory): ?>
@@ -157,7 +163,11 @@ $metaDescription = substr(strip_tags($product['description']), 0, 160);
 
                 <!-- Add to Cart / Actions -->
                 <div class="product-actions">
-                    <?php if ($_cartEnabled && $numericPrice > 0 && ($inStock || !$trackingInventory || $product['allow_backorder'])): ?>
+                    <?php if ($product['request_quote_only']): ?>
+                        <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane"></i> Request a Quote
+                        </a>
+                    <?php elseif ($_cartEnabled && $numericPrice > 0 && ($inStock || !$trackingInventory || $product['allow_backorder'])): ?>
                         <form method="POST" action="<?php echo url('index.php'); ?>" class="add-to-cart-form product-add-form">
                             <input type="hidden" name="action" value="add_to_cart">
                             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">

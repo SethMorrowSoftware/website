@@ -24,7 +24,7 @@ function handleListProducts(): void {
 
     $stmt = $db->prepare(
         "SELECT p.id, p.name, p.slug, p.description, p.image, p.price, p.unit, "
-        . "p.product_type, p.is_available, p.category_id, pc.name as category_name, "
+        . "p.product_type, p.is_available, p.request_quote_only, p.category_id, pc.name as category_name, "
         . "p.specifications, p.features, p.created_at "
         . "FROM products p "
         . "JOIN product_categories pc ON p.category_id = pc.id "
@@ -132,7 +132,7 @@ function handleUpdateProduct(int $id): void {
         apiError('Product not found', 404, 'not_found');
     }
 
-    $allowedFields = ['name', 'description', 'price', 'unit', 'product_type', 'specifications', 'features', 'price_note', 'is_visible', 'is_available', 'category_id'];
+    $allowedFields = ['name', 'description', 'price', 'unit', 'product_type', 'specifications', 'features', 'price_note', 'is_visible', 'is_available', 'request_quote_only', 'category_id'];
     $fields = [];
     $values = [];
 

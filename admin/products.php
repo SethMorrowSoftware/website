@@ -59,7 +59,12 @@ require_once __DIR__ . '/header.php';
                             <div class="table-thumb-placeholder"><i class="fas fa-image"></i></div>
                         <?php endif; ?>
                     </td>
-                    <td><strong><?php echo e($p['name']); ?></strong></td>
+                    <td>
+                        <strong><?php echo e($p['name']); ?></strong>
+                        <?php if ($p['request_quote_only']): ?>
+                            <span class="badge-status badge-active" style="margin-left:4px; font-size:0.7em;">Quote Only</span>
+                        <?php endif; ?>
+                    </td>
                     <td><span class="badge-status badge-<?php echo ($p['product_type'] ?? 'physical') === 'digital' ? 'active' : 'inactive'; ?>"><?php echo e(ucfirst($p['product_type'] ?? 'physical')); ?></span></td>
                     <td><?php echo e($p['category_name']); ?></td>
                     <td><?php echo e($p['price'] ?: 'Call'); ?> <?php echo $p['unit'] ? '/ ' . e($p['unit']) : ''; ?></td>
