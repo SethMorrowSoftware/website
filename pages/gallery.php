@@ -1,51 +1,60 @@
 <?php
 /**
- * Gallery Page — TheWuzaBus Build Photos
+ * Gallery Page — TheWuzaBus Build Photos & Videos
+ * Business showcase gallery with category filtering, video support, and before/after
  */
 
 $hero = getHero('gallery');
 
-// Gallery items organized by category
-$galleryCategories = [
-    [
-        'title' => 'Completed Builds',
-        'description' => 'Finished bus conversions ready for the road',
-        'photos' => [
-            ['src' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'Shuttle bus conversion exterior with custom roof rack and solar panel setup'],
-            ['src' => 'wuzabus_photos/20210508_162602.jpg', 'caption' => 'Custom kitchen with live-edge wood countertop, tile backsplash, and pine paneling'],
-            ['src' => 'wuzabus_photos/20210518_213104.jpg', 'caption' => 'Bedroom area with queen bed, mini-split AC, cedar wood paneling, and overhead storage'],
-        ],
-    ],
-    [
-        'title' => 'Interior Builds',
-        'description' => 'Kitchens, living areas, and sleeping quarters',
-        'photos' => [
-            ['src' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Cozy bus interior with kitchenette, seating area, and warm wood ceiling'],
-            ['src' => 'wuzabus_photos/20210508_162602.jpg', 'caption' => 'Handcrafted kitchen with live-edge countertop and custom cabinetry'],
-            ['src' => 'wuzabus_photos/20210518_213104.jpg', 'caption' => 'Comfortable bedroom with cedar paneling and mini-split climate control'],
-        ],
-    ],
-    [
-        'title' => 'Electrical & Solar Systems',
-        'description' => 'Off-grid power installations with premium components',
-        'photos' => [
-            ['src' => 'wuzabus_photos/20241129_191724.jpg', 'caption' => 'Victron MultiPlus inverter with SmartSolar MPPT charge controllers'],
-            ['src' => 'wuzabus_photos/20240515_151250.jpg', 'caption' => 'SOK lithium battery bank with Victron MultiPlus and MPPT controllers'],
-            ['src' => 'wuzabus_photos/20250114_161911.jpg', 'caption' => 'EG4 6000XP inverter with breaker panel installation'],
-            ['src' => 'wuzabus_photos/20250420_104130.jpg', 'caption' => 'Complete Victron energy system with multiple MPPT charge controllers'],
-        ],
-    ],
-    [
-        'title' => 'Build Process',
-        'description' => 'Behind the scenes of our conversion work',
-        'photos' => [
-            ['src' => 'wuzabus_photos/20201231_153022.jpg', 'caption' => 'Bus conversion in progress at the shop — rear buildout and tool staging'],
-            ['src' => 'wuzabus_photos/20230519_100424.jpg', 'caption' => 'MaxxAir vent fan prepared for roof installation'],
-            ['src' => 'wuzabus_photos/20211011_123957.jpg', 'caption' => 'Electrical system layout and wiring during build phase'],
-        ],
-    ],
+// Gallery media items — photos and videos organized by category
+$galleryItems = [
+    // Completed Builds
+    ['type' => 'image', 'src' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'Shuttle bus conversion exterior with custom roof rack and solar panel setup', 'category' => 'completed', 'featured' => true],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20210508_162602.jpg', 'caption' => 'Custom kitchen with live-edge wood countertop, tile backsplash, and pine paneling', 'category' => 'completed', 'featured' => true],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20210518_213104.jpg', 'caption' => 'Bedroom area with queen bed, mini-split AC, cedar wood paneling, and overhead storage', 'category' => 'completed', 'featured' => false],
+
+    // Interior Builds
+    ['type' => 'image', 'src' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Cozy bus interior with kitchenette, seating area, and warm wood ceiling', 'category' => 'interiors', 'featured' => true],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20210508_162602.jpg', 'caption' => 'Handcrafted kitchen with live-edge countertop and custom cabinetry', 'category' => 'interiors', 'featured' => false],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20210518_213104.jpg', 'caption' => 'Comfortable bedroom with cedar paneling and mini-split climate control', 'category' => 'interiors', 'featured' => false],
+
+    // Electrical & Solar
+    ['type' => 'image', 'src' => 'wuzabus_photos/20241129_191724.jpg', 'caption' => 'Victron MultiPlus inverter with SmartSolar MPPT charge controllers', 'category' => 'electrical', 'featured' => true],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20240515_151250.jpg', 'caption' => 'SOK lithium battery bank with Victron MultiPlus and MPPT controllers', 'category' => 'electrical', 'featured' => false],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20250114_161911.jpg', 'caption' => 'EG4 6000XP inverter with breaker panel installation', 'category' => 'electrical', 'featured' => false],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20250420_104130.jpg', 'caption' => 'Complete Victron energy system with multiple MPPT charge controllers', 'category' => 'electrical', 'featured' => false],
+
+    // Build Process
+    ['type' => 'image', 'src' => 'wuzabus_photos/20201231_153022.jpg', 'caption' => 'Bus conversion in progress at the shop — rear buildout and tool staging', 'category' => 'process', 'featured' => true],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20230519_100424.jpg', 'caption' => 'MaxxAir vent fan prepared for roof installation', 'category' => 'process', 'featured' => false],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20211011_123957.jpg', 'caption' => 'Electrical system layout and wiring during build phase', 'category' => 'process', 'featured' => false],
+
+    // Events
+    ['type' => 'image', 'src' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'TheWuzaBus at a local van life meetup — sharing builds and connecting with the community', 'category' => 'events', 'featured' => true],
+    ['type' => 'image', 'src' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Open house event — clients checking out our latest completed conversion', 'category' => 'events', 'featured' => false],
+
+    // Videos
+    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg', 'caption' => 'Full Shuttle Bus Conversion Walkthrough — See every detail of our latest completed build', 'category' => 'completed', 'featured' => true, 'duration' => '12:34'],
+    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20241129_191724.jpg', 'caption' => 'Victron Energy System Install — Step-by-step solar and electrical system installation', 'category' => 'electrical', 'featured' => false, 'duration' => '18:22'],
+    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20201231_153022.jpg', 'caption' => 'Skoolie Build Timelapse — Watch a bare bus transform into a home in 5 minutes', 'category' => 'process', 'featured' => true, 'duration' => '5:01'],
+    ['type' => 'video', 'src' => '', 'thumbnail' => 'wuzabus_photos/20200508_215108.jpg', 'caption' => 'Custom Kitchen Build — Live-edge countertops and handcrafted cabinetry', 'category' => 'interiors', 'featured' => false, 'duration' => '8:47'],
 ];
+
+$categories = [
+    'all' => ['label' => 'All Media', 'icon' => 'fa-th'],
+    'completed' => ['label' => 'Completed Builds', 'icon' => 'fa-bus'],
+    'interiors' => ['label' => 'Interiors', 'icon' => 'fa-couch'],
+    'electrical' => ['label' => 'Solar & Electrical', 'icon' => 'fa-bolt'],
+    'process' => ['label' => 'Build Process', 'icon' => 'fa-hammer'],
+    'events' => ['label' => 'Events', 'icon' => 'fa-calendar-alt'],
+    'videos' => ['label' => 'Videos', 'icon' => 'fa-play-circle'],
+];
+
+$totalPhotos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'image'));
+$totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video'));
 ?>
+
+<link rel="stylesheet" href="<?php echo asset('css/gallery.css'); ?>">
 
 <!-- Hero -->
 <section class="hero">
@@ -55,7 +64,21 @@ $galleryCategories = [
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? 'Our Work'); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? 'See Our Completed Builds & Projects'); ?></p>
+        <p><?php echo e($hero['subtitle'] ?? 'Builds, Events & Behind the Scenes'); ?></p>
+        <div class="gallery-hero-stats">
+            <div class="gallery-hero-stat">
+                <span class="gallery-hero-stat-number"><?php echo $totalPhotos; ?></span>
+                <span class="gallery-hero-stat-label">Photos</span>
+            </div>
+            <div class="gallery-hero-stat">
+                <span class="gallery-hero-stat-number"><?php echo $totalVideos; ?></span>
+                <span class="gallery-hero-stat-label">Videos</span>
+            </div>
+            <div class="gallery-hero-stat">
+                <span class="gallery-hero-stat-number">20+</span>
+                <span class="gallery-hero-stat-label">Builds Completed</span>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -68,43 +91,249 @@ $galleryCategories = [
     </div>
 </div>
 
-<!-- Gallery Sections -->
-<?php foreach ($galleryCategories as $index => $category): ?>
-<section class="section <?php echo $index % 2 === 1 ? 'section-light' : ''; ?>">
+<!-- Featured Showcase -->
+<section class="section gallery-featured-section">
     <div class="container">
         <div class="section-header fade-in">
-            <h2><?php echo e($category['title']); ?></h2>
-            <p><?php echo e($category['description']); ?></p>
+            <h2>Featured Work</h2>
+            <p>Highlights from our latest builds and projects</p>
         </div>
 
-        <div class="grid grid-3">
-            <?php foreach ($category['photos'] as $photo): ?>
-                <div class="card fade-in">
-                    <div class="card-image">
-                        <a href="<?php echo e(url($photo['src'])); ?>" class="lightbox-trigger" data-caption="<?php echo e($photo['caption']); ?>">
-                            <img src="<?php echo e(url($photo['src'])); ?>" alt="<?php echo e($photo['caption']); ?>" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
+        <div class="gallery-featured-grid fade-in">
+            <?php
+            $featuredItems = array_values(array_filter($galleryItems, fn($i) => $i['featured']));
+            $featuredCount = 0;
+            foreach ($featuredItems as $idx => $item):
+                if ($featuredCount >= 5) break;
+                $featuredCount++;
+                $isVideo = $item['type'] === 'video';
+                $imgSrc = $isVideo ? ($item['thumbnail'] ?? '') : $item['src'];
+                $sizeClass = $idx === 0 ? 'gallery-featured-large' : 'gallery-featured-small';
+            ?>
+                <div class="gallery-featured-item <?php echo $sizeClass; ?>">
+                    <div class="gallery-featured-media">
+                        <?php if ($isVideo): ?>
+                            <div class="gallery-video-badge"><i class="fas fa-play"></i> <?php echo e($item['duration'] ?? ''); ?></div>
+                        <?php endif; ?>
+                        <a href="<?php echo e(url($imgSrc)); ?>" class="lightbox-trigger" data-caption="<?php echo e($item['caption']); ?>">
+                            <img src="<?php echo e(url($imgSrc)); ?>" alt="<?php echo e($item['caption']); ?>" loading="lazy">
                         </a>
-                    </div>
-                    <div class="card-body">
-                        <p style="font-size: var(--text-sm); color: var(--color-gray-600);"><?php echo e($photo['caption']); ?></p>
+                        <div class="gallery-featured-overlay">
+                            <span class="gallery-featured-category">
+                                <i class="fas <?php echo e($categories[$item['category']]['icon'] ?? 'fa-tag'); ?>"></i>
+                                <?php echo e($categories[$item['category']]['label'] ?? $item['category']); ?>
+                            </span>
+                            <p class="gallery-featured-caption"><?php echo e($item['caption']); ?></p>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
-<?php endforeach; ?>
+
+<!-- Category Filter Tabs + Gallery Grid -->
+<section class="section section-light" id="galleryBrowse">
+    <div class="container">
+        <div class="section-header fade-in">
+            <h2>Browse Gallery</h2>
+            <p>Filter by category or media type</p>
+        </div>
+
+        <div class="gallery-filter-bar fade-in">
+            <?php foreach ($categories as $key => $cat): ?>
+                <button class="gallery-filter-btn <?php echo $key === 'all' ? 'active' : ''; ?>" data-filter="<?php echo e($key); ?>">
+                    <i class="fas <?php echo e($cat['icon']); ?>"></i>
+                    <span><?php echo e($cat['label']); ?></span>
+                </button>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="gallery-masonry" id="galleryGrid">
+            <?php foreach ($galleryItems as $index => $item):
+                $isVideo = $item['type'] === 'video';
+                $imgSrc = $isVideo ? ($item['thumbnail'] ?? '') : $item['src'];
+            ?>
+                <div class="gallery-item fade-in" data-category="<?php echo e($item['category']); ?>" data-type="<?php echo e($item['type']); ?>">
+                    <div class="gallery-item-inner">
+                        <?php if ($isVideo): ?>
+                            <div class="gallery-video-badge"><i class="fas fa-play"></i> <?php echo e($item['duration'] ?? ''); ?></div>
+                        <?php endif; ?>
+                        <a href="<?php echo e(url($imgSrc)); ?>" class="lightbox-trigger" data-caption="<?php echo e($item['caption']); ?>">
+                            <img src="<?php echo e(url($imgSrc)); ?>" alt="<?php echo e($item['caption']); ?>" loading="lazy">
+                        </a>
+                        <div class="gallery-item-info">
+                            <span class="gallery-item-type">
+                                <i class="fas <?php echo $isVideo ? 'fa-video' : 'fa-camera'; ?>"></i>
+                            </span>
+                            <p class="gallery-item-caption"><?php echo e($item['caption']); ?></p>
+                            <span class="gallery-item-cat">
+                                <i class="fas <?php echo e($categories[$item['category']]['icon'] ?? 'fa-tag'); ?>"></i>
+                                <?php echo e($categories[$item['category']]['label'] ?? ''); ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="gallery-empty" id="galleryEmpty" style="display: none;">
+            <i class="fas fa-images"></i>
+            <h3>No items match this filter</h3>
+            <p>Try selecting a different category above</p>
+        </div>
+    </div>
+</section>
+
+<!-- Before & After Showcase -->
+<section class="section">
+    <div class="container">
+        <div class="section-header fade-in">
+            <h2>Before & After</h2>
+            <p>See the transformation from bare bus to beautiful home</p>
+        </div>
+
+        <div class="gallery-before-after-grid">
+            <div class="gallery-ba-card fade-in">
+                <div class="gallery-ba-header">
+                    <h3><i class="fas fa-bus"></i> Shuttle Bus Exterior</h3>
+                </div>
+                <div class="gallery-ba-images">
+                    <div class="gallery-ba-side">
+                        <span class="gallery-ba-label gallery-ba-before">Before</span>
+                        <img src="<?php echo e(url('wuzabus_photos/20201231_153022.jpg')); ?>" alt="Bus before conversion" loading="lazy">
+                    </div>
+                    <div class="gallery-ba-divider">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="gallery-ba-side">
+                        <span class="gallery-ba-label gallery-ba-after">After</span>
+                        <img src="<?php echo e(url('wuzabus_photos/20200615_134615_fx.jpg')); ?>" alt="Bus after conversion" loading="lazy">
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-ba-card fade-in">
+                <div class="gallery-ba-header">
+                    <h3><i class="fas fa-utensils"></i> Interior Kitchen Build</h3>
+                </div>
+                <div class="gallery-ba-images">
+                    <div class="gallery-ba-side">
+                        <span class="gallery-ba-label gallery-ba-before">Before</span>
+                        <img src="<?php echo e(url('wuzabus_photos/20211011_123957.jpg')); ?>" alt="Interior before buildout" loading="lazy">
+                    </div>
+                    <div class="gallery-ba-divider">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="gallery-ba-side">
+                        <span class="gallery-ba-label gallery-ba-after">After</span>
+                        <img src="<?php echo e(url('wuzabus_photos/20210508_162602.jpg')); ?>" alt="Kitchen after buildout" loading="lazy">
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-ba-card fade-in">
+                <div class="gallery-ba-header">
+                    <h3><i class="fas fa-bolt"></i> Electrical System</h3>
+                </div>
+                <div class="gallery-ba-images">
+                    <div class="gallery-ba-side">
+                        <span class="gallery-ba-label gallery-ba-before">Before</span>
+                        <img src="<?php echo e(url('wuzabus_photos/20211011_123957.jpg')); ?>" alt="Empty electrical bay" loading="lazy">
+                    </div>
+                    <div class="gallery-ba-divider">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="gallery-ba-side">
+                        <span class="gallery-ba-label gallery-ba-after">After</span>
+                        <img src="<?php echo e(url('wuzabus_photos/20241129_191724.jpg')); ?>" alt="Complete Victron energy system" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Project Spotlight -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header fade-in">
+            <h2 style="color: var(--color-white);">Project Spotlight</h2>
+            <p style="color: rgba(255,255,255,0.7);">A closer look at one of our favorite builds</p>
+        </div>
+
+        <div class="gallery-spotlight fade-in">
+            <div class="gallery-spotlight-main">
+                <img src="<?php echo e(url('wuzabus_photos/20200615_134615_fx.jpg')); ?>" alt="Featured shuttle bus conversion" loading="lazy">
+            </div>
+            <div class="gallery-spotlight-details">
+                <h3>The Adventure Shuttle</h3>
+                <p class="gallery-spotlight-subtitle">2018 Ford Shuttle Bus — Full Off-Grid Conversion</p>
+                <p>This shuttle bus was transformed from a retired airport shuttle into a fully self-contained off-grid home. Every inch was designed for full-time living on the road.</p>
+                <ul class="gallery-spotlight-specs">
+                    <li><i class="fas fa-solar-panel"></i> <strong>Solar:</strong> 800W rooftop array with Victron MPPT</li>
+                    <li><i class="fas fa-battery-full"></i> <strong>Batteries:</strong> 400Ah SOK LiFePO4 bank</li>
+                    <li><i class="fas fa-bolt"></i> <strong>Inverter:</strong> Victron MultiPlus 3000W</li>
+                    <li><i class="fas fa-utensils"></i> <strong>Kitchen:</strong> Live-edge walnut counters, propane cooktop</li>
+                    <li><i class="fas fa-bed"></i> <strong>Sleeping:</strong> Queen bed with under-storage</li>
+                    <li><i class="fas fa-snowflake"></i> <strong>Climate:</strong> Mini-split + MaxxAir fans</li>
+                    <li><i class="fas fa-ruler-combined"></i> <strong>Length:</strong> 25 ft</li>
+                    <li><i class="fas fa-clock"></i> <strong>Build Time:</strong> 4 months</li>
+                </ul>
+                <div style="margin-top: var(--space-xl);">
+                    <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg" style="background: var(--color-secondary); border-color: var(--color-secondary);">
+                        <i class="fas fa-clipboard-list"></i> Get a Quote for Your Build
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- CTA -->
 <section class="section section-primary">
     <div class="container text-center">
-        <h2 style="color: var(--color-white);" class="fade-in">Ready to Start Your Build?</h2>
+        <h2 style="color: var(--color-white);" class="fade-in">Like What You See?</h2>
         <p style="font-size: var(--text-lg); margin: var(--space-lg) auto; max-width: 700px; opacity: 0.9;" class="fade-in">
             Every project you see here started with a conversation. Tell us about your vision and let's make it happen.
         </p>
-        <div class="btn-group fade-in" style="justify-content: center;">
-            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg">Get a Quote</a>
+        <div class="btn-group fade-in" style="justify-content: center; gap: var(--space-md);">
+            <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-primary btn-lg" style="background: var(--color-secondary); border-color: var(--color-secondary);">Get a Free Quote</a>
+            <a href="<?php echo url('index.php?page=catalog'); ?>" class="btn btn-outline btn-lg" style="border-color: rgba(255,255,255,0.5); color: var(--color-white);">Browse Services</a>
             <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-outline btn-lg" style="border-color: rgba(255,255,255,0.5); color: var(--color-white);">Contact Us</a>
         </div>
     </div>
 </section>
+
+<!-- Gallery Filter JS -->
+<script>
+(function() {
+    var filterBtns = document.querySelectorAll('.gallery-filter-btn');
+    var galleryItems = document.querySelectorAll('.gallery-item');
+    var emptyState = document.getElementById('galleryEmpty');
+
+    filterBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var filter = btn.getAttribute('data-filter');
+            var visibleCount = 0;
+
+            galleryItems.forEach(function(item) {
+                var category = item.getAttribute('data-category');
+                var type = item.getAttribute('data-type');
+                var show = false;
+
+                if (filter === 'all') show = true;
+                else if (filter === 'videos') show = (type === 'video');
+                else show = (category === filter);
+
+                item.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            emptyState.style.display = visibleCount === 0 ? '' : 'none';
+        });
+    });
+})();
+</script>
