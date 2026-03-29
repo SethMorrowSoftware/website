@@ -4,13 +4,13 @@
    ============================================ */
 
 :root {
-    /* Brand Colors — customize via Admin > Settings */
-    --color-primary: #2563EB;
-    --color-primary-dark: #1D4ED8;
-    --color-primary-light: #3B82F6;
-    --color-secondary: #F59E0B;
-    --color-secondary-dark: #D97706;
-    --color-secondary-light: #FBBF24;
+    /* Brand Colors — TheWuzaBus: Adventure & Craftsmanship */
+    --color-primary: #2B4C3F;
+    --color-primary-dark: #1B3A2F;
+    --color-primary-light: #3D6B56;
+    --color-secondary: #D4942A;
+    --color-secondary-dark: #B07A1E;
+    --color-secondary-light: #E8AD4A;
 
     /* Neutrals */
     --color-dark: #1a1a1a;
@@ -111,9 +111,9 @@
     /* Theme-overridable properties (set via Themes admin) */
     --color-background: #ffffff;
     --color-text: #1e293b;
-    --color-accent: #22c55e;
+    --color-accent: #E07A3A;
     --border-radius: 8px;
     --header-bg: #ffffff;
-    --footer-bg: #1e293b;
+    --footer-bg: #1B3A2F;
     --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

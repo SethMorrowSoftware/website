@@ -10,14 +10,14 @@
             "key": "primary_color",
             "label": "Primary Color",
             "type": "color",
-            "default": "#2563EB",
+            "default": "#2B4C3F",
             "css_var": "--color-primary"
         },
         {
             "key": "secondary_color",
             "label": "Secondary Color",
             "type": "color",
-            "default": "#F59E0B",
+            "default": "#D4942A",
             "css_var": "--color-secondary"
         },
         {
@@ -69,14 +69,14 @@
             "key": "footer_bg",
             "label": "Footer Background",
             "type": "color",
-            "default": "#1e293b",
+            "default": "#1B3A2F",
             "css_var": "--footer-bg"
         },
         {
             "key": "accent_color",
             "label": "Accent Color",
             "type": "color",
-            "default": "#22c55e",
+            "default": "#E07A3A",
             "css_var": "--color-accent"
         },
         {

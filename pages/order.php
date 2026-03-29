@@ -47,7 +47,7 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                 </div>
                 <div class="step-indicator" data-step="3">
                     <span class="step-num">3</span>
-                    <span class="step-label">Delivery</span>
+                    <span class="step-label">Project</span>
                 </div>
                 <div class="step-indicator" data-step="4">
                     <span class="step-num">4</span>
@@ -119,30 +119,37 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
                     </div>
                 </div>
 
-                <!-- Step 3: Delivery Info -->
+                <!-- Step 3: Project Info -->
                 <div class="form-step" data-step="3">
-                    <h3>Delivery Information</h3>
+                    <h3>Project Details</h3>
                     <div class="form-group">
-                        <label for="delivery_address">Delivery Address <span class="required">*</span></label>
-                        <input type="text" id="delivery_address" name="delivery_address" class="form-control" required placeholder="Full street address">
+                        <label for="delivery_address">Your Location (City, State) <span class="required">*</span></label>
+                        <input type="text" id="delivery_address" name="delivery_address" class="form-control" required placeholder="e.g., Austin, TX">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="preferred_date">Preferred Date</label>
-                            <input type="date" id="preferred_date" name="preferred_date" class="form-control">
+                            <label>Do you already have a bus?</label>
+                            <select name="product_details[has_bus]" class="form-control">
+                                <option value="">-- Select --</option>
+                                <option value="yes">Yes, I have a bus ready</option>
+                                <option value="shopping">I'm currently shopping for one</option>
+                                <option value="no">No, I need help finding one</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Preferred Time</label>
+                            <label>Desired Timeline</label>
                             <select name="product_details[preferred_time]" class="form-control">
                                 <option value="">No preference</option>
-                                <option value="morning">Morning (7am - 12pm)</option>
-                                <option value="afternoon">Afternoon (12pm - 5pm)</option>
+                                <option value="asap">As soon as possible</option>
+                                <option value="1-3months">1-3 months</option>
+                                <option value="3-6months">3-6 months</option>
+                                <option value="6plus">6+ months / just exploring</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Special Instructions</label>
-                        <textarea name="product_details[access_notes]" class="form-control" placeholder="Any special instructions for delivery or service? (gate codes, parking, etc.)" rows="3"></textarea>
+                        <label>Bus Details (if you have one)</label>
+                        <textarea name="product_details[access_notes]" class="form-control" placeholder="Year, make, model, length, engine type, current condition, etc." rows="3"></textarea>
                     </div>
                 </div>
 

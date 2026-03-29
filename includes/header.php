@@ -125,7 +125,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
 
     <!-- Structured Data -->
     <?php
-    $schemaType = getBusinessType() === 'online' ? 'Organization' : 'LocalBusiness';
+    $schemaType = getBusinessType() === 'online' ? 'Organization' : 'HomeAndConstructionBusiness';
     $schemaData = [
         '@context' => 'https://schema.org',
         '@type' => $schemaType,
@@ -203,7 +203,7 @@ $metaDescription = ($pageData ? $pageData['meta_description'] : getSetting('tagl
                 <?php if ($logoUrl): ?>
                     <img src="<?php echo e($logoUrl); ?>" alt="<?php echo e($companyName); ?>">
                 <?php else: ?>
-                    <i class="fas fa-building" style="font-size: 2rem; color: var(--color-primary);"></i>
+                    <i class="fas fa-bus" style="font-size: 2rem; color: var(--color-primary);"></i>
                 <?php endif; ?>
                 <div class="logo-text">
                     <?php echo e($companyName); ?>

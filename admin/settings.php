@@ -315,7 +315,7 @@ require_once __DIR__ . '/header.php';
 
     <!-- Company Info -->
     <div class="form-section">
-        <h3><i class="fas fa-building"></i> Company Information</h3>
+        <h3><i class="fas fa-bus"></i> Company Information</h3>
         <div class="form-row">
             <div class="form-group">
                 <label>Company Name</label>

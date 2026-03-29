@@ -34,8 +34,8 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
     <?php endif; ?>
     <div class="hero-overlay" style="<?php echo $hero ? 'opacity:' . ($hero['overlay_opacity'] ?? 0.5) : ''; ?>"></div>
     <div class="hero-content">
-        <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'Your Business Name')); ?></h1>
-        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Quality Products & Services You Can Count On')); ?></p>
+        <h1><?php echo e($hero['title'] ?? getSetting('company_name', 'TheWuzaBus')); ?></h1>
+        <p><?php echo e($hero['subtitle'] ?? getSetting('tagline', 'Custom Bus Conversions & Off-Grid Living Solutions')); ?></p>
         <div class="btn-group">
             <?php if ($hero && $hero['cta_text'] && isHeroCtaLinkEnabled($hero['cta_link'] ?: 'index.php?page=order')): ?>
                 <a href="<?php echo e(url($hero['cta_link'] ?: 'index.php?page=order')); ?>" class="btn btn-primary btn-lg">
@@ -136,33 +136,33 @@ $orderInquiryTitle = getSetting('order_inquiry_title', 'Order Inquiry');
 </section>
 <?php endif; ?>
 
-<!-- Why Choose Us -->
+<!-- Why Choose TheWuzaBus -->
 <section class="section section-dark">
     <div class="container">
         <div class="section-header fade-in">
-            <h2 style="color: var(--color-white);">Why Choose Us?</h2>
+            <h2 style="color: var(--color-white);">Why Choose TheWuzaBus?</h2>
         </div>
 
         <div class="features-grid">
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-handshake"></i></div>
-                <h4>Locally Owned</h4>
-                <p>A locally owned business proudly serving our community.</p>
+                <div class="icon"><i class="fas fa-hammer"></i></div>
+                <h4>Expert Craftsmanship</h4>
+                <p>Every build features premium materials and meticulous attention to detail, from live-edge countertops to professional-grade electrical systems.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-clock"></i></div>
-                <h4>Fast Service</h4>
-                <p>Quick turnaround and reliable service you can count on.</p>
+                <div class="icon"><i class="fas fa-solar-panel"></i></div>
+                <h4>Off-Grid Specialists</h4>
+                <p>We design and install robust solar and electrical systems using industry-leading Victron components and lithium batteries built for life on the road.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-dollar-sign"></i></div>
-                <h4>Competitive Pricing</h4>
-                <p>Fair, transparent pricing with no hidden fees or surprises.</p>
+                <div class="icon"><i class="fas fa-pencil-ruler"></i></div>
+                <h4>Custom Designs</h4>
+                <p>No cookie-cutter builds here. Every conversion is designed around your lifestyle, travel plans, and personal vision for your home on wheels.</p>
             </div>
             <div class="feature-item fade-in">
-                <div class="icon"><i class="fas fa-star"></i></div>
-                <h4>Quality Guaranteed</h4>
-                <p>Premium products and dependable service, every single time.</p>
+                <div class="icon"><i class="fas fa-road"></i></div>
+                <h4>Built for the Road</h4>
+                <p>Our conversions are engineered to handle the rigors of full-time travel with durable construction that stands the test of time and miles.</p>
             </div>
         </div>
     </div>
