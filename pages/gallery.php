@@ -6,7 +6,7 @@
 
 $hero = getHero('gallery');
 
-$photoMeta = [
+$legacyPhotoMeta = [
     '20200615_134615_fx.jpg' => ['caption' => 'Shuttle bus conversion exterior with custom roof rack and solar setup', 'category' => 'completed', 'featured' => true],
     '20210508_162602.jpg' => ['caption' => 'Custom kitchen with live-edge countertop, tile backsplash, and pine paneling', 'category' => 'interiors', 'featured' => true],
     '20210518_213104.jpg' => ['caption' => 'Bedroom area with queen bed, mini-split climate control, and overhead storage', 'category' => 'interiors', 'featured' => true],
@@ -22,49 +22,76 @@ $photoMeta = [
 ];
 
 $galleryItems = [];
-$photoSourceDirs = [
-    __DIR__ . '/../uploads/images/wuzabus_photos' => 'uploads/images/wuzabus_photos/',
-    __DIR__ . '/../wuzabus_photos' => 'wuzabus_photos/',
-];
-$photoMap = [];
-foreach ($photoSourceDirs as $diskDir => $webPrefix) {
-    $photoFiles = glob($diskDir . '/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
-    sort($photoFiles);
-    foreach ($photoFiles as $photoFile) {
-        $baseName = basename($photoFile);
-        if (!isset($photoMap[$baseName])) {
-            $photoMap[$baseName] = $webPrefix . $baseName;
-        }
+$db = getDB();
+
+try {
+    $stmt = $db->query('SELECT * FROM gallery_items WHERE is_active = 1 ORDER BY sort_order ASC, id DESC');
+    $rows = $stmt->fetchAll();
+    foreach ($rows as $row) {
+        $isVideo = ($row['media_type'] ?? 'image') === 'video';
+        $mediaPath = ltrim((string)($row['media_path'] ?? ''), '/');
+        $mediaSrc = str_starts_with($mediaPath, '../')
+            ? substr($mediaPath, 3)
+            : 'uploads/' . $mediaPath;
+        $galleryItems[] = [
+            'type' => $isVideo ? 'video' : 'image',
+            'src' => $mediaSrc,
+            'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg',
+            'caption' => $row['caption'] ?: 'TheWuzaBus project media',
+            'category' => $row['category'] ?: ($isVideo ? 'videos' : 'completed'),
+            'featured' => !empty($row['featured']),
+        ];
     }
-}
-ksort($photoMap);
-foreach ($photoMap as $baseName => $webPath) {
-    $meta = $photoMeta[$baseName] ?? [
-        'caption' => 'TheWuzaBus project photo: ' . pathinfo($baseName, PATHINFO_FILENAME),
-        'category' => 'completed',
-        'featured' => false,
-    ];
-    $galleryItems[] = [
-        'type' => 'image',
-        'src' => $webPath,
-        'caption' => $meta['caption'],
-        'category' => $meta['category'],
-        'featured' => (bool)($meta['featured'] ?? false),
-    ];
+} catch (Throwable $e) {
+    // Table may not exist yet; fall back to legacy files below.
 }
 
-$videoFiles = glob(__DIR__ . '/../uploads/videos/*.{mp4,webm,mov,m4v,MP4,WEBM,MOV,M4V}', GLOB_BRACE) ?: [];
-sort($videoFiles);
-foreach ($videoFiles as $videoFile) {
-    $baseName = basename($videoFile);
-    $galleryItems[] = [
-        'type' => 'video',
-        'src' => 'uploads/videos/' . $baseName,
-        'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg',
-        'caption' => 'TheWuzaBus build video: ' . str_replace(['_', '-'], ' ', pathinfo($baseName, PATHINFO_FILENAME)),
-        'category' => 'videos',
-        'featured' => false,
+// Backward-compatible fallback for existing installs with static gallery assets only.
+if (empty($galleryItems)) {
+    $photoSourceDirs = [
+        __DIR__ . '/../uploads/images/wuzabus_photos' => 'uploads/images/wuzabus_photos/',
+        __DIR__ . '/../wuzabus_photos' => 'wuzabus_photos/',
     ];
+    $photoMap = [];
+    foreach ($photoSourceDirs as $diskDir => $webPrefix) {
+        $photoFiles = glob($diskDir . '/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
+        sort($photoFiles);
+        foreach ($photoFiles as $photoFile) {
+            $baseName = basename($photoFile);
+            if (!isset($photoMap[$baseName])) {
+                $photoMap[$baseName] = $webPrefix . $baseName;
+            }
+        }
+    }
+    ksort($photoMap);
+    foreach ($photoMap as $baseName => $webPath) {
+        $meta = $legacyPhotoMeta[$baseName] ?? [
+            'caption' => 'TheWuzaBus project photo: ' . pathinfo($baseName, PATHINFO_FILENAME),
+            'category' => 'completed',
+            'featured' => false,
+        ];
+        $galleryItems[] = [
+            'type' => 'image',
+            'src' => $webPath,
+            'caption' => $meta['caption'],
+            'category' => $meta['category'],
+            'featured' => (bool)($meta['featured'] ?? false),
+        ];
+    }
+
+    $videoFiles = glob(__DIR__ . '/../uploads/videos/*.{mp4,webm,mov,m4v,MP4,WEBM,MOV,M4V}', GLOB_BRACE) ?: [];
+    sort($videoFiles);
+    foreach ($videoFiles as $videoFile) {
+        $baseName = basename($videoFile);
+        $galleryItems[] = [
+            'type' => 'video',
+            'src' => 'uploads/videos/' . $baseName,
+            'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg',
+            'caption' => 'TheWuzaBus build video: ' . str_replace(['_', '-'], ' ', pathinfo($baseName, PATHINFO_FILENAME)),
+            'category' => 'videos',
+            'featured' => false,
+        ];
+    }
 }
 
 $categories = [
