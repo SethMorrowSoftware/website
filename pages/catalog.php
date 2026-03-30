@@ -20,7 +20,7 @@ $wuzabusPlaceholderProducts = [
     ['name' => 'Victron Energy System Package', 'category' => 'Electrical', 'price' => null, 'price_note' => 'Request Quote', 'request_quote_only' => true, 'image' => 'wuzabus_photos/20241129_191724.jpg'],
     ['name' => 'MaxxAir Fan Install', 'category' => 'Electrical', 'price' => '$650', 'price_note' => 'Parts + labor', 'request_quote_only' => false, 'image' => 'wuzabus_photos/20230519_100424.jpg'],
     ['name' => 'Custom Kitchen Build', 'category' => 'Interior Build', 'price' => null, 'price_note' => 'Request Quote', 'request_quote_only' => true, 'image' => 'wuzabus_photos/20200508_215108.jpg'],
-    ['name' => 'Solar Array Roof Prep Kit', 'category' => 'Interior Build', 'price' => '$249', 'price_note' => 'Buy it now sample item', 'request_quote_only' => false, 'image' => 'wuzabus_photos/20250420_104130.jpg'],
+    ['name' => 'Solar Array Roof Prep Kit', 'category' => 'Interior Build', 'price' => '$249', 'price_note' => 'Parts included', 'request_quote_only' => false, 'image' => 'wuzabus_photos/20250420_104130.jpg'],
 ];
 $hasVisibleProducts = false;
 ?>
@@ -172,9 +172,9 @@ $hasVisibleProducts = false;
             <div class="product-category-section" data-category="all">
                 <h3 style="margin-bottom: var(--space-sm); padding-top: var(--space-xl);">
                     <i class="fas fa-store" style="color: var(--color-secondary);"></i>
-                    Sample WuzaBus Services
+                    Our Services
                 </h3>
-                <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);">Your catalog is empty right now. Here are placeholder offerings so the storefront does not appear blank.</p>
+                <p style="color: var(--color-gray-600); margin-bottom: var(--space-xl);">Explore our bus conversion and off-grid living services below.</p>
                 <div class="grid grid-3">
                     <?php foreach ($wuzabusPlaceholderProducts as $placeholder): ?>
                         <div class="card fade-in">
@@ -188,14 +188,12 @@ $hasVisibleProducts = false;
                             <div class="card-footer">
                                 <div>
                                     <span class="card-price"><?php echo e($placeholder['price'] ?: 'Request a Quote'); ?></span>
-                                    <?php if (!empty($placeholder['price_note'])): ?>
+                                    <?php if (!empty($placeholder['price_note']) && empty($placeholder['request_quote_only'])): ?>
                                         <br><span class="card-unit"><?php echo e($placeholder['price_note']); ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if (!empty($placeholder['request_quote_only'])): ?>
                                     <a href="<?php echo url('index.php?page=order'); ?>" class="btn btn-sm btn-primary">Request a Quote</a>
-                                <?php elseif ($_cartEnabled): ?>
-                                    <button type="button" class="btn btn-sm btn-primary" disabled title="Placeholder item only">Buy It Now</button>
                                 <?php else: ?>
                                     <a href="<?php echo url('index.php?page=contact'); ?>" class="btn btn-sm btn-primary">Inquire</a>
                                 <?php endif; ?>

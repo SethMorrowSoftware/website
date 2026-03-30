@@ -124,10 +124,12 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
                 <span class="gallery-hero-stat-number"><?php echo $totalPhotos; ?></span>
                 <span class="gallery-hero-stat-label">Photos</span>
             </div>
+            <?php if ($totalVideos > 0): ?>
             <div class="gallery-hero-stat">
                 <span class="gallery-hero-stat-number"><?php echo $totalVideos; ?></span>
                 <span class="gallery-hero-stat-label">Videos</span>
             </div>
+            <?php endif; ?>
             <div class="gallery-hero-stat">
                 <span class="gallery-hero-stat-number">20+</span>
                 <span class="gallery-hero-stat-label">Builds Completed</span>
@@ -194,13 +196,11 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
         <div class="section-header fade-in">
             <h2>Browse Gallery</h2>
             <p>Filter by category or media type</p>
-            <?php if ($totalVideos === 0): ?>
-                <p class="gallery-video-hint"><i class="fas fa-info-circle"></i> No videos uploaded yet. Add MP4/WebM files in <code>uploads/videos</code> and they will appear automatically.</p>
-            <?php endif; ?>
         </div>
 
         <div class="gallery-filter-bar fade-in">
             <?php foreach ($categories as $key => $cat): ?>
+                <?php if ($key === 'videos' && $totalVideos === 0) continue; ?>
                 <button class="gallery-filter-btn <?php echo $key === 'all' ? 'active' : ''; ?>" data-filter="<?php echo e($key); ?>">
                     <i class="fas <?php echo e($cat['icon']); ?>"></i>
                     <span><?php echo e($cat['label']); ?></span>
