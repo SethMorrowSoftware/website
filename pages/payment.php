@@ -10,11 +10,10 @@ $swipesimpleLink = getSetting('swipesimple_link');
 $swipesimpleEmbed = getSetting('swipesimple_embed');
 ?>
 
+<?php $defaultHeroImage = 'wuzabus_photos/20240515_151250.jpg'; ?>
 <!-- Hero -->
 <section class="hero">
-    <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e($hero['background_image']); ?>');"></div>
-    <?php endif; ?>
+    <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'] ?? $defaultHeroImage)); ?>');"></div>
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? 'Payment'); ?></h1>
