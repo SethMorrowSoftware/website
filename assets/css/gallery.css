@@ -165,19 +165,6 @@
     color: var(--color-white);
 }
 
-.gallery-video-hint {
-    margin-top: var(--space-sm);
-    color: var(--color-gray-600);
-    font-size: var(--text-sm);
-}
-
-.gallery-video-hint code {
-    background: var(--color-gray-100);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-sm);
-    padding: 2px 6px;
-}
-
 /* ---- Masonry Gallery Grid ---- */
 .gallery-masonry {
     display: grid;
