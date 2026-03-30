@@ -12,6 +12,29 @@ requirePermission('manage_hero');
 
 $db = getDB();
 
+/**
+ * Ensure hero rows exist so the admin screen is never blank on older installs.
+ */
+function ensureHeroSections(PDO $db): void {
+    if (!$db->query('SELECT COUNT(*) FROM hero_sections')->fetchColumn()) {
+        $defaults = [
+            'home' => 'Home',
+            'about' => 'About Us',
+            'catalog' => 'Our Services',
+            'gallery' => 'Gallery',
+            'contact' => 'Contact Us',
+            'order' => 'Get a Quote',
+        ];
+
+        $stmt = $db->prepare('INSERT INTO hero_sections (page_slug, title, subtitle, overlay_opacity, is_active) VALUES (?, ?, ?, 0.5, 1)');
+        foreach ($defaults as $slug => $title) {
+            $stmt->execute([$slug, $title, '']);
+        }
+    }
+}
+
+ensureHeroSections($db);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     $heroId = (int)($_POST['hero_id'] ?? 0);
     $title = trim($_POST['title'] ?? '');
@@ -42,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
     redirect('admin/hero.php');
 }
 
-$heroes = $db->query('SELECT * FROM hero_sections ORDER BY id')->fetchAll();
+$heroes = $db->query('SELECT * FROM hero_sections ORDER BY page_slug ASC, id ASC')->fetchAll();
 $csrfToken = generateCSRFToken();
 
 require_once __DIR__ . '/header.php';

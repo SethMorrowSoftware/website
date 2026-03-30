@@ -50,6 +50,9 @@ $totalUnread = $unread['contacts'] + $unread['orders'];
         <a href="<?php echo url('admin/hero.php'); ?>" class="<?php echo $adminPage === 'hero' ? 'active' : ''; ?>">
             <i class="fas fa-image"></i> Hero Sections
         </a>
+        <a href="<?php echo url('admin/gallery.php'); ?>" class="<?php echo $adminPage === 'gallery' ? 'active' : ''; ?>">
+            <i class="fas fa-images"></i> Gallery
+        </a>
         <a href="<?php echo url('admin/navigation.php'); ?>" class="<?php echo $adminPage === 'navigation' ? 'active' : ''; ?>">
             <i class="fas fa-bars"></i> Navigation
         </a>
