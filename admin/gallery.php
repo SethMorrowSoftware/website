@@ -22,6 +22,64 @@ $categories = [
     'videos' => 'Videos',
 ];
 
+/**
+ * Backfill gallery_items from legacy photo/video folders so existing media
+ * appears immediately in the new admin gallery manager.
+ */
+function bootstrapGalleryFromLegacy(PDO $db): void {
+    $hasItems = (int)$db->query('SELECT COUNT(*) FROM gallery_items')->fetchColumn();
+    if ($hasItems > 0) return;
+
+    $insertStmt = $db->prepare('INSERT INTO gallery_items (media_path, media_type, caption, category, featured, sort_order, is_active) VALUES (?, ?, ?, ?, 0, 0, 1)');
+
+    $photoDirs = [
+        __DIR__ . '/../uploads/images/wuzabus_photos' => 'images/wuzabus_photos/',
+        __DIR__ . '/../wuzabus_photos' => '../wuzabus_photos/',
+    ];
+
+    foreach ($photoDirs as $diskDir => $pathPrefix) {
+        $files = glob($diskDir . '/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE) ?: [];
+        sort($files);
+        foreach ($files as $file) {
+            $base = basename($file);
+            $relativePath = $pathPrefix . $base;
+            $check = $db->prepare('SELECT COUNT(*) FROM gallery_items WHERE media_path = ?');
+            $check->execute([$relativePath]);
+            if ((int)$check->fetchColumn() > 0) continue;
+
+            $insertStmt->execute([
+                $relativePath,
+                'image',
+                pathinfo($base, PATHINFO_FILENAME),
+                'completed',
+            ]);
+        }
+    }
+
+    $videoFiles = glob(__DIR__ . '/../uploads/videos/*.{mp4,webm,mov,m4v,MP4,WEBM,MOV,M4V}', GLOB_BRACE) ?: [];
+    sort($videoFiles);
+    foreach ($videoFiles as $file) {
+        $base = basename($file);
+        $relativePath = 'videos/' . $base;
+        $check = $db->prepare('SELECT COUNT(*) FROM gallery_items WHERE media_path = ?');
+        $check->execute([$relativePath]);
+        if ((int)$check->fetchColumn() > 0) continue;
+
+        $insertStmt->execute([
+            $relativePath,
+            'video',
+            pathinfo($base, PATHINFO_FILENAME),
+            'videos',
+        ]);
+    }
+}
+
+try {
+    bootstrapGalleryFromLegacy($db);
+} catch (Throwable $e) {
+    // Non-fatal: if bootstrap fails, uploads/edits still function.
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     // Upload new gallery files
     if (!empty($_FILES['gallery_files'])) {
@@ -88,7 +146,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $item = $stmt->fetch();
 
         if ($item) {
-            $filePath = UPLOADS_PATH . '/' . ltrim($item['media_path'], '/');
+            $mediaPath = ltrim($item['media_path'], '/');
+            if (str_starts_with($mediaPath, '../')) {
+                $filePath = BASE_PATH . '/' . substr($mediaPath, 3);
+            } else {
+                $filePath = UPLOADS_PATH . '/' . $mediaPath;
+            }
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
@@ -143,11 +206,17 @@ require_once __DIR__ . '/header.php';
             <?php foreach ($galleryItems as $item): $isVideo = ($item['media_type'] === 'video'); ?>
                 <div class="media-item">
                     <div class="media-preview">
+                        <?php
+                        $mediaPath = ltrim($item['media_path'], '/');
+                        $mediaUrl = str_starts_with($mediaPath, '../')
+                            ? url(substr($mediaPath, 3))
+                            : url('uploads/' . $mediaPath);
+                        ?>
                         <?php if ($isVideo): ?>
-                            <video src="<?php echo e(url('uploads/' . $item['media_path'])); ?>" muted></video>
+                            <video src="<?php echo e($mediaUrl); ?>" muted></video>
                             <div class="media-type-badge"><i class="fas fa-video"></i></div>
                         <?php else: ?>
-                            <img src="<?php echo e(url('uploads/' . $item['media_path'])); ?>" alt="<?php echo e($item['caption'] ?: 'Gallery image'); ?>">
+                            <img src="<?php echo e($mediaUrl); ?>" alt="<?php echo e($item['caption'] ?: 'Gallery image'); ?>">
                         <?php endif; ?>
                     </div>
                     <form method="POST" class="media-info" style="padding: 0.75rem;">

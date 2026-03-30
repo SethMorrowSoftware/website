@@ -24,20 +24,26 @@ $legacyPhotoMeta = [
 $galleryItems = [];
 $db = getDB();
 
-if (tableExists($db, 'gallery_items')) {
+try {
     $stmt = $db->query('SELECT * FROM gallery_items WHERE is_active = 1 ORDER BY sort_order ASC, id DESC');
     $rows = $stmt->fetchAll();
     foreach ($rows as $row) {
         $isVideo = ($row['media_type'] ?? 'image') === 'video';
+        $mediaPath = ltrim((string)($row['media_path'] ?? ''), '/');
+        $mediaSrc = str_starts_with($mediaPath, '../')
+            ? substr($mediaPath, 3)
+            : 'uploads/' . $mediaPath;
         $galleryItems[] = [
             'type' => $isVideo ? 'video' : 'image',
-            'src' => 'uploads/' . ltrim($row['media_path'], '/'),
+            'src' => $mediaSrc,
             'thumbnail' => 'wuzabus_photos/20200615_134615_fx.jpg',
             'caption' => $row['caption'] ?: 'TheWuzaBus project media',
             'category' => $row['category'] ?: ($isVideo ? 'videos' : 'completed'),
             'featured' => !empty($row['featured']),
         ];
     }
+} catch (Throwable $e) {
+    // Table may not exist yet; fall back to legacy files below.
 }
 
 // Backward-compatible fallback for existing installs with static gallery assets only.
