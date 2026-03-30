@@ -12,11 +12,10 @@ $categories = $_catalogEnabled ? getCategories() : [];
 $totalProducts = $_catalogEnabled ? getDB()->query('SELECT COUNT(*) FROM products WHERE is_visible = 1 AND deleted_at IS NULL')->fetchColumn() : 0;
 ?>
 
+<?php $defaultHeroImage = 'wuzabus_photos/20201231_153022.jpg'; ?>
 <!-- Hero -->
 <section class="hero">
-    <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'])); ?>');"></div>
-    <?php endif; ?>
+    <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'] ?? $defaultHeroImage)); ?>');"></div>
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? 'About Us'); ?></h1>

@@ -110,11 +110,10 @@ $totalVideos = count(array_filter($galleryItems, fn($i) => $i['type'] === 'video
 
 <link rel="stylesheet" href="<?php echo asset('css/gallery.css'); ?>">
 
+<?php $defaultHeroImage = 'wuzabus_photos/20200615_134615_fx.jpg'; ?>
 <!-- Hero -->
 <section class="hero">
-    <?php if ($hero && $hero['background_image']): ?>
-        <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'])); ?>');"></div>
-    <?php endif; ?>
+    <div class="hero-image" style="background-image: url('<?php echo e(getImageUrl($hero['background_image'] ?? $defaultHeroImage)); ?>');"></div>
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1><?php echo e($hero['title'] ?? 'Our Work'); ?></h1>
