@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
             option.addEventListener('click', function() {
                 serviceOptions.forEach(function(o) { o.classList.remove('selected'); });
                 this.classList.add('selected');
-                this.querySelector('input[type="radio"]').checked = true;
+                var radio = this.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
                 updateCategoryOptions();
             });
         });

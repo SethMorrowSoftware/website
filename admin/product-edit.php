@@ -24,7 +24,7 @@ $categories = $db->query('SELECT * FROM product_categories ORDER BY sort_order')
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     $name = trim($_POST['name'] ?? '');
-    $slug = createSlug($_POST['slug'] ?? $name);
+    $slug = generateUniqueSlug('products', $_POST['slug'] ?? $name, $id ?: null);
     $category_id = (int)($_POST['category_id'] ?? 0);
     $description = trim($_POST['description'] ?? '');
     $price = trim($_POST['price'] ?? '');

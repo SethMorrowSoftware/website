@@ -41,7 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         $_SESSION['admin_flash'] = ['type' => 'success', 'message' => 'Bulk action completed.'];
     }
 
-    redirect('admin/blog-comments.php' . (!empty($_GET['status']) ? '?status=' . $_GET['status'] : ''));
+    // Preserve the status filter across the redirect, but only for known
+    // values so an arbitrary query string can't be reflected back.
+    $statusFilter = in_array($_GET['status'] ?? '', ['pending', 'approved'], true) ? $_GET['status'] : '';
+    redirect('admin/blog-comments.php' . ($statusFilter ? '?status=' . $statusFilter : ''));
 }
 
 // Filters

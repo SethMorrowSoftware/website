@@ -27,7 +27,7 @@ if ($id) {
 // Handle save
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     $title = trim($_POST['title'] ?? '');
-    $slug = createSlug($_POST['slug'] ?? $title);
+    $slug = generateUniqueSlug('pages', $_POST['slug'] ?? $title, $id ?: null);
     $content = sanitizeHtml($_POST['content'] ?? '');
     $blocksJson = $_POST['blocks_json'] ?? '';
     $editorMode = $_POST['editor_mode'] ?? 'classic';

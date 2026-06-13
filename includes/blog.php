@@ -269,18 +269,10 @@ function saveBlogPost(array $data): int {
         $data['status'] = 'draft';
     }
 
-    $slug = createSlug($data['title']);
-    // Ensure unique slug
-    if ($id) {
-        $existing = $db->prepare('SELECT id FROM blog_posts WHERE slug = ? AND id != ?');
-        $existing->execute([$slug, $id]);
-    } else {
-        $existing = $db->prepare('SELECT id FROM blog_posts WHERE slug = ?');
-        $existing->execute([$slug]);
-    }
-    if ($existing->fetch()) {
-        $slug .= '-' . time();
-    }
+    // Ensure unique slug (appends -2, -3, … on collision rather than a
+    // timestamp, which avoided same-second collisions poorly and produced
+    // unfriendly URLs).
+    $slug = generateUniqueSlug('blog_posts', $data['title'], $id ?: null);
 
     // Auto-generate excerpt from content if empty
     $excerpt = trim($data['excerpt'] ?? '');
@@ -489,18 +481,7 @@ function getBlogCategoryById(int $id): ?array {
 function saveBlogCategory(array $data): int {
     $db = getDB();
     $id = (int)($data['id'] ?? 0);
-    $slug = createSlug($data['name']);
-
-    if ($id) {
-        $existing = $db->prepare('SELECT id FROM blog_categories WHERE slug = ? AND id != ?');
-        $existing->execute([$slug, $id]);
-    } else {
-        $existing = $db->prepare('SELECT id FROM blog_categories WHERE slug = ?');
-        $existing->execute([$slug]);
-    }
-    if ($existing->fetch()) {
-        $slug .= '-' . time();
-    }
+    $slug = generateUniqueSlug('blog_categories', $data['name'], $id ?: null);
 
     if ($id) {
         $stmt = $db->prepare('UPDATE blog_categories SET name = ?, slug = ?, description = ?, image = ?, sort_order = ?, is_visible = ? WHERE id = ?');

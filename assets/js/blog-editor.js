@@ -129,7 +129,13 @@
                 if (!file.url) return;
                 var item = document.createElement('div');
                 item.style.cssText = 'cursor:pointer;border:2px solid transparent;border-radius:8px;overflow:hidden;aspect-ratio:1;';
-                item.innerHTML = '<img src="' + file.url + '" style="width:100%;height:100%;object-fit:cover;" alt="' + (file.name || '') + '">';
+                // Build the thumbnail with the DOM API so a filename containing
+                // quotes/markup can't break out of the alt attribute.
+                var thumb = document.createElement('img');
+                thumb.src = file.url;
+                thumb.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                thumb.alt = file.name || '';
+                item.appendChild(thumb);
                 item.addEventListener('click', function() {
                     if (!sourceMode && editorArea) {
                         editorArea.focus();

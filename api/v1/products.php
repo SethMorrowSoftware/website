@@ -88,13 +88,9 @@ function handleCreateProduct(): void {
         }
     }
 
-    $slug = createSlug($data['name']);
-    // Ensure unique slug
-    $existing = $db->prepare('SELECT COUNT(*) FROM products WHERE slug = ?');
-    $existing->execute([$slug]);
-    if ((int)$existing->fetchColumn() > 0) {
-        $slug .= '-' . substr(bin2hex(random_bytes(3)), 0, 6);
-    }
+    // Ensure unique slug (appends -2, -3, … on collision instead of a random
+    // suffix that was never re-checked for a second collision).
+    $slug = generateUniqueSlug('products', $data['name']);
 
     $stmt = $db->prepare(
         'INSERT INTO products (category_id, name, slug, description, price, unit, product_type, specifications, features, price_note, is_visible, is_available) '

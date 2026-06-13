@@ -146,6 +146,27 @@ if ($eventType === 'payment.completed' || $eventType === 'payment.updated') {
     }
 
     if ($paymentStatus === 'COMPLETED') {
+        // Defense-in-depth: validate the captured amount/currency against the
+        // order total before finalizing (parity with the Stripe webhook).
+        // Square payment links charge a fixed amount, so a mismatch indicates a
+        // misrouted payment — skip rather than mark the order paid. Only enforced
+        // when the payload carries amount_money, to stay compatible with event
+        // variants that omit it.
+        $amountMoney = $payment['amount_money'] ?? [];
+        $paidAmountCents = (int)($amountMoney['amount'] ?? 0);
+        $paidCurrency = strtolower($amountMoney['currency'] ?? '');
+        $expectedAmountCents = (int)round((float)$order['total'] * 100);
+        $expectedCurrency = strtolower(getSetting('currency_code', 'usd'));
+
+        if ($paidAmountCents > 0 && ($paidAmountCents !== $expectedAmountCents || $paidCurrency !== $expectedCurrency)) {
+            error_log('[SQUARE WEBHOOK] Amount/currency mismatch for order #' . $order['order_number'] . ': '
+                . 'paid=' . $paidAmountCents . ' ' . $paidCurrency
+                . ' expected=' . $expectedAmountCents . ' ' . $expectedCurrency);
+            http_response_code(200);
+            echo json_encode(['ok' => true, 'message' => 'Amount mismatch — skipped']);
+            exit;
+        }
+
         // Use shared idempotent finalizer
         $finalized = finalizePaidOrder($order['id'], $paymentId, 'square');
         if ($finalized) {
