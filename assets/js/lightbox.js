@@ -89,13 +89,26 @@
         if (!stage || !item) return;
         stage.innerHTML = '';
 
+        // Build media nodes with the DOM API rather than innerHTML string
+        // concatenation so a caption/src containing quotes or markup cannot
+        // break out of an attribute and inject HTML.
         if (item.type === 'video') {
-            stage.innerHTML = '<video class="lightbox-media lightbox-video" controls playsinline preload="metadata">' +
-                '<source src="' + item.src + '">' +
-                'Your browser does not support the video tag.' +
-                '</video>';
+            var video = document.createElement('video');
+            video.className = 'lightbox-media lightbox-video';
+            video.controls = true;
+            video.playsInline = true;
+            video.preload = 'metadata';
+            var source = document.createElement('source');
+            source.src = item.src;
+            video.appendChild(source);
+            video.appendChild(document.createTextNode('Your browser does not support the video tag.'));
+            stage.appendChild(video);
         } else {
-            stage.innerHTML = '<img class="lightbox-media lightbox-img" src="' + item.src + '" alt="' + (item.caption || '') + '">';
+            var img = document.createElement('img');
+            img.className = 'lightbox-media lightbox-img';
+            img.src = item.src;
+            img.alt = item.caption || '';
+            stage.appendChild(img);
         }
 
         overlay.querySelector('.lightbox-counter').textContent = (currentIndex + 1) + ' / ' + mediaItems.length;

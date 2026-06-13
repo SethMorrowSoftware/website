@@ -368,6 +368,60 @@ function createSlug(string $text): string {
 }
 
 /**
+ * Generate a slug that is unique within the given table.
+ *
+ * Starts from createSlug($text) and, if that value already exists,
+ * appends -2, -3, … until an unused slug is found.  When editing an
+ * existing row, pass its id as $excludeId so the row does not collide
+ * with itself.
+ *
+ * This prevents the unhandled UNIQUE-constraint violation that occurs
+ * when two records resolve to the same slug (e.g. two products both
+ * named "Big Bus"), which previously surfaced as a fatal 500 and lost
+ * the admin's unsaved work.
+ *
+ * $table is validated against a fixed allowlist because table names
+ * cannot be bound as prepared-statement parameters.
+ */
+function generateUniqueSlug(string $table, string $text, ?int $excludeId = null): string {
+    static $allowed = [
+        'pages', 'products', 'product_categories',
+        'blog_posts', 'blog_categories', 'blog_tags',
+    ];
+    if (!in_array($table, $allowed, true)) {
+        throw new InvalidArgumentException('Unsupported table for slug generation: ' . $table);
+    }
+
+    $base = createSlug($text);
+    if ($base === '') {
+        $base = 'item';
+    }
+
+    $db = getDB();
+    if ($excludeId !== null) {
+        $stmt = $db->prepare("SELECT COUNT(*) FROM `$table` WHERE slug = ? AND id != ?");
+        $exists = static function (string $slug) use ($stmt, $excludeId): bool {
+            $stmt->execute([$slug, $excludeId]);
+            return (int)$stmt->fetchColumn() > 0;
+        };
+    } else {
+        $stmt = $db->prepare("SELECT COUNT(*) FROM `$table` WHERE slug = ?");
+        $exists = static function (string $slug) use ($stmt): bool {
+            $stmt->execute([$slug]);
+            return (int)$stmt->fetchColumn() > 0;
+        };
+    }
+
+    $slug = $base;
+    $suffix = 2;
+    while ($exists($slug)) {
+        $slug = $base . '-' . $suffix;
+        $suffix++;
+    }
+    return $slug;
+}
+
+/**
  * Handle file upload
  */
 function handleUpload(array $file, string $subdir = 'images'): ?string {
@@ -583,12 +637,15 @@ function getCartTotals(): array {
         $itemCount += $item['quantity'];
     }
     $taxRate = (float)getSetting('tax_rate', '0');
-    $tax = $subtotal * ($taxRate / 100);
+    // Round monetary values to 2 decimals so in-memory totals match the
+    // DECIMAL(10,2) columns they are persisted into and the amounts shown
+    // to customers / sent to payment gateways.
+    $tax = round($subtotal * ($taxRate / 100), 2);
     return [
-        'subtotal' => $subtotal,
+        'subtotal' => round($subtotal, 2),
         'tax' => $tax,
         'tax_rate' => $taxRate,
-        'total' => $subtotal + $tax,
+        'total' => round($subtotal + $tax, 2),
         'item_count' => $itemCount,
     ];
 }

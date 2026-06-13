@@ -4,7 +4,7 @@ A self-contained PHP/MySQL content management system for small businesses. Manag
 
 ## Requirements
 
-- PHP 8.0 or higher
+- PHP 8.1 or higher
 - MySQL 5.7+ or MariaDB 10.3+
 - Apache with `mod_rewrite` enabled
 - PHP extensions: `pdo_mysql`, `fileinfo`, `mbstring`, `session`, `curl`
@@ -474,6 +474,16 @@ Drop and recreate the database, then reload the site. A fresh schema will be app
 ```bash
 mysql -u cms_user -p -e "DROP DATABASE business_cms; CREATE DATABASE business_cms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
+
+## Testing
+
+A lightweight test suite covers the side-effect-free helpers (no database required). Run all suites with:
+
+```bash
+php tests/run.php
+```
+
+Or run an individual suite directly, e.g. `php tests/sanitize_html_test.php` or `php tests/pure_functions_test.php`. Each suite exits non-zero on failure. The same lint + test steps run automatically in CI (`.github/workflows/ci.yml`) on every push and pull request.
 
 ## Maintenance Mode
 

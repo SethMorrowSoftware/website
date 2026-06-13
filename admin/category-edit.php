@@ -22,7 +22,7 @@ if ($id) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'] ?? '')) {
     $name = trim($_POST['name'] ?? '');
-    $slug = createSlug($_POST['slug'] ?? $name);
+    $slug = generateUniqueSlug('product_categories', $_POST['slug'] ?? $name, $id ?: null);
     $description = trim($_POST['description'] ?? '');
     $icon = trim($_POST['icon'] ?? 'fa-tag');
     $is_visible = isset($_POST['is_visible']) ? 1 : 0;
